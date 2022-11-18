@@ -11,9 +11,8 @@
 <style scoped>
     div {
         width: 12.5%;
-        height: 12.5%;
+        height: 100%;
 
-        border: 1px solid black;
-        background-color: grey; 
+        display: inline-block;
     }
 </style>

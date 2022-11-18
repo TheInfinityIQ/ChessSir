@@ -6,7 +6,7 @@ import Square from "./Square.vue";
     <section>
         <div class="rank">
             <Square class="light" />
-            <Square class="dark"/>
+            <Square class="dark" />
             <Square class="light" />
             <Square class="dark" />
             <Square class="light" />
@@ -96,8 +96,18 @@ import Square from "./Square.vue";
 
 <style scoped>
 /* Make responsive */
-article {
+section {
     width: 800px;
     height: 800px;
+}
+
+.rank {
+    height: 12.5%;
+
+    display: block;
+}
+
+.light {
+    background-color: grey;
 }
 </style>

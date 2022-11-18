@@ -4,7 +4,7 @@ import Board from "./components/Board.vue";
 
 <template>
     <article class="board-container">
-        <Board />
+        <Board class="board" />
     </article>
 </template>
 
@@ -16,5 +16,10 @@ import Board from "./components/Board.vue";
     border: 1px solid pink;
 
     display: flex;
+}
+
+.board {
+    width: 100%;
+    height: 100%;
 }
 </style>
