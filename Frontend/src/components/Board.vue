@@ -107,7 +107,11 @@ section {
     display: block;
 }
 
-.light {
+.dark {
     background-color: grey;
+}
+
+.pink {
+    background-color: pink;
 }
 </style>
