@@ -1,96 +1,13 @@
 <script setup lang="ts">
+import { squares } from "@/scripts/board_setup";
 import Square from "./Square.vue";
 </script>
 
 <template>
     <section>
-        <div class="rank">
-            <Square class="light" />
-            <Square class="dark" />
-            <Square class="light" />
-            <Square class="dark" />
-            <Square class="light" />
-            <Square class="dark" />
-            <Square class="light" />
-            <Square class="dark" />
-        </div>
-
-        <div class="rank">
-            <Square class="dark" />
-            <Square class="light" />
-            <Square class="dark" />
-            <Square class="light" />
-            <Square class="dark" />
-            <Square class="light" />
-            <Square class="dark" />
-            <Square class="light" />
-        </div>
-
-        <div class="rank">
-            <Square class="light" />
-            <Square class="dark" />
-            <Square class="light" />
-            <Square class="dark" />
-            <Square class="light" />
-            <Square class="dark" />
-            <Square class="light" />
-            <Square class="dark" />
-        </div>
-
-        <div class="rank">
-            <Square class="dark" />
-            <Square class="light" />
-            <Square class="dark" />
-            <Square class="light" />
-            <Square class="dark" />
-            <Square class="light" />
-            <Square class="dark" />
-            <Square class="light" />
-        </div>
-
-        <div class="rank">
-            <Square class="light" />
-            <Square class="dark" />
-            <Square class="light" />
-            <Square class="dark" />
-            <Square class="light" />
-            <Square class="dark" />
-            <Square class="light" />
-            <Square class="dark" />
-        </div>
-
-        <div class="rank">
-            <Square class="dark" />
-            <Square class="light" />
-            <Square class="dark" />
-            <Square class="light" />
-            <Square class="dark" />
-            <Square class="light" />
-            <Square class="dark" />
-            <Square class="light" />
-        </div>
-
-        <div class="rank">
-            <Square class="light" />
-            <Square class="dark" />
-            <Square class="light" />
-            <Square class="dark" />
-            <Square class="light" />
-            <Square class="dark" />
-            <Square class="light" />
-            <Square class="dark" />
-        </div>
-
-        <div class="rank">
-            <Square class="dark" />
-            <Square class="light" />
-            <Square class="dark" />
-            <Square class="light" />
-            <Square class="dark" />
-            <Square class="light" />
-            <Square class="dark" />
-            <Square class="light" />
-        </div>
+        <li v-for="square in squares">
+            <Square :id="square.id" :colour="square.colour"/>
+        </li>
     </section>
 </template>
 
@@ -106,12 +23,31 @@ section {
 
     display: block;
 }
-
 .dark {
     background-color: grey;
 }
 
-.pink {
-    background-color: pink;
+.wk {
+    background-image: url("../assets/wk.png");
+}
+
+.wn {
+    background-image: url("../assets/wn.png");
+}
+
+.wb {
+    background-image: url("../assets/wb.png");
+}
+
+.wp {
+    background-image: url("../assets/wp.png");
+}
+
+.wq {
+    background-image: url("../assets/wq.png");
+}
+
+.wr {
+    background-image: url("../assets/wr.png");
 }
 </style>
