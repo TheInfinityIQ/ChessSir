@@ -9,17 +9,4 @@ import Board from "./components/Board.vue";
 </template>
 
 <style scoped>
-.board-container {
-    width: 40vw;
-    height: 40vw;
-
-    border: 1px solid pink;
-
-    display: flex;
-}
-
-.board {
-    width: 100%;
-    height: 100%;
-}
 </style>

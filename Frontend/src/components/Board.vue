@@ -4,25 +4,28 @@ import Square from "./Square.vue";
 </script>
 
 <template>
-    <section>
+    <article>
         <li v-for="square in squares">
-            <Square :id="square.id" :colour="square.colour"/>
+            <Square :id="square.id" :colour="square.colour" />
         </li>
-    </section>
+    </article>
 </template>
 
 <style scoped>
-/* Make responsive */
-section {
-    width: 800px;
-    height: 800px;
+article {
+    width: 40vw;
+    height: 40vw;
+
+    border: 1px solid pink;
+
+    display: flex;
+    flex-flow: row;
+    flex-wrap: wrap;
+    align-content: flex-start;
+
+    padding: 0;
 }
 
-.rank {
-    height: 12.5%;
-
-    display: block;
-}
 .dark {
     background-color: grey;
 }

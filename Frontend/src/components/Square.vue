@@ -3,19 +3,19 @@ defineProps({
     colour: Number,
     id: Number
 })
+
+
 </script>
 
 <template>
-    <div>
-
-    </div>
+    <div></div>
 </template>
 
 <style scoped>
     div {
-        width: 12.5%;
+        width: 5vw;
+        height: 5vw;
 
-        display: inline-block;
-        border: 1px solid black;
+        background-color: black;
     }
 </style>
