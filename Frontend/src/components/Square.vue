@@ -8,7 +8,7 @@ defineProps({
 </script>
 
 <template>
-    <div></div>
+    <div :class=" { lighter: colour == 0, darker: colour == 1}"></div>
 </template>
 
 <style scoped>
@@ -17,5 +17,13 @@ defineProps({
         height: 5vw;
 
         background-color: black;
+    }
+
+    .lighter {
+        background-color: white;
+    }
+
+    .darker {
+        background-color:black;
     }
 </style>
