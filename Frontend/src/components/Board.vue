@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { squares } from "@/scripts/board_setup";
+import { getSquares } from "@/scripts/board_setup";
 import Square from "./Square.vue";
 </script>
 
 <template>
     <article>
-        <li v-for="square in squares">
+        <li v-for="square in getSquares()">
             <Square :id="square.id" :colour="square.colour" />
         </li>
     </article>
