@@ -26,10 +26,6 @@ article {
     padding: 0;
 }
 
-.dark {
-    background-color: grey;
-}
-
 .wk {
     background-image: url("../assets/wk.png");
 }
