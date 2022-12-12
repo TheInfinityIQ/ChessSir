@@ -6,7 +6,7 @@ import Square from "./Square.vue";
 <template>
     <article>
         <li v-for="square in getSquares()">
-            <Square :id="square.id" :colour="square.colour" />
+            <Square :id="square.id" :colour="square.colour" class="square bp" />
         </li>
     </article>
 </template>
@@ -26,27 +26,57 @@ article {
     padding: 0;
 }
 
-.wk {
-    background-image: url("../assets/wk.png");
+/* White Pieces */
+.wr {
+    background-image: url("../assets/pieces/wr.png");
 }
 
 .wn {
-    background-image: url("../assets/wn.png");
+    background-image: url("../assets/pieces/wn.png");
 }
 
 .wb {
-    background-image: url("../assets/wb.png");
+    background-image: url("../assets/pieces/wb.png");
 }
 
-.wp {
-    background-image: url("../assets/wp.png");
+.wk {
+    background-image: url("../assets/pieces/wk.png");
 }
 
 .wq {
-    background-image: url("../assets/wq.png");
+    background-image: url("../assets/pieces/wq.png");
 }
 
-.wr {
-    background-image: url("../assets/wr.png");
+.wp {
+    background-image: url("../assets/pieces/wp.png");
 }
+
+
+
+
+/* Black Pieces */
+.br {
+    background-image: url("../assets/pieces/br.png");
+}
+
+.bn {
+    background-image: url("../assets/pieces/bn.png");
+}
+
+.bb {
+    background-image: url("../assets/pieces/bb.png");
+}
+
+.bk {
+    background-image: url("../assets/pieces/bk.png");
+}
+
+.bq {
+    background-image: url("../assets/pieces/bq.png");
+}
+
+.bp {
+    background-image: url("../assets/pieces/bp.png");
+}
+
 </style>

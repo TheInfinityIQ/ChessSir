@@ -13,6 +13,9 @@ defineProps({
 div {
     width: 5vw;
     height: 5vw;
+
+    background-position: center;
+    background-size: cover;
 }
 
 .lighter {
