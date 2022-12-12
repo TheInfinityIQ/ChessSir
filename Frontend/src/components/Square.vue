@@ -2,11 +2,12 @@
 defineProps({
     colour: Number,
     id: Number,
+    piece: String
 });
 </script>
 
 <template>
-    <div :class="{ lighter: colour == 0, darker: colour == 1 }"></div>
+    <div :class="{ lighter: colour == 0, darker: colour == 1, piece } "></div>
 </template>
 
 <style scoped>
