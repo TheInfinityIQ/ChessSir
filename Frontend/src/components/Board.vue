@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { getSquares } from "@/scripts/board_setup";
+import { getInitBoardState } from "@/scripts/init";
 import Square from "./Square.vue";
 </script>
 
 <template>
     <article>
         <li v-for="square in getSquares()">
-            <Square :id="square.id" :colour="square.colour" class="square bp" />
+            <Square :id="square.id" :colour="square.colour" class="square" />
         </li>
     </article>
 </template>
@@ -51,9 +52,6 @@ article {
     background-image: url("../assets/pieces/wp.png");
 }
 
-
-
-
 /* Black Pieces */
 .br {
     background-image: url("../assets/pieces/br.png");
@@ -78,5 +76,4 @@ article {
 .bp {
     background-image: url("../assets/pieces/bp.png");
 }
-
 </style>
