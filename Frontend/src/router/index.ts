@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-const router = createRouter({})
+// const router = createRouter()
 
-export default router
+// export default router
