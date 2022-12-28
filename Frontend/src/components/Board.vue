@@ -7,7 +7,7 @@ import Square from "./Square.vue";
 <template>
     <article>
         <li v-for="square in getSquares()">
-            <Square :id="square.id" :colour="square.colour" :piece="square.piece" :class="square.piece" class="square" />
+            <Square :id="square.id" :colour="square.colour" :piece="square.piece" :class="square.piece" />
         </li>
     </article>
 </template>

@@ -7,8 +7,10 @@ const props = defineProps({
     colour: Number,
     id: Number,
     piece: String,
+    selected: Boolean
 });
 
+//May want to consider moving this to Board.vue. Doesn't seem like the squares job to determine if itself is selectable
 for (let index = 0; index < getNumNotEmptyPieces(); index++) {
     if (props.piece == getNotEmptyPieces()[index]) {
         isSelectable = true;
