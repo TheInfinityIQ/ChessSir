@@ -1,6 +1,5 @@
 import { getInitBoardState } from "@/scripts/init";
 const initBoardState: string[][] = getInitBoardState();
-console.log(initBoardState);
 
 let row, column, pieceValue;
 
@@ -22,8 +21,6 @@ const getSquares = () => {
         } else {
             squares[count] = { id: count, colour: ((count % 2) + 1) % 2, piece: pieceValue };
         }
-        
-        console.log(pieceValue);
     }
 
     return squares;
