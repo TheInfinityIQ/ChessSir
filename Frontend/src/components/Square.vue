@@ -1,13 +1,25 @@
 <script setup lang="ts">
-defineProps({
+import { getNotEmptyPieces, getNumNotEmptyPieces } from "@/scripts/staticValues";
+
+let isSelectable = false;
+
+const props = defineProps({
     colour: Number,
     id: Number,
-    piece: String
+    piece: String,
 });
+
+for (let index = 0; index < getNumNotEmptyPieces(); index++) {
+    if (props.piece == getNotEmptyPieces()[index]) {
+        isSelectable = true;
+    }
+}
+
+
 </script>
 
 <template>
-    <div :class="{ lighter: colour == 0, darker: colour == 1, piece } "></div>
+    <div :class="{ lighter: colour == 0, darker: colour == 1, piece, selectable: isSelectable }"></div>
 </template>
 
 <style scoped>
@@ -17,6 +29,10 @@ div {
 
     background-position: center;
     background-size: cover;
+}
+
+.selectable {
+    cursor: grab;
 }
 
 .lighter {
