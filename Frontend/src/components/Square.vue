@@ -6,6 +6,7 @@ let isSelectable = false;
 const props = defineProps({
     colour: Number,
     id: Number,
+    piece: String,
     selected: Boolean
 });
 
