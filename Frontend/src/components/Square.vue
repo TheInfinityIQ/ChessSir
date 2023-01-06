@@ -6,9 +6,12 @@ let isSelectable = false;
 const props = defineProps({
     colour: Number,
     id: Number,
-    piece: String,
     selected: Boolean
 });
+
+const emits = defineEmits({
+
+})
 
 //May want to consider moving this to Board.vue. Doesn't seem like the squares job to determine if itself is selectable
 for (let index = 0; index < getNumNotEmptyPieces(); index++) {
@@ -17,11 +20,10 @@ for (let index = 0; index < getNumNotEmptyPieces(); index++) {
     }
 }
 
-
 </script>
 
 <template>
-    <div :class="{ lighter: colour == 0, darker: colour == 1, piece, selectable: isSelectable }"></div>
+    <div :class="{ lighter: colour == 0, darker: colour == 1, selectable: isSelectable }" @click=""></div>
 </template>
 
 <style scoped>
@@ -43,5 +45,9 @@ div {
 
 .darker {
     background-color: black;
+}
+
+.selected {
+    background-color: rgba(78, 95, 165, 0.7);
 }
 </style>
