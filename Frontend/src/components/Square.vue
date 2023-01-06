@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { getNotEmptyPieces, getNumNotEmptyPieces } from "@/scripts/staticValues";
+import { reactive, ref } from "vue";
 
 let isSelectable = false;
 
@@ -7,7 +8,6 @@ const props = defineProps({
     colour: Number,
     id: Number,
     piece: String,
-    selected: Boolean
 });
 
 const emits = defineEmits({
@@ -21,10 +21,12 @@ for (let index = 0; index < getNumNotEmptyPieces(); index++) {
     }
 }
 
+let isSelected = ref(false);
+
 </script>
 
 <template>
-    <div :class="{ lighter: colour == 0, darker: colour == 1, selectable: isSelectable }" @click=""></div>
+    <div :class="{ lighter: colour == 0, darker: colour == 1, selectable: isSelectable, selected: isSelected }" @click="() => {isSelected = !isSelected}"></div>
 </template>
 
 <style scoped>
