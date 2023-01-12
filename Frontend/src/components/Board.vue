@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { getSquares } from "@/scripts/board_setup";
-import { getInitBoardState } from "@/scripts/init";
 import Square from "./Square.vue";
 </script>
 
