@@ -41,7 +41,6 @@ const getNotEmptyPieces = () => {
 
 const getNumNotEmptyPieces = () => {
     return numOfNotEmptyPieces;
-}
-
+};
 
 export { getNotEmptyPieces, getNumNotEmptyPieces };
