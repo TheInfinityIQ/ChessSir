@@ -12,6 +12,7 @@ import Square from "./Square.vue";
                 :piece="square.piece"
                 :class="square.piece"
             />
+        </li>
     </article>
 </template>
 
