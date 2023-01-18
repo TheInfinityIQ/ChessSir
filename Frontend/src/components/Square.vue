@@ -19,6 +19,7 @@ const props = defineProps({
     piece: String,
 });
 
+
 //May want to consider moving this to Board.vue. Doesn't seem like the squares job to determine if itself is selectable
 for (let index = 0; index < getNumNotEmptyPieces(); index++) {
     if (props.piece == getNotEmptyPieces()[index]) {
@@ -28,7 +29,7 @@ for (let index = 0; index < getNumNotEmptyPieces(); index++) {
 
 let isSelected = ref(false);
 
-const select = () => {    
+const select = () => {
     if (!getIsPieceSelected() || getIdOfSelectedPiece() == props.id) {
         postIdOfSelectedPiece(props.id);
         isSelected.value = !isSelected.value;
