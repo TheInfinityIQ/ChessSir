@@ -33,17 +33,12 @@ const getSquares = () => {
                 colour: count % 2,
                 piece: pieceValue,
             };
-
-            console.log(count);
-            console.log(pieceValue + "one");
         } else {
             squares[count] = {
                 id: count,
                 colour: ((count % 2) + 1) % 2,
                 piece: pieceValue,
             };
-
-            console.log(pieceValue + "two");
         }
     }
 
