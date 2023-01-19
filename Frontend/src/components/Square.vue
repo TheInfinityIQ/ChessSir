@@ -4,6 +4,7 @@ import {
     updateIsPieceSelected,
     getIsPieceSelected,
     getIdOfSelectedPiece,
+    postSelectedPiece,
 } from "@/scripts/state";
 import {
     getNotEmptyPieces,
@@ -19,7 +20,6 @@ const props = defineProps({
     piece: String,
 });
 
-
 //May want to consider moving this to Board.vue. Doesn't seem like the squares job to determine if itself is selectable
 for (let index = 0; index < getNumNotEmptyPieces(); index++) {
     if (props.piece == getNotEmptyPieces()[index]) {
@@ -29,12 +29,43 @@ for (let index = 0; index < getNumNotEmptyPieces(); index++) {
 
 let isSelected = ref(false);
 
+// const select = () => {
+//     if (!getIsPieceSelected() || getIdOfSelectedPiece() == props.id) {
+//         console.log(props.piece);
+//         postIdOfSelectedPiece(props.id);
+//         isSelected.value = !isSelected.value;
+//         updateIsPieceSelected();
+//     }
+// };
+
 const select = () => {
+    if (props.piece == "e") {
+        return;
+    }
+
     if (!getIsPieceSelected() || getIdOfSelectedPiece() == props.id) {
-        postIdOfSelectedPiece(props.id);
+
+        //Check so that it's safe to assert that values are non-null
+        if (
+            props.colour == undefined ||
+            props.id == undefined ||
+            props.piece == undefined
+        ) {
+            console.log(
+                `Inside select() in Square Component\n\nEither props.colour: ${props.colour}\tprops.id: ${props.id}\tprops.piece: ${props.piece} are undefined\nExiting select()`
+            );
+            return;
+        }
+        postSelectedPiece(props.colour!, props.id!, props.piece!, deselect);
+
         isSelected.value = !isSelected.value;
+
         updateIsPieceSelected();
     }
+};
+
+const deselect = () => {
+    isSelected.value = false;
 };
 </script>
 
