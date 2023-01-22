@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import {
-    postIdOfSelectedPiece,
-    updateIsPieceSelected,
-    getIsPieceSelected,
     getIdOfSelectedPiece,
     postSelectedPiece,
+    postDeselect,
 } from "@/scripts/state";
 import {
     getNotEmptyPieces,
@@ -29,22 +27,18 @@ for (let index = 0; index < getNumNotEmptyPieces(); index++) {
 
 let isSelected = ref(false);
 
-// const select = () => {
-//     if (!getIsPieceSelected() || getIdOfSelectedPiece() == props.id) {
-//         console.log(props.piece);
-//         postIdOfSelectedPiece(props.id);
-//         isSelected.value = !isSelected.value;
-//         updateIsPieceSelected();
-//     }
-// };
-
 const select = () => {
+    
+    //To Be Removed --- Will need to remove this once we implement logic. 
     if (props.piece == "e") {
         return;
     }
 
-    if (!getIsPieceSelected() || getIdOfSelectedPiece() == props.id) {
+    if (getIdOfSelectedPiece() == props.id) {
+        isSelected.value = !isSelected.value;
+    }
 
+    if (getIdOfSelectedPiece() != props.id) {
         //Check so that it's safe to assert that values are non-null
         if (
             props.colour == undefined ||
@@ -56,15 +50,15 @@ const select = () => {
             );
             return;
         }
-        postSelectedPiece(props.colour!, props.id!, props.piece!, deselect);
+        isSelected.value = true;
 
-        isSelected.value = !isSelected.value;
+        postSelectedPiece(props.colour!, props.id!, props.piece!);
 
-        updateIsPieceSelected();
+        postDeselect(deselect);
     }
 };
 
-const deselect = () => {
+const deselect = (): void => {
     isSelected.value = false;
 };
 </script>

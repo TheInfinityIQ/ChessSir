@@ -3,36 +3,20 @@ import { reactive, ref } from "vue";
 let idOfSelectedPiece: number;
 let pieceOfSelectedPiece: string;
 let colourOfSelectedPiece: number;
-
-let isPieceSelected: boolean = false;
+let deselect: () => void;
 
 // Get Functions
 // --------------------
 
-const getIsPieceSelected = () => {
-    return isPieceSelected;
-};
-
-const getIdOfSelectedPiece = () => {
+const getIdOfSelectedPiece = (): number => {
     return idOfSelectedPiece;
 };
 
 // Value modifying functions
 // --------------------
 
-const postIdOfSelectedPiece = (id: number | undefined) => {
-    if (!id && id != 0) {
-        console.log(
-            "ID of selected piece is invalid. Exiting postIdOfSelectedPiece()"
-        );
-        return;
-    }
-
-    idOfSelectedPiece = id;
-};
-
-const postSelectedPiece = (colour: number, id: number, piece: string, deselect: () => void) => {
-    if (!id && id != 0 || (colour == undefined || piece == undefined)) {
+const postSelectedPiece = (colour: number, id: number, piece: string): void => {
+    if ((!id && id != 0) || colour == undefined || piece == undefined) {
         console.log(
             "Piece Prop of selected piece is invalid. Exiting postSelectedPiece()"
         );
@@ -44,8 +28,12 @@ const postSelectedPiece = (colour: number, id: number, piece: string, deselect: 
     idOfSelectedPiece = id;
 };
 
-const updateIsPieceSelected = () => {
-    isPieceSelected = !isPieceSelected;
+const postDeselect = (newDeselect: () => void): void => {
+    if (deselect) {
+        deselect();
+    }
+
+    deselect = newDeselect;
 };
 
 // Exports
@@ -53,8 +41,6 @@ const updateIsPieceSelected = () => {
 
 export {
     getIdOfSelectedPiece,
-    postIdOfSelectedPiece,
-    updateIsPieceSelected,
-    getIsPieceSelected,
-    postSelectedPiece
+    postSelectedPiece,
+    postDeselect,
 };
