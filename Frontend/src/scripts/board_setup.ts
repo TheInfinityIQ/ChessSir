@@ -1,3 +1,5 @@
+import type { IPiece } from "./types";
+
 const getInitBoardState = () => {
     return [
         ["br", "bn", "bb", "bq", "bk", "bb", "bn", "br"],
@@ -12,10 +14,10 @@ const getInitBoardState = () => {
 };
 
 const initBoardState: string[][] = getInitBoardState();
-let row, column, pieceValue;
+let row: number, column: number, pieceValue: string;
 
-const getSquares = () => {
-    const squares: { id: number; colour: number; piece: string }[] = [];
+const getSquares: () => IPiece[] = () => {
+    const squares: IPiece[] = [];
 
     let startLightRow = true; // might be useless
     for (let count = 0; count < 64; count++) {
