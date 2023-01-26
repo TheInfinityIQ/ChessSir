@@ -1,18 +1,34 @@
 <script setup lang="ts">
-import { getSquares } from "@/scripts/board_setup";
+import { logBoard, setupBoard, getPieces } from "@/scripts/board";
+import { reactive } from "vue";
 import Square from "./Square.vue";
+
+// const board = reactive()
+
+const printBoard: () => void = () => {
+    logBoard();
+};
+
+const setupGate: () => void = () => {
+    setupBoard();
+};
+
+const updatePiece: () => void = () => {};
 </script>
 
 <template>
     <article>
-        <li v-for="square in getSquares()">
+        <li v-for="square in getPieces()">
             <Square
                 :id="square.id"
                 :colour="square.colour"
                 :piece="square.piece"
                 :class="square.piece"
+                @update-piece="updatePiece"
             />
         </li>
+        <button @click="printBoard">print board</button>
+        <button @click="setupGate">setup board</button>
     </article>
 </template>
 
