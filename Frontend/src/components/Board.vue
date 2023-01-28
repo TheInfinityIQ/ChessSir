@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { logBoard, setupBoard, getPieces } from "@/scripts/board";
+import type { IPiece } from "@/scripts/types";
 import { reactive } from "vue";
 import Square from "./Square.vue";
 
@@ -13,8 +14,7 @@ const setupGame: () => void = () => {
     setupBoard();
 };
 
-const updatePiece: () => void = () => {
-    
+const updatePiece: (props: IPiece) => void = (props: IPiece) => {
 }; 
 </script>
 
