@@ -8,7 +8,7 @@ import {
     getNotEmptyPieces,
     getNumNotEmptyPieces,
 } from "@/scripts/staticValues";
-import { reactive, ref } from "vue";
+import { reactive, ref, type Ref } from "vue";
 
 const props = defineProps({
     colour: Number,
@@ -18,26 +18,27 @@ const props = defineProps({
 
 const emit = defineEmits(["updatePiece"]);
 
-let isSelectable: boolean = false;
-let isSelected: boolean = false;
+let isSelectable: Ref<boolean> = ref(false);
+let isSelected: Ref<boolean> = ref(false);
 
 //May want to consider moving this to Board.vue. Doesn't seem like the squares job to determine if itself is selectable
 for (let index = 0; index < getNumNotEmptyPieces(); index++) {
     if (props.piece == getNotEmptyPieces()[index]) {
-        isSelectable = true;
+        isSelectable.value = true;
     }
 }
 
 const select: () => void = () => {
-    emit("updatePiece");
+    emit("updatePiece", props);
 
     //To Be Removed --- Will need to remove this once we implement logic.
     if (props.piece == "e") {
+        postDeselect(deselect);
         return;
     }
 
     if (getIdOfSelectedPiece() == props.id) {
-        isSelected = !isSelected;
+        isSelected.value = !isSelected.value;
     }
 
     if (getIdOfSelectedPiece() != props.id) {
@@ -52,7 +53,7 @@ const select: () => void = () => {
             );
             return;
         }
-        isSelected = true;
+        isSelected.value = true;
 
         postSelectedPiece(props.colour!, props.id!, props.piece!);
 
@@ -61,7 +62,7 @@ const select: () => void = () => {
 };
 
 const deselect = (): void => {
-    isSelected = false;
+    isSelected.value = false;
 };
 </script>
 
