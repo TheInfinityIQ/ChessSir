@@ -9,11 +9,13 @@ const printBoard: () => void = () => {
     logBoard();
 };
 
-const setupGate: () => void = () => {
+const setupGame: () => void = () => {
     setupBoard();
 };
 
-const updatePiece: () => void = () => {};
+const updatePiece: () => void = () => {
+    
+}; 
 </script>
 
 <template>
@@ -28,7 +30,7 @@ const updatePiece: () => void = () => {};
             />
         </li>
         <button @click="printBoard">print board</button>
-        <button @click="setupGate">setup board</button>
+        <button @click="setupGame">setup board</button>
     </article>
 </template>
 
