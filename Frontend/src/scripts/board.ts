@@ -17,8 +17,6 @@ const setupBoard: () => void = () => {
         board.push(tempRow);
         tempRow = [];
     }
-
-    console.log(board);
 };
 
 const logBoard: () => void = () => {

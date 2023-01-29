@@ -52,15 +52,18 @@ for (let index = 0; index < getNumNotEmptyPieces(); index++) {
 const select: () => void = () => {
     emit("updatePiece", props);
 
+    
     //To Be Removed --- Will need to remove this once we implement logic.
     if (piece == "e") {
+        postSelectedPiece(props.colour!, props.id!, piece!);
         postDeselect(deselect);
-
         return;
     }
 
     if (getIdOfSelectedPiece() == props.id) {
+        console.log("here");
         isSelected.value = !isSelected.value;
+        return;
     }
 
     if (getIdOfSelectedPiece() != props.id) {
