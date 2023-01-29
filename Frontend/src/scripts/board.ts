@@ -27,22 +27,36 @@ const logBoard: () => void = () => {
 
 const getBoard: () => IPiece[][] = () => {
     return board;
-}
+};
 
 const getPieces: () => IPiece[] = () => {
     if (!board[0]) {
         setupBoard();
     }
-    
+
     let pieces: IPiece[] = [];
-    
-    board.forEach(row => {
-        row.forEach(piece => {
+
+    board.forEach((row) => {
+        row.forEach((piece) => {
             pieces.push(piece);
-        })
+        });
     });
 
     return pieces;
-}
+};
 
-export { setupBoard, logBoard, getBoard, getPieces };
+const getPieceType: (id: number) => string = (id: number) => {
+    let pieceType = "Invalid ID";
+
+    board.forEach((row) => {
+        row.forEach((piece) => {
+            if (piece.id == id) {
+                pieceType = piece.piece;
+            }
+        });
+    });
+
+    return pieceType;
+};
+
+export { setupBoard, logBoard, getBoard, getPieces, getPieceType };
