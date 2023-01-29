@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { getPieceType } from "@/scripts/board";
 import {
     getIdOfSelectedPiece,
     postSelectedPiece,
@@ -8,13 +9,33 @@ import {
     getNotEmptyPieces,
     getNumNotEmptyPieces,
 } from "@/scripts/staticValues";
-import { reactive, ref, type Ref } from "vue";
+import { onMounted, reactive, ref, type Ref } from "vue";
 
 const props = defineProps({
     colour: Number,
     id: Number,
-    piece: String,
 });
+
+const ensureValidity: () => any = () => {
+    try {
+        if (
+            props.id! > 63 ||
+            props.id! < 0 ||
+            props.colour! < 0 ||
+            props.colour! > 1
+        ) {
+            throw "invalid piece definition. Either piece ID or colour is invalid onMounted";
+        }
+
+        return;
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+onMounted(ensureValidity());
+
+let piece = getPieceType(props.id!);
 
 const emit = defineEmits(["updatePiece"]);
 
@@ -23,7 +44,7 @@ let isSelected: Ref<boolean> = ref(false);
 
 //May want to consider moving this to Board.vue. Doesn't seem like the squares job to determine if itself is selectable
 for (let index = 0; index < getNumNotEmptyPieces(); index++) {
-    if (props.piece == getNotEmptyPieces()[index]) {
+    if (piece == getNotEmptyPieces()[index]) {
         isSelectable.value = true;
     }
 }
@@ -32,8 +53,9 @@ const select: () => void = () => {
     emit("updatePiece", props);
 
     //To Be Removed --- Will need to remove this once we implement logic.
-    if (props.piece == "e") {
+    if (piece == "e") {
         postDeselect(deselect);
+
         return;
     }
 
@@ -46,7 +68,7 @@ const select: () => void = () => {
         if (
             props.colour == undefined ||
             props.id == undefined ||
-            props.piece == undefined
+            piece == undefined
         ) {
             console.log(
                 `Inside select() in Square Component\n\nEither props.colour: ${props.colour}\tprops.id: ${props.id}\tprops.piece: ${props.piece} are undefined\nExiting select()`
@@ -55,7 +77,7 @@ const select: () => void = () => {
         }
         isSelected.value = true;
 
-        postSelectedPiece(props.colour!, props.id!, props.piece!);
+        postSelectedPiece(props.colour!, props.id!, piece!);
 
         postDeselect(deselect);
     }
