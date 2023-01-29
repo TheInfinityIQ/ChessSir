@@ -73,7 +73,7 @@ const select: () => void = () => {
             piece == undefined
         ) {
             console.log(
-                `Inside select() in Square Component\n\nEither props.colour: ${props.colour}\tprops.id: ${props.id}\tprops.piece: ${props.piece} are undefined\nExiting select()`
+                `Inside select() in Square Component\n\nEither props.colour: ${props.colour}\tprops.id: ${props.id}\tprops.piece: ${piece} are undefined\nExiting select()`
             );
             return;
         }
