@@ -61,7 +61,6 @@ const select: () => void = () => {
     }
 
     if (getIdOfSelectedPiece() == props.id) {
-        console.log("here");
         isSelected.value = !isSelected.value;
         return;
     }
