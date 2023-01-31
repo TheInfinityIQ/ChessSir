@@ -3,10 +3,16 @@ import { reactive, ref } from "vue";
 let idOfSelectedPiece: number;
 let pieceOfSelectedPiece: string;
 let colourOfSelectedPiece: number;
+let isPieceSelected: boolean;
 let deselect: () => void;
 
 // Get Functions
 // --------------------
+
+const getIsPieceSelected = (): boolean => {
+
+    return false;
+}
 
 const getIdOfSelectedPiece = (): number => {
     return idOfSelectedPiece;
@@ -14,6 +20,10 @@ const getIdOfSelectedPiece = (): number => {
 
 // Value modifying functions
 // --------------------
+
+const postIsPieceSelected = (isSelected: boolean): void => {
+    isPieceSelected = isSelected;
+}
 
 const postSelectedPiece = (colour: number, id: number, piece: string): void => {
     if ((!id && id != 0) || colour == undefined || piece == undefined) {
@@ -43,4 +53,6 @@ export {
     getIdOfSelectedPiece,
     postSelectedPiece,
     postDeselect,
+    getIsPieceSelected,
+    postIsPieceSelected
 };
