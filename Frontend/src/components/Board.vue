@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { logBoard, setupBoard, getPieces } from "@/scripts/board";
+import { logBoard, setupBoard, getPieces, getBoard } from "@/scripts/board";
 import type { IPiece } from "@/scripts/types";
-import { reactive } from "vue";
+import { onMounted, reactive } from "vue";
 import Square from "./Square.vue";
 
 // const board = reactive()
@@ -14,20 +14,24 @@ const setupGame: () => void = () => {
     setupBoard();
 };
 
-const updatePiece: (props: IPiece) => void = (props: IPiece) => {
-}; 
+onMounted(setupGame);
+
+let state = reactive({
+    board: getBoard(),
+    pieces: getPieces()
+});
+
 </script>
 
 <template>
     <article>
-        <li v-for="square in getPieces()">
-            <Square
-                :id="square.id"
-                :colour="square.colour"
-                :piece="square.piece"
-                :class="square.piece"
-                @update-piece="updatePiece"
-            />
+        <li v-for="row in state.board" class="parentList">
+            <li v-for="square in row">
+                <Square
+                    :id="square.id"
+                    :colour="square.colour"
+                />
+            </li>
         </li>
         <button @click="printBoard">print board</button>
         <button @click="setupGame">setup board</button>
@@ -44,58 +48,14 @@ article {
     display: flex;
     flex-flow: row;
     flex-wrap: wrap;
+    flex-direction: row;
     align-content: flex-start;
 
     padding: 0;
 }
 
-/* White Pieces */
-.wr {
-    background-image: url("../assets/pieces/wr.png");
+.parentList {
+    display: flex;
 }
 
-.wn {
-    background-image: url("../assets/pieces/wn.png");
-}
-
-.wb {
-    background-image: url("../assets/pieces/wb.png");
-}
-
-.wk {
-    background-image: url("../assets/pieces/wk.png");
-}
-
-.wq {
-    background-image: url("../assets/pieces/wq.png");
-}
-
-.wp {
-    background-image: url("../assets/pieces/wp.png");
-}
-
-/* Black Pieces */
-.br {
-    background-image: url("../assets/pieces/br.png");
-}
-
-.bn {
-    background-image: url("../assets/pieces/bn.png");
-}
-
-.bb {
-    background-image: url("../assets/pieces/bb.png");
-}
-
-.bk {
-    background-image: url("../assets/pieces/bk.png");
-}
-
-.bq {
-    background-image: url("../assets/pieces/bq.png");
-}
-
-.bp {
-    background-image: url("../assets/pieces/bp.png");
-}
 </style>
