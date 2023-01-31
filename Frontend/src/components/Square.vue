@@ -9,7 +9,7 @@ import {
     getNotEmptyPieces,
     getNumNotEmptyPieces,
 } from "@/scripts/staticValues";
-import { onMounted, reactive, ref, type Ref } from "vue";
+import { onMounted, ref, type Ref } from "vue";
 
 const props = defineProps({
     colour: Number,
@@ -33,29 +33,24 @@ const ensureValidity: () => any = () => {
     }
 };
 
-onMounted(ensureValidity());
+onMounted(ensureValidity);
 
-let piece = getPieceType(props.id!);
-
-const emit = defineEmits(["updatePiece"]);
+let pieceRef = ref(getPieceType(props.id!));
 
 let isSelectable: Ref<boolean> = ref(false);
 let isSelected: Ref<boolean> = ref(false);
 
 //May want to consider moving this to Board.vue. Doesn't seem like the squares job to determine if itself is selectable
 for (let index = 0; index < getNumNotEmptyPieces(); index++) {
-    if (piece == getNotEmptyPieces()[index]) {
+    if (pieceRef.value == getNotEmptyPieces()[index]) {
         isSelectable.value = true;
     }
 }
 
 const select: () => void = () => {
-    emit("updatePiece", props);
-
-    
     //To Be Removed --- Will need to remove this once we implement logic.
-    if (piece == "e") {
-        postSelectedPiece(props.colour!, props.id!, piece!);
+    if (pieceRef.value == "e") {
+        postSelectedPiece(props.colour!, props.id!, pieceRef.value!);
         postDeselect(deselect);
         return;
     }
@@ -70,16 +65,16 @@ const select: () => void = () => {
         if (
             props.colour == undefined ||
             props.id == undefined ||
-            piece == undefined
+            pieceRef.value == undefined
         ) {
             console.log(
-                `Inside select() in Square Component\n\nEither props.colour: ${props.colour}\tprops.id: ${props.id}\tprops.piece: ${piece} are undefined\nExiting select()`
+                `Inside select() in Square Component\n\nEither props.colour: ${props.colour}\tprops.id: ${props.id}\tprops.piece: ${pieceRef.value} are undefined\nExiting select()`
             );
             return;
         }
         isSelected.value = true;
 
-        postSelectedPiece(props.colour!, props.id!, piece!);
+        postSelectedPiece(props.colour!, props.id!, pieceRef.value!);
 
         postDeselect(deselect);
     }
@@ -92,12 +87,15 @@ const deselect = (): void => {
 
 <template>
     <div
-        :class="{
-            lighter: colour == 0,
-            darker: colour == 1,
-            selectable: isSelectable,
-            selected: isSelected,
-        }"
+        :class="[
+            {
+                lighter: colour == 0,
+                darker: colour == 1,
+                selectable: isSelectable,
+                selected: isSelected,
+            },
+            pieceRef,
+        ]"
         @click="select"
     ></div>
 </template>
@@ -125,5 +123,55 @@ div {
 
 .selected {
     background-color: rgba(78, 95, 165, 0.7);
+}
+
+/* White Pieces */
+.wr {
+    background-image: url("../assets/pieces/wr.png");
+}
+
+.wn {
+    background-image: url("../assets/pieces/wn.png");
+}
+
+.wb {
+    background-image: url("../assets/pieces/wb.png");
+}
+
+.wk {
+    background-image: url("../assets/pieces/wk.png");
+}
+
+.wq {
+    background-image: url("../assets/pieces/wq.png");
+}
+
+.wp {
+    background-image: url("../assets/pieces/wp.png");
+}
+
+/* Black Pieces */
+.br {
+    background-image: url("../assets/pieces/br.png");
+}
+
+.bn {
+    background-image: url("../assets/pieces/bn.png");
+}
+
+.bb {
+    background-image: url("../assets/pieces/bb.png");
+}
+
+.bk {
+    background-image: url("../assets/pieces/bk.png");
+}
+
+.bq {
+    background-image: url("../assets/pieces/bq.png");
+}
+
+.bp {
+    background-image: url("../assets/pieces/bp.png");
 }
 </style>
