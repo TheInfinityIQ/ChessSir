@@ -26,7 +26,7 @@ let state = reactive({
 <template>
     <article>
         <li v-for="row in state.board" class="parentList">
-            <li v-for="square in row">
+            <li v-for="square in row" class="square-container">
                 <Square
                     :id="square.id"
                     :colour="square.colour"
@@ -39,23 +39,16 @@ let state = reactive({
 </template>
 
 <style scoped>
-article {
-    width: 40vw;
-    height: 40vw;
-
-    border: 1px solid pink;
+.parentList {
+    width: 100%;
+    height: 12.5%;
 
     display: flex;
-    flex-flow: row;
-    flex-wrap: wrap;
-    flex-direction: row;
-    align-content: flex-start;
-
-    padding: 0;
 }
 
-.parentList {
-    display: flex;
+.square-container {
+    width: 12.5%;
+    height: 100%;
 }
 
 </style>
