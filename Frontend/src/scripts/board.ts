@@ -1,5 +1,5 @@
 import { getSquares } from "./board_setup";
-import type { IPiece } from "./types";
+import type { IPiece, npVoid } from "./types";
 
 let board: IPiece[][] = [];
 
@@ -7,7 +7,7 @@ const boardSize: number = 64; // Could be updated for larger board sizes in futu
 const root: number = Math.sqrt(boardSize);
 const initPieces: IPiece[] = getSquares();
 
-const setupBoard: () => void = () => {
+const setupBoard: npVoid = () => {
     let tempRow: IPiece[] = [];
 
     for (let row = 0; row < root; row++) {
@@ -19,7 +19,7 @@ const setupBoard: () => void = () => {
     }
 };
 
-const logBoard: () => void = () => {
+const logBoard: npVoid = () => {
     console.log(board);
 };
 
@@ -56,5 +56,9 @@ const getPieceType: (id: number) => string = (id: number) => {
 
     return pieceType;
 };
+
+const updateBoard: npVoid = () => {
+
+}
 
 export { setupBoard, logBoard, getBoard, getPieces, getPieceType };
