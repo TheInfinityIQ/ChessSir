@@ -1,29 +1,31 @@
-import { reactive, ref } from "vue";
+import { reactive, ref, type Ref } from "vue";
+import type { npVoid, npString, refVoid } from "./types";
 
 let idOfSelectedPiece: number;
 let pieceOfSelectedPiece: string;
 let colourOfSelectedPiece: number;
-let isPieceSelected: boolean;
+
+let idOfPreviousPiece: number;
+let pieceOfPreviousPiece: string;
+let colourOfPreviousPiece: number;
+
+let pieceRef: Ref<string>;
+
 let deselect: () => void;
 
 // Get Functions
 // --------------------
 
-const getIsPieceSelected = (): boolean => {
-
-    return false;
-}
-
 const getIdOfSelectedPiece = (): number => {
     return idOfSelectedPiece;
 };
 
+const getPreviousPiece: npString = () => {
+    return pieceOfPreviousPiece;
+};
+
 // Value modifying functions
 // --------------------
-
-const postIsPieceSelected = (isSelected: boolean): void => {
-    isPieceSelected = isSelected;
-}
 
 const postSelectedPiece = (colour: number, id: number, piece: string): void => {
     if ((!id && id != 0) || colour == undefined || piece == undefined) {
@@ -33,11 +35,24 @@ const postSelectedPiece = (colour: number, id: number, piece: string): void => {
         return;
     }
 
-    colourOfSelectedPiece = colour;
-    pieceOfSelectedPiece = piece;
+    if (
+        idOfSelectedPiece ||
+        (idOfSelectedPiece == 0 &&
+            pieceOfSelectedPiece &&
+            colourOfSelectedPiece) ||
+        colourOfSelectedPiece == 0
+    ) {
+        idOfPreviousPiece = idOfSelectedPiece;
+        pieceOfPreviousPiece = pieceOfSelectedPiece;
+        colourOfPreviousPiece = colourOfSelectedPiece;
+    }
+
     idOfSelectedPiece = id;
+    pieceOfSelectedPiece = piece;
+    colourOfSelectedPiece = colour;
 };
 
+//TODO: UPDATE NAME TO MAKE MORE SENSE
 const postDeselect = (newDeselect: () => void): void => {
     if (deselect) {
         deselect();
@@ -46,13 +61,34 @@ const postDeselect = (newDeselect: () => void): void => {
     deselect = newDeselect;
 };
 
+const postPieceReference: refVoid = (newPieceRef: Ref<string>) => {
+    if (pieceRef) {
+        pieceRef.value = pieceOfPreviousPiece;
+    }
+    
+    pieceRef = newPieceRef;
+}
+
+// Debug
+// --------------------
+
+const printPiece = () => {
+    console.log(pieceOfSelectedPiece);
+};
+
+const printPreviousPiece = () => {
+    return;
+};
+
 // Exports
 // --------------------
 
 export {
     getIdOfSelectedPiece,
+    getPreviousPiece,
     postSelectedPiece,
+    postPieceReference,
     postDeselect,
-    getIsPieceSelected,
-    postIsPieceSelected
+    printPiece,
+    printPreviousPiece,
 };
