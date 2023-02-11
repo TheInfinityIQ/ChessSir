@@ -7,7 +7,7 @@ import {
     printPiece,
     printPreviousPiece,
     getPreviousPiece,
-    postPieceReference,
+    postPieceRef,
 } from "@/scripts/state";
 import {
     getNotEmptyPieces,
@@ -54,7 +54,7 @@ for (let index = 0; index < getNumNotEmptyPieces(); index++) {
 
 const select: npVoid = () => {
     //TODO: MAKE WORK BASED ON IF PIECE IS SELECTED
-    postPieceReference(pieceRef);
+    postPieceRef(pieceRef);
 
     //To Be Removed --- Will need to remove this once we implement logic.
     if (pieceRef.value == "e") {

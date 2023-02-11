@@ -61,7 +61,7 @@ const postDeselect = (newDeselect: () => void): void => {
     deselect = newDeselect;
 };
 
-const postPieceReference: refVoid = (newPieceRef: Ref<string>) => {
+const postPieceRef: refVoid = (newPieceRef: Ref<string>) => {
     if (pieceRef) {
         pieceRef.value = pieceOfPreviousPiece;
     }
@@ -87,7 +87,7 @@ export {
     getIdOfSelectedPiece,
     getPreviousPiece,
     postSelectedPiece,
-    postPieceReference,
+    postPieceRef,
     postDeselect,
     printPiece,
     printPreviousPiece,
