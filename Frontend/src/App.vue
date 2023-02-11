@@ -11,8 +11,8 @@ import Board from "./components/Board.vue";
 <style scoped>
 .board-container {
     /* Doesn't adjust in expected way */
-    width: 500px;
-    height: 500px;
+    width: 1000px;
+    height: 1000px;
 
     border: 1px solid pink;
 
