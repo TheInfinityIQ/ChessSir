@@ -1,17 +1,22 @@
 <script setup lang="ts">
 import { logBoard, setupBoard, getPieces, getBoard } from "@/scripts/board";
-import type { IPiece } from "@/scripts/types";
+import { printPiece } from "@/scripts/state";
+import type { IPiece, npVoid } from "@/scripts/types";
 import { onMounted, reactive } from "vue";
 import Square from "./Square.vue";
 
 // const board = reactive()
 
-const printBoard: () => void = () => {
+const printBoard: npVoid = () => {
     logBoard();
 };
 
-const setupGame: () => void = () => {
+const setupGame: npVoid = () => {
     setupBoard();
+};
+
+const updatePiece: npVoid = () => {
+    printPiece();
 };
 
 onMounted(setupGame);
@@ -35,6 +40,7 @@ let state = reactive({
         </li>
         <button @click="printBoard">print board</button>
         <button @click="setupGame">setup board</button>
+        <button @click="updatePiece">print Piece</button>
     </article>
 </template>
 
@@ -50,5 +56,4 @@ let state = reactive({
     width: 12.5%;
     height: 100%;
 }
-
 </style>
