@@ -4,11 +4,16 @@ import {
     getIdOfSelectedPiece,
     postSelectedPiece,
     postDeselect,
+    printPiece,
+    printPreviousPiece,
+    getPreviousPiece,
+    postPieceReference,
 } from "@/scripts/state";
 import {
     getNotEmptyPieces,
     getNumNotEmptyPieces,
 } from "@/scripts/staticValues";
+import type { npAny, npVoid, stringVoid } from "@/scripts/types";
 import { onMounted, ref, type Ref } from "vue";
 
 const props = defineProps({
@@ -16,7 +21,7 @@ const props = defineProps({
     id: Number,
 });
 
-const ensureValidity: () => any = () => {
+const ensureValidity: npAny = () => {
     try {
         if (
             props.id! > 63 ||
@@ -35,7 +40,7 @@ const ensureValidity: () => any = () => {
 
 onMounted(ensureValidity);
 
-let pieceRef = ref(getPieceType(props.id!));
+let pieceRef: Ref<string> = ref(getPieceType(props.id!));
 
 let isSelectable: Ref<boolean> = ref(false);
 let isSelected: Ref<boolean> = ref(false);
@@ -47,11 +52,17 @@ for (let index = 0; index < getNumNotEmptyPieces(); index++) {
     }
 }
 
-const select: () => void = () => {
+const select: npVoid = () => {
+    //TODO: MAKE WORK BASED ON IF PIECE IS SELECTED
+    postPieceReference(pieceRef);
+
     //To Be Removed --- Will need to remove this once we implement logic.
     if (pieceRef.value == "e") {
         postSelectedPiece(props.colour!, props.id!, pieceRef.value!);
         postDeselect(deselect);
+
+        //TODO: MAKE WORK BASED ON IF PIECE IS SELECTED
+        updatePiece();
         return;
     }
 
@@ -75,13 +86,17 @@ const select: () => void = () => {
         isSelected.value = true;
 
         postSelectedPiece(props.colour!, props.id!, pieceRef.value!);
-
         postDeselect(deselect);
     }
 };
 
-const deselect = (): void => {
+const deselect: npVoid = () => {
     isSelected.value = false;
+};
+
+const updatePiece: npVoid = () => {
+    console.log(getPreviousPiece());
+    pieceRef.value = getPreviousPiece();
 };
 </script>
 
