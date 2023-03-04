@@ -1,18 +1,7 @@
 <script setup lang="ts">
 import { getPieceType } from "@/scripts/board";
-import {
-    getIdOfSelectedPiece,
-    postSelectedPiece,
-    postDeselect,
-    printPiece,
-    printPreviousPiece,
-    getPreviousPiece,
-    postPieceRef,
-} from "@/scripts/state";
-import {
-    getNotEmptyPieces,
-    getNumNotEmptyPieces,
-} from "@/scripts/staticValues";
+import { getIdOfSelectedPiece, postSelectedPiece, postDeselect, printPiece, printPreviousPiece, getPreviousPiece, postPieceRef } from "@/scripts/state";
+import { getNotEmptyPieces, getNumNotEmptyPieces } from "@/scripts/staticValues";
 import type { npAny, npVoid, stringVoid } from "@/scripts/types";
 import { onMounted, ref, type Ref } from "vue";
 
@@ -23,12 +12,7 @@ const props = defineProps({
 
 const ensureValidity: npAny = () => {
     try {
-        if (
-            props.id! > 63 ||
-            props.id! < 0 ||
-            props.colour! < 0 ||
-            props.colour! > 1
-        ) {
+        if (props.id! > 63 || props.id! < 0 || props.colour! < 0 || props.colour! > 1) {
             throw "invalid piece definition. Either piece ID or colour is invalid onMounted";
         }
 
@@ -53,6 +37,8 @@ for (let index = 0; index < getNumNotEmptyPieces(); index++) {
 }
 
 const select: npVoid = () => {
+    console.log(`Inside Select function on Square.vue\n\n${props.colour}\n${props.id}\n${pieceRef.value}\n`);
+
     //TODO: MAKE WORK BASED ON IF PIECE IS SELECTED
     postPieceRef(pieceRef);
 
@@ -73,11 +59,7 @@ const select: npVoid = () => {
 
     if (getIdOfSelectedPiece() != props.id) {
         //Check so that it's safe to assert that values are non-null
-        if (
-            props.colour == undefined ||
-            props.id == undefined ||
-            pieceRef.value == undefined
-        ) {
+        if (props.colour == undefined || props.id == undefined || pieceRef.value == undefined) {
             console.log(
                 `Inside select() in Square Component\n\nEither props.colour: ${props.colour}\tprops.id: ${props.id}\tprops.piece: ${pieceRef.value} are undefined\nExiting select()`
             );

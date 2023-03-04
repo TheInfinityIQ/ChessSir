@@ -29,19 +29,11 @@ const getPreviousPiece: npString = () => {
 
 const postSelectedPiece = (colour: number, id: number, piece: string): void => {
     if ((!id && id != 0) || colour == undefined || piece == undefined) {
-        console.log(
-            "Piece Prop of selected piece is invalid. Exiting postSelectedPiece()"
-        );
+        console.log("Piece Prop of selected piece is invalid. Exiting postSelectedPiece()");
         return;
     }
 
-    if (
-        idOfSelectedPiece ||
-        (idOfSelectedPiece == 0 &&
-            pieceOfSelectedPiece &&
-            colourOfSelectedPiece) ||
-        colourOfSelectedPiece == 0
-    ) {
+    if (idOfSelectedPiece || (idOfSelectedPiece == 0 && pieceOfSelectedPiece && colourOfSelectedPiece) || colourOfSelectedPiece == 0) {
         idOfPreviousPiece = idOfSelectedPiece;
         pieceOfPreviousPiece = pieceOfSelectedPiece;
         colourOfPreviousPiece = colourOfSelectedPiece;
@@ -65,9 +57,9 @@ const postPieceRef: refVoid = (newPieceRef: Ref<string>) => {
     if (pieceRef) {
         pieceRef.value = pieceOfPreviousPiece;
     }
-    
+
     pieceRef = newPieceRef;
-}
+};
 
 // Debug
 // --------------------
@@ -83,12 +75,4 @@ const printPreviousPiece = () => {
 // Exports
 // --------------------
 
-export {
-    getIdOfSelectedPiece,
-    getPreviousPiece,
-    postSelectedPiece,
-    postPieceRef,
-    postDeselect,
-    printPiece,
-    printPreviousPiece,
-};
+export { getIdOfSelectedPiece, getPreviousPiece, postSelectedPiece, postPieceRef, postDeselect, printPiece, printPreviousPiece };

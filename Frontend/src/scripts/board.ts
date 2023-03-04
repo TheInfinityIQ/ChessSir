@@ -57,8 +57,6 @@ const getPieceType: (id: number) => string = (id: number) => {
     return pieceType;
 };
 
-const updateBoard: npVoid = () => {
-
-}
+const updateBoard: npVoid = () => {};
 
 export { setupBoard, logBoard, getBoard, getPieces, getPieceType };

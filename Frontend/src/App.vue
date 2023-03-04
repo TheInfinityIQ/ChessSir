@@ -29,7 +29,7 @@ const updatePiece: npVoid = () => {
         </nav>
         <section class="body">
             <article class="column-1"></article>
-            <article class="board-container  ">
+            <article class="board-container">
                 <Board class="board" />
             </article>
             <article class="column-3"></article>
