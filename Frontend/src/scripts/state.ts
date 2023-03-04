@@ -1,4 +1,4 @@
-import { reactive, ref, type Ref } from "vue";
+import type { Ref } from "vue";
 import type { npVoid, npString, refVoid } from "./types";
 
 let idOfSelectedPiece: number;
