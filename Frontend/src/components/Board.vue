@@ -1,31 +1,26 @@
 <script setup lang="ts">
 import { logBoard, setupBoard, getPieces, getBoard } from "@/scripts/board";
 import { printPiece } from "@/scripts/state";
-import type { IPiece, npVoid } from "@/scripts/types";
-import { onMounted, reactive } from "vue";
+import { type IPiece, type npVoid } from "@/scripts/types";
+import { nextTick, onMounted, reactive } from "vue";
 import Square from "./Square.vue";
 
-// const board = reactive()
-
-const printBoard: npVoid = () => {
-    logBoard();
-};
-
-const setupGame: npVoid = () => {
-    setupBoard();
-};
-
-const updatePiece: npVoid = () => {
-    printPiece();
-};
-
-onMounted(setupGame);
 
 let state = reactive({
     board: getBoard(),
-    pieces: getPieces()
-});
+    piece: getPieces(),
+})
 
+const setupGame = async () => {
+    
+    await nextTick();
+    
+    state.board = getBoard(),
+    state.piece = getPieces()
+};
+
+
+onMounted(setupGame);
 </script>
 
 <template>
@@ -38,9 +33,6 @@ let state = reactive({
                 />
             </li>
         </li>
-        <button @click="printBoard">print board</button>
-        <button @click="setupGame">setup board</button>
-        <button @click="updatePiece">print Piece</button>
     </article>
 </template>
 
