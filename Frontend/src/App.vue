@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
 import Board from "./components/Board.vue";
-import { logBoard, setupBoard } from "./scripts/board";
+import { boardState, logBoard, setupBoard } from "./scripts/board";
+import { getTestSquares } from "./scripts/board_setup";
 import { printPiece } from "./scripts/state";
-import type { npVoid } from "./scripts/types";
+import type { IPiece, npVoid } from "./scripts/types";
 
 const printBoard: npVoid = () => {
     logBoard();
@@ -17,6 +18,28 @@ const updatePiece: npVoid = () => {
     printPiece();
 };
 
+const printBoardState: npVoid = () => {
+    console.log(boardState);
+};
+
+const testBoardState: npVoid = () => {
+    const testPieces = getTestSquares();
+
+    let tempBoard: IPiece[][] = [];
+
+    let tempRow: IPiece[] = [];
+
+    for (let row = 0; row < 8; row++) {
+        for (let column = 0; column < 8; column++) {
+            tempRow.push(testPieces[row * 8 + column]);
+        }
+        tempBoard.push(tempRow);
+        tempRow = [];
+    }
+
+    boardState.board = tempBoard;
+};
+
 // onMounted(setupGame);
 </script>
 
@@ -26,6 +49,8 @@ const updatePiece: npVoid = () => {
             <button @click="printBoard">print board</button>
             <button @click="setupGame">setup board</button>
             <button @click="updatePiece">print Piece</button>
+            <button @click="printBoardState">print boardState</button>
+            <button @click="testBoardState">test boardState</button>
         </nav>
         <section class="body">
             <article class="column-1"></article>

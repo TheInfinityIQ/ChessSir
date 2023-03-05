@@ -1,35 +1,19 @@
 <script setup lang="ts">
-import { logBoard, setupBoard, getPieces, getBoard } from "@/scripts/board";
-import { printPiece } from "@/scripts/state";
-import { type IPiece, type npVoid } from "@/scripts/types";
-import { nextTick, onMounted, reactive } from "vue";
+import { setupBoard, boardState } from "@/scripts/board";
+import { onMounted, onUpdated } from "vue";
 import Square from "./Square.vue";
 
-
-let state = reactive({
-    board: getBoard(),
-    piece: getPieces(),
-})
-
-const setupGame = async () => {
-    
-    await nextTick();
-    
-    state.board = getBoard(),
-    state.piece = getPieces()
-};
-
-
-onMounted(setupGame);
+setupBoard();
 </script>
 
 <template>
     <article>
-        <li v-for="row in state.board" class="parentList">
+        <li v-for="row in boardState.board" class="parentList">
             <li v-for="square in row" class="square-container">
                 <Square
                     :id="square.id"
                     :colour="square.colour"
+                    :piece="square.piece"
                 />
             </li>
         </li>
@@ -47,5 +31,55 @@ onMounted(setupGame);
 .square-container {
     width: 12.5%;
     height: 100%;
+}
+
+/* White Pieces */
+.wr {
+    background-image: url("../assets/pieces/wr.png");
+}
+
+.wn {
+    background-image: url("../assets/pieces/wn.png");
+}
+
+.wb {
+    background-image: url("../assets/pieces/wb.png");
+}
+
+.wk {
+    background-image: url("../assets/pieces/wk.png");
+}
+
+.wq {
+    background-image: url("../assets/pieces/wq.png");
+}
+
+.wp {
+    background-image: url("../assets/pieces/wp.png");
+}
+
+/* Black Pieces */
+.br {
+    background-image: url("../assets/pieces/br.png");
+}
+
+.bn {
+    background-image: url("../assets/pieces/bn.png");
+}
+
+.bb {
+    background-image: url("../assets/pieces/bb.png");
+}
+
+.bk {
+    background-image: url("../assets/pieces/bk.png");
+}
+
+.bq {
+    background-image: url("../assets/pieces/bq.png");
+}
+
+.bp {
+    background-image: url("../assets/pieces/bp.png");
 }
 </style>

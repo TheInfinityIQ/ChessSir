@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { getPieceType } from "@/scripts/board";
+import { getPieceType, getTestPieceType } from "@/scripts/board";
 import { getIdOfSelectedPiece, postSelectedPiece, postDeselect, printPiece, printPreviousPiece, getPreviousPiece, postPieceRef } from "@/scripts/state";
 import { getNotEmptyPieces, getNumNotEmptyPieces } from "@/scripts/staticValues";
 import type { npAny, npVoid, stringVoid } from "@/scripts/types";
 import { onMounted, ref, type Ref } from "vue";
+import { stringifyQuery } from "vue-router";
 
 const props = defineProps({
     colour: Number,
     id: Number,
+    piece: String
 });
 
 const ensureValidity: npAny = () => {
@@ -24,61 +26,28 @@ const ensureValidity: npAny = () => {
 
 onMounted(ensureValidity);
 
-let pieceRef: Ref<string> = ref(getPieceType(props.id!));
-
 let isSelectable: Ref<boolean> = ref(false);
 let isSelected: Ref<boolean> = ref(false);
 
 //May want to consider moving this to Board.vue. Doesn't seem like the squares job to determine if itself is selectable
 for (let index = 0; index < getNumNotEmptyPieces(); index++) {
-    if (pieceRef.value == getNotEmptyPieces()[index]) {
+    if (props.piece == getNotEmptyPieces()[index]) {
         isSelectable.value = true;
     }
 }
 
 const select: npVoid = () => {
-    console.log(`Inside Select function on Square.vue\n\n${props.colour}\n${props.id}\n${pieceRef.value}\n`);
-
-    //TODO: MAKE WORK BASED ON IF PIECE IS SELECTED
-    postPieceRef(pieceRef);
-
-    //To Be Removed --- Will need to remove this once we implement logic.
-    if (pieceRef.value == "e") {
-        postSelectedPiece(props.colour!, props.id!, pieceRef.value!);
-        postDeselect(deselect);
-
-        //TODO: MAKE WORK BASED ON IF PIECE IS SELECTED
-        updatePiece();
-        return;
-    }
+    isSelected.value = !isSelected.value;
 
     if (getIdOfSelectedPiece() == props.id) {
-        isSelected.value = !isSelected.value;
         return;
     }
 
-    if (getIdOfSelectedPiece() != props.id) {
-        //Check so that it's safe to assert that values are non-null
-        if (props.colour == undefined || props.id == undefined || pieceRef.value == undefined) {
-            console.log(
-                `Inside select() in Square Component\n\nEither props.colour: ${props.colour}\tprops.id: ${props.id}\tprops.piece: ${pieceRef.value} are undefined\nExiting select()`
-            );
-            return;
-        }
-        isSelected.value = true;
-
-        postSelectedPiece(props.colour!, props.id!, pieceRef.value!);
-        postDeselect(deselect);
-    }
+    postDeselect(deselect);
 };
 
 const deselect: npVoid = () => {
     isSelected.value = false;
-};
-
-const updatePiece: npVoid = () => {
-    console.log(getPreviousPiece());
-    pieceRef.value = getPreviousPiece();
 };
 </script>
 
@@ -91,7 +60,7 @@ const updatePiece: npVoid = () => {
                 selectable: isSelectable,
                 selected: isSelected,
             },
-            pieceRef,
+            piece,
         ]"
         @click="select"
     ></div>
@@ -120,55 +89,5 @@ div {
 
 .selected {
     background-color: rgba(78, 95, 165, 0.7);
-}
-
-/* White Pieces */
-.wr {
-    background-image: url("../assets/pieces/wr.png");
-}
-
-.wn {
-    background-image: url("../assets/pieces/wn.png");
-}
-
-.wb {
-    background-image: url("../assets/pieces/wb.png");
-}
-
-.wk {
-    background-image: url("../assets/pieces/wk.png");
-}
-
-.wq {
-    background-image: url("../assets/pieces/wq.png");
-}
-
-.wp {
-    background-image: url("../assets/pieces/wp.png");
-}
-
-/* Black Pieces */
-.br {
-    background-image: url("../assets/pieces/br.png");
-}
-
-.bn {
-    background-image: url("../assets/pieces/bn.png");
-}
-
-.bb {
-    background-image: url("../assets/pieces/bb.png");
-}
-
-.bk {
-    background-image: url("../assets/pieces/bk.png");
-}
-
-.bq {
-    background-image: url("../assets/pieces/bq.png");
-}
-
-.bp {
-    background-image: url("../assets/pieces/bp.png");
 }
 </style>

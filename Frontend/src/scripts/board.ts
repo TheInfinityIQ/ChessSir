@@ -1,7 +1,9 @@
-import { getSquares } from "./board_setup";
+import { reactive } from "vue";
+import { getSquares, getTestSquares } from "./board_setup";
 import type { IPiece, npVoid } from "./types";
 
 let board: IPiece[][] = [];
+let boardState = reactive({ board });
 
 const boardSize: number = 64; // Could be updated for larger board sizes in future;
 const root: number = Math.sqrt(boardSize);
@@ -17,6 +19,8 @@ const setupBoard: npVoid = () => {
         board.push(tempRow);
         tempRow = [];
     }
+
+    boardState.board = board;
 };
 
 const logBoard: npVoid = () => {
@@ -57,6 +61,19 @@ const getPieceType: (id: number) => string = (id: number) => {
     return pieceType;
 };
 
-const updateBoard: npVoid = () => {};
+const getTestPieceType: (id: number) => string = (id: number) => {
+    let pieceType = "Invalid ID";
 
-export { setupBoard, logBoard, getBoard, getPieces, getPieceType };
+    boardState.board.forEach((row) => {
+        row.forEach((piece) => {
+            if (piece.id == id) {
+                pieceType = piece.piece;
+            }
+        });
+    });
+
+    return pieceType;
+};
+
+
+export { setupBoard, logBoard, getBoard, getPieces, getPieceType, boardState, getTestPieceType };

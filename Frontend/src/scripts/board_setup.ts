@@ -47,4 +47,21 @@ const getSquares: () => IPiece[] = () => {
     return squares;
 };
 
-export { getSquares, getInitBoardState };
+const getTestSquares: () => IPiece[] = () => {
+    const squares: IPiece[] = [];
+
+    for (let count = 0; count < 64; count++) {
+        row = Math.trunc(count / 8);
+        column = count % 8;
+
+        squares[count] = {
+            id: count,
+            colour: 0,
+            piece: "wp"
+        }
+    }
+
+    return squares;
+};
+
+export { getSquares, getInitBoardState, getTestSquares };
