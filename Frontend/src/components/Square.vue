@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { getPieceType, getTestPieceType } from "@/scripts/board";
-import { getIdOfSelectedPiece, postSelectedPiece, postDeselect, printPiece, printPreviousPiece, getPreviousPiece, postPieceRef } from "@/scripts/state";
+import { getIdOfSelectedPiece, postSelectedPiece, postDeselect, makeMove, unselectPiece } from "@/scripts/state";
 import { getNotEmptyPieces, getNumNotEmptyPieces } from "@/scripts/staticValues";
-import type { npAny, npVoid, stringVoid } from "@/scripts/types";
+import type { IPiece, npAny, npVoid, stringVoid } from "@/scripts/types";
 import { onMounted, ref, type Ref } from "vue";
 import { stringifyQuery } from "vue-router";
 
 const props = defineProps({
-    colour: Number,
     id: Number,
-    piece: String
+    piece: String,
+    colour: Number,
 });
+
+const square: IPiece = {id: props.id!, piece: props.piece!, colour: props.colour!}
 
 const ensureValidity: npAny = () => {
     try {
@@ -26,6 +28,7 @@ const ensureValidity: npAny = () => {
 
 onMounted(ensureValidity);
 
+//TODO: add property to define selectability
 let isSelectable: Ref<boolean> = ref(false);
 let isSelected: Ref<boolean> = ref(false);
 
@@ -37,13 +40,22 @@ for (let index = 0; index < getNumNotEmptyPieces(); index++) {
 }
 
 const select: npVoid = () => {
-    isSelected.value = !isSelected.value;
-
+    postDeselect(deselect);
+    
     if (getIdOfSelectedPiece() == props.id) {
         return;
     }
+    
+    if (getIdOfSelectedPiece() != props.id && getIdOfSelectedPiece()) {
+        makeMove(square);
+        unselectPiece();
+        return;
+    }
+    
+    postSelectedPiece(square);
+    isSelected.value = !isSelected.value;
 
-    postDeselect(deselect);
+    console.log(square);
 };
 
 const deselect: npVoid = () => {

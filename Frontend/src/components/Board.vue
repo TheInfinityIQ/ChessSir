@@ -4,6 +4,7 @@ import { onMounted, onUpdated } from "vue";
 import Square from "./Square.vue";
 
 setupBoard();
+//TODO update squares based on reactivity
 </script>
 
 <template>
