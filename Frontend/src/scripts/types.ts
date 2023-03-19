@@ -47,6 +47,7 @@ type boolVoid = (param: boolean) => void;
 type stringVoid = (param: string) => void;
 type refVoid = (param: Ref<any>) => void;
 type moveVoid = (param: IMove) => void;
+type numIPiece = (param: number) => void;
 
-export type { IPiece, IMove, npVoid, npAny, npString, npIPiece, moveVoid, refVoid, stringVoid, boolVoid };
+export type { IPiece, IMove, npVoid, npAny, npString, npIPiece, moveVoid, refVoid, stringVoid, boolVoid, numIPiece };
 export { Piece, Move };
