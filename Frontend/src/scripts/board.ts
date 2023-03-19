@@ -1,6 +1,6 @@
 import { reactive } from "vue";
 import { getSquares } from "./board_setup";
-import { Piece, type IPiece, type Move, type moveVoid, type npIPiece, type npVoid, type numIPiece } from "./types";
+import type { IPiece, Move, moveVoid, npVoid, numIPiece } from "./types";
 
 let boardState: IPiece[][] = reactive([]);
 
@@ -74,8 +74,11 @@ const getTestPieceType: (id: number) => string = (id: number) => {
 
 const commitMoveToBoard: moveVoid = (newMove: Move) => {
     // console.log(boardState.board);
-
     let fromSquare: IPiece = newMove.fromSquare;
+    if ((fromSquare.piece == "e")) {
+        console.log("here");
+        return;
+    }    
 
     let fromRow: number = Math.trunc(fromSquare.id / 8);
     let fromColumn: number = fromSquare.id % 8;
@@ -87,10 +90,10 @@ const commitMoveToBoard: moveVoid = (newMove: Move) => {
 
     let toRow: number = Math.trunc(toSquare.id / 8);
     let toColumn: number = toSquare.id % 8;
-
+    
     boardState[toRow][toColumn].piece = fromSquare.piece;
 
-    // 
+    //
     // console.log(boardState);
 };
 

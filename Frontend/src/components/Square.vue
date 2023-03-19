@@ -62,10 +62,7 @@ const select: npVoid = () => {
     }
 
     postSelectedPiece(square);
-    isSelected.value = !isSelected.value;
-
-    console.log(square);
-    
+    isSelected.value = !isSelected.value;    
 };
 
 const deselect: npVoid = () => {
