@@ -22,24 +22,6 @@ const printBoardState: npVoid = () => {
     console.log(boardState);
 };
 
-const testBoardState: npVoid = () => {
-    const testPieces = getTestSquares();
-
-    let tempBoard: IPiece[][] = [];
-
-    let tempRow: IPiece[] = [];
-
-    for (let row = 0; row < 8; row++) {
-        for (let column = 0; column < 8; column++) {
-            tempRow.push(testPieces[row * 8 + column]);
-        }
-        tempBoard.push(tempRow);
-        tempRow = [];
-    }
-
-    boardState.board = tempBoard;
-};
-
 // onMounted(setupGame);
 </script>
 
@@ -50,7 +32,6 @@ const testBoardState: npVoid = () => {
             <button @click="setupGame">setup board</button>
             <button @click="updatePiece">print Piece</button>
             <button @click="printBoardState">print boardState</button>
-            <button @click="testBoardState">test boardState</button>
         </nav>
         <section class="body">
             <article class="column-1"></article>
