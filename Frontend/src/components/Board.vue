@@ -1,20 +1,17 @@
 <script setup lang="ts">
 import { setupBoard, boardState } from "@/scripts/board";
-import { onMounted, onUpdated } from "vue";
 import Square from "./Square.vue";
-
-setupBoard();
-//TODO update squares based on reactivity
 </script>
 
 <template>
     <article>
-        <li v-for="row in boardState.board" class="parentList">
+        <li v-for="row in boardState" class="parentList">
             <li v-for="square in row" class="square-container">
                 <Square
                     :id="square.id"
                     :colour="square.colour"
                     :piece="square.piece"
+                    :key="square.id"
                 />
             </li>
         </li>

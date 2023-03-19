@@ -1,9 +1,8 @@
 import { reactive } from "vue";
-import { getSquares, getTestSquares } from "./board_setup";
-import type { IPiece, Move, moveVoid, npVoid } from "./types";
+import { getSquares } from "./board_setup";
+import { Piece, type IPiece, type Move, type moveVoid, type npIPiece, type npVoid, type numIPiece } from "./types";
 
-let board: IPiece[][] = [];
-let boardState = reactive({ board });
+let boardState: IPiece[][] = reactive([]);
 
 const boardSize: number = 64; // Could be updated for larger board sizes in future;
 const root: number = Math.sqrt(boardSize);
@@ -16,29 +15,27 @@ const setupBoard: npVoid = () => {
         for (let column = 0; column < root; column++) {
             tempRow.push(initPieces[row * root + column]);
         }
-        board.push(tempRow);
+        boardState.push(tempRow);
         tempRow = [];
     }
-
-    boardState.board = board;
 };
 
 const logBoard: npVoid = () => {
-    console.log(board);
+    console.log(boardState);
 };
 
-const getBoard: () => IPiece[][] = () => {
-    return board;
+const getBoard = () => {
+    return [];
 };
 
 const getPieces: () => IPiece[] = () => {
-    if (!board[0]) {
+    if (!boardState[0]) {
         setupBoard();
     }
 
     let pieces: IPiece[] = [];
 
-    board.forEach((row) => {
+    boardState.forEach((row) => {
         row.forEach((piece) => {
             pieces.push(piece);
         });
@@ -50,7 +47,7 @@ const getPieces: () => IPiece[] = () => {
 const getPieceType: (id: number) => string = (id: number) => {
     let pieceType = "Invalid ID";
 
-    board.forEach((row) => {
+    boardState.forEach((row) => {
         row.forEach((piece) => {
             if (piece.id == id) {
                 pieceType = piece.piece;
@@ -64,7 +61,7 @@ const getPieceType: (id: number) => string = (id: number) => {
 const getTestPieceType: (id: number) => string = (id: number) => {
     let pieceType = "Invalid ID";
 
-    boardState.board.forEach((row) => {
+    boardState.forEach((row) => {
         row.forEach((piece) => {
             if (piece.id == id) {
                 pieceType = piece.piece;
@@ -77,23 +74,32 @@ const getTestPieceType: (id: number) => string = (id: number) => {
 
 const commitMoveToBoard: moveVoid = (newMove: Move) => {
     // console.log(boardState.board);
-    
+
     let fromSquare: IPiece = newMove.fromSquare;
-    
+
     let fromRow: number = Math.trunc(fromSquare.id / 8);
     let fromColumn: number = fromSquare.id % 8;
-    
-    boardState.board[fromRow][fromColumn].piece = "e";
-    // console.log(boardState.board);
+
+    boardState[fromRow][fromColumn].piece = "e";
+    // console.log(boardState);
 
     let toSquare: IPiece = newMove.toSquare;
-    
+
     let toRow: number = Math.trunc(toSquare.id / 8);
     let toColumn: number = toSquare.id % 8;
-    
-    boardState.board[toRow][toColumn].piece = fromSquare.piece;
-    // console.log(boardState.board);
+
+    boardState[toRow][toColumn].piece = fromSquare.piece;
+
+    // 
+    // console.log(boardState);
 };
 
-export { setupBoard, logBoard, getBoard, getPieces, getPieceType, commitMoveToBoard, getTestPieceType };
+const getPieceWithId: numIPiece = (id: number) => {
+    let row: number = Math.trunc(id! / 8);
+    let column: number = id! % 8;
+
+    return boardState[row][column].piece;
+};
+
+export { setupBoard, logBoard, getBoard, getPieces, getPieceType, commitMoveToBoard, getTestPieceType, getPieceWithId };
 export { boardState };

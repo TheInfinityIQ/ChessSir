@@ -1,18 +1,25 @@
+<script lang="ts">
+// use normal <script> to declare options
+export default {
+  inheritAttrs: false
+}
+</script>
+
 <script setup lang="ts">
-import { getPieceType, getTestPieceType } from "@/scripts/board";
+import { boardState, getPieceWithId } from "@/scripts/board";
 import { getIdOfSelectedPiece, postSelectedPiece, postDeselect, makeMove, unselectPiece } from "@/scripts/state";
 import { getNotEmptyPieces, getNumNotEmptyPieces } from "@/scripts/staticValues";
-import type { IPiece, npAny, npVoid, stringVoid } from "@/scripts/types";
-import { onMounted, ref, type Ref } from "vue";
+import { Piece, type IPiece, type npAny, type npVoid, type stringVoid } from "@/scripts/types";
+import { onMounted, reactive, ref, type Ref } from "vue";
 import { stringifyQuery } from "vue-router";
 
 const props = defineProps({
     id: Number,
-    piece: String,
     colour: Number,
 });
 
-const square: IPiece = {id: props.id!, piece: props.piece!, colour: props.colour!}
+let row: number = Math.trunc(props.id! / 8);
+let column: number = props.id! % 8;
 
 const ensureValidity: npAny = () => {
     try {
@@ -34,28 +41,31 @@ let isSelected: Ref<boolean> = ref(false);
 
 //May want to consider moving this to Board.vue. Doesn't seem like the squares job to determine if itself is selectable
 for (let index = 0; index < getNumNotEmptyPieces(); index++) {
-    if (props.piece == getNotEmptyPieces()[index]) {
+    if (boardState[row][column].piece == getNotEmptyPieces()[index]) {
         isSelectable.value = true;
     }
 }
 
 const select: npVoid = () => {
     postDeselect(deselect);
-    
+
+    let square = new Piece(props.id!, boardState[row][column].piece, props.colour!);
+
     if (getIdOfSelectedPiece() == props.id) {
         return;
     }
-    
+
     if (getIdOfSelectedPiece() != props.id && getIdOfSelectedPiece()) {
         makeMove(square);
         unselectPiece();
         return;
     }
-    
+
     postSelectedPiece(square);
     isSelected.value = !isSelected.value;
 
     console.log(square);
+    
 };
 
 const deselect: npVoid = () => {
@@ -72,7 +82,7 @@ const deselect: npVoid = () => {
                 selectable: isSelectable,
                 selected: isSelected,
             },
-            piece,
+            boardState[row][column].piece,
         ]"
         @click="select"
     ></div>
