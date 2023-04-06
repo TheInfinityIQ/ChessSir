@@ -13,8 +13,19 @@ let deselect: () => void;
 // Get Functions
 // --------------------
 
-const getIdOfSelectedPiece = (): number |  undefined => {
+const getIdOfSelectedPiece = (): number | undefined => {
     return selectedSquareId;
+};
+
+const getSelectedPiece = (): any => {
+    if (selectedSquareId === undefined && selectedSquarePiece === undefined && selectedSquareColour === undefined) {
+        console.error(
+            `getSelectedPiece was called when selectedSquare values were called.\nselectedSquareId: ${selectedSquareId}selectedSquarePiece: \n${selectedSquarePiece}selectedSquareColour: \n${selectedSquareColour}`
+        );
+        return;
+    }
+
+    return new Piece(selectedSquareId!, selectedSquarePiece!, selectedSquareColour!);
 };
 
 // Value modifying functions
@@ -28,6 +39,7 @@ const postSelectedPiece = (newPiece: IPiece): void => {
 
 //TODO: UPDATE NAME TO MAKE MORE SENSE
 const postDeselect = (newDeselect: () => void): void => {
+    // If deselect is not undefined.
     if (deselect) {
         deselect();
     }
@@ -39,7 +51,7 @@ const unselectPiece: npVoid = () => {
     selectedSquareId = undefined;
     selectedSquarePiece = undefined;
     selectedSquareColour = undefined;
-}
+};
 
 const postPieceRef: refVoid = (newPieceRef: Ref<string>) => {
     if (pieceRef) {
@@ -60,9 +72,7 @@ const makeMove = (newSquare: IPiece) => {
     }
 
     let move: IMove = new Move(selectedIPiece(), newSquare);
-    commitMoveToBoard(move); 
-
-    console.log("move made");
+    commitMoveToBoard(move);
 };
 
 // Debug
@@ -79,4 +89,4 @@ const printPreviousPiece = () => {
 // Exports
 // --------------------
 
-export { getIdOfSelectedPiece, postSelectedPiece, postPieceRef, postDeselect, printPiece, printPreviousPiece, makeMove, unselectPiece };
+export { getIdOfSelectedPiece, getSelectedPiece, postSelectedPiece, postPieceRef, postDeselect, printPiece, printPreviousPiece, makeMove, unselectPiece };
