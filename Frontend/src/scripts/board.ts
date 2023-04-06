@@ -76,7 +76,6 @@ const commitMoveToBoard: moveVoid = (newMove: Move) => {
     // console.log(boardState.board);
     let fromSquare: IPiece = newMove.fromSquare;
     if ((fromSquare.piece == "e")) {
-        console.log("here");
         return;
     }    
 
