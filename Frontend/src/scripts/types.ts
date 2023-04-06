@@ -1,12 +1,22 @@
 import type { Ref } from "vue";
 
-interface IPiece {
+
+// Interfaces
+// --------------------
+export interface IPiece {
     id: number;
     piece: string;
     colour: number;
 }
 
-class Piece implements IPiece {
+export interface IMove {
+    fromSquare: IPiece;
+    toSquare: IPiece;
+}
+
+// Classes
+// --------------------
+export class Piece implements IPiece {
     id: number;
     piece: string;
     colour: number;
@@ -18,13 +28,7 @@ class Piece implements IPiece {
     }
 }
 
-interface IMove {
-    fromSquare: IPiece;
-    toSquare: IPiece;
-}
-
-class Move implements IMove {
-    // Don't need colour and ID information but square is more descriptive and easy to read then fromPiece and toPiece
+export class Move implements IMove {
     fromSquare: IPiece;
     toSquare: IPiece;
 
@@ -34,20 +38,21 @@ class Move implements IMove {
     }
 }
 
-// No Paramaters
+// Type aliases
 // --------------------
 type npAny = () => any;
 type npString = () => string;
 type npVoid = () => void;
 type npIPiece = () => IPiece;
 
-// One Paramater
-// --------------------
 type boolVoid = (param: boolean) => void;
 type stringVoid = (param: string) => void;
 type refVoid = (param: Ref<any>) => void;
 type moveVoid = (param: IMove) => void;
 type numIPiece = (param: number) => void;
+type moveBool = (param: boolean) => boolean;
 
-export type { IPiece, IMove, npVoid, npAny, npString, npIPiece, moveVoid, refVoid, stringVoid, boolVoid, numIPiece };
-export { Piece, Move };
+// Exported types
+// --------------------
+export type { npVoid, npAny, npString, npIPiece };
+export type { boolVoid, stringVoid, refVoid, moveVoid, numIPiece, moveBool };
