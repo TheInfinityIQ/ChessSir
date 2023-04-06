@@ -19,49 +19,22 @@ let row: number, column: number, pieceValue: string;
 const getSquares: () => IPiece[] = () => {
     const squares: IPiece[] = [];
 
-    let startLightRow = true; // might be useless
     for (let count = 0; count < 64; count++) {
-        // 8 takes place of the SquareRoot of the square 2d array
-        row = Math.trunc(count / 8);
+        row = Math.floor(count / 8);
         column = count % 8;
 
         pieceValue = initBoardState[row][column];
 
-        startLightRow = row % 2 < 1;
-
-        if (startLightRow) {
-            squares[count] = {
-                id: count,
-                colour: count % 2,
-                piece: pieceValue,
-            };
-        } else {
-            squares[count] = {
-                id: count,
-                colour: ((count % 2) + 1) % 2,
-                piece: pieceValue,
-            };
-        }
-    }
-
-    return squares;
-};
-
-const getTestSquares: () => IPiece[] = () => {
-    const squares: IPiece[] = [];
-
-    for (let count = 0; count < 64; count++) {
-        row = Math.trunc(count / 8);
-        column = count % 8;
+        const isLightSquare = (row % 2 === 0) === (column % 2 === 0);
 
         squares[count] = {
             id: count,
-            colour: 0,
-            piece: "wp"
-        }
+            colour: isLightSquare ? 0 : 1,
+            piece: pieceValue,
+        };
     }
 
     return squares;
 };
 
-export { getSquares, getInitBoardState, getTestSquares };
+export { getSquares, getInitBoardState };
