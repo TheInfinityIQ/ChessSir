@@ -2,8 +2,7 @@
 import { onMounted } from "vue";
 import Board from "./components/Board.vue";
 import { boardState, logBoard, setupBoard } from "./scripts/board";
-import { getTestSquares } from "./scripts/board_setup";
-import { printPiece } from "./scripts/state";
+import { getSelectedPiece, printPiece } from "./scripts/state";
 import type { IPiece, npVoid } from "./scripts/types";
 
 const printBoard: npVoid = () => {
@@ -22,6 +21,10 @@ const printBoardState: npVoid = () => {
     console.log(boardState);
 };
 
+const printSelectedPiece: npVoid = () => {
+    console.log(getSelectedPiece());
+}
+
 // onMounted(setupGame);
 </script>
 
@@ -32,6 +35,7 @@ const printBoardState: npVoid = () => {
             <button @click="setupGame">setup board</button>
             <button @click="updatePiece">print Piece</button>
             <button @click="printBoardState">print boardState</button>
+            <button @click="printSelectedPiece">print SelectedPiece</button>
         </nav>
         <section class="body">
             <article class="column-1"></article>
