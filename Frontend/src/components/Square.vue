@@ -1,8 +1,7 @@
 <script lang="ts">
-// use normal <script> to declare options
 export default {
-  inheritAttrs: false
-}
+    inheritAttrs: false,
+};
 </script>
 
 <script setup lang="ts">
@@ -10,62 +9,52 @@ import { boardState, getPieceWithId } from "@/scripts/board";
 import { getIdOfSelectedPiece, postSelectedPiece, postDeselect, makeMove, unselectPiece } from "@/scripts/state";
 import { getNotEmptyPieces, getNumNotEmptyPieces } from "@/scripts/staticValues";
 import { Piece, type IPiece, type npAny, type npVoid, type stringVoid } from "@/scripts/types";
-import { onMounted, reactive, ref, type Ref } from "vue";
+import { computed, onMounted, reactive, ref, type Ref } from "vue";
 import { stringifyQuery } from "vue-router";
 
-const props = defineProps({
-    id: Number,
-    colour: Number,
-});
+const props = defineProps<{
+    id: number;
+    colour: number;
+}>();
 
-let row: number = Math.trunc(props.id! / 8);
-let column: number = props.id! % 8;
+// Calculate row and column from the given ID
+const row = Math.floor(props.id / 8);
+const column = props.id % 8;
 
-const ensureValidity: npAny = () => {
-    try {
-        if (props.id! > 63 || props.id! < 0 || props.colour! < 0 || props.colour! > 1) {
-            throw "invalid piece definition. Either piece ID or colour is invalid onMounted";
-        }
-
-        return;
-    } catch (error) {
-        console.log(error);
+// Ensure that the input values for the piece are valid 
+const ensureValidity = () => {
+    if (props.id > 63 || props.id < 0 || props.colour < 0 || props.colour > 1) {
+        console.error("Invalid piece definition. Either piece ID or colour is invalid onMounted");
     }
 };
 
 onMounted(ensureValidity);
 
-//TODO: add property to define selectability
-let isSelectable: Ref<boolean> = ref(false);
-let isSelected: Ref<boolean> = ref(false);
+// Check if the piece on this square is selectable
+const isSelectable = computed(() => boardState[row][column].piece !== "e");
+const isSelected = ref(false);
 
-//May want to consider moving this to Board.vue. Doesn't seem like the squares job to determine if itself is selectable
-for (let index = 0; index < getNumNotEmptyPieces(); index++) {
-    if (boardState[row][column].piece == getNotEmptyPieces()[index]) {
-        isSelectable.value = true;
-    }
-}
+const select = () => {
+    const square = new Piece(props.id, boardState[row][column].piece, props.colour);
 
-const select: npVoid = () => {
-    postDeselect(deselect);
-
-    let square = new Piece(props.id!, boardState[row][column].piece, props.colour!);
-
-    if (getIdOfSelectedPiece() == props.id) {
+    if (getIdOfSelectedPiece() === props.id) {
+        isSelected.value = !isSelected.value;
         return;
     }
 
-    if (getIdOfSelectedPiece() != props.id && getIdOfSelectedPiece()) {
+    postDeselect(deselect);
+
+    if (getIdOfSelectedPiece() !== props.id && getIdOfSelectedPiece() || getIdOfSelectedPiece() === 0) {
         makeMove(square);
         unselectPiece();
         return;
     }
 
+    isSelected.value = !isSelected.value;
     postSelectedPiece(square);
-    isSelected.value = !isSelected.value;    
 };
 
-const deselect: npVoid = () => {
+const deselect = () => {
     isSelected.value = false;
 };
 </script>
@@ -89,7 +78,6 @@ const deselect: npVoid = () => {
 div {
     width: 100%;
     height: 100%;
-
     background-position: center;
     background-size: cover;
 }
