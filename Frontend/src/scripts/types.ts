@@ -50,7 +50,7 @@ type stringVoid = (param: string) => void;
 type refVoid = (param: Ref<any>) => void;
 type moveVoid = (param: IMove) => void;
 type numIPiece = (param: number) => void;
-type moveBool = (param: boolean) => boolean;
+type moveBool = (param: Move) => boolean;
 
 // Exported types
 // --------------------
