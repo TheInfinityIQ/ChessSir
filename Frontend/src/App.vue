@@ -23,73 +23,101 @@ const printBoardState: npVoid = () => {
 
 const printSelectedPiece: npVoid = () => {
     console.log(getSelectedPiece());
-}
+};
 
 // onMounted(setupGame);
 </script>
 
 <template>
     <main>
-        <nav>
+        <nav class="row-1">
             <button @click="printBoard">print board</button>
             <button @click="setupGame">setup board</button>
             <button @click="updatePiece">print Piece</button>
             <button @click="printBoardState">print boardState</button>
             <button @click="printSelectedPiece">print SelectedPiece</button>
         </nav>
-        <section class="body">
+        <section class="grid-container-body row-2">
             <article class="column-1"></article>
-            <article class="board-container">
+            <article class="board-container column-2">
                 <Board class="board" />
             </article>
             <article class="column-3"></article>
         </section>
-        <footer></footer>
+        <footer class="row-3">
+            <p>test</p>
+        </footer>
     </main>
 </template>
 
 <style scoped>
 main {
-    height: 100vh;
+    display: grid;
+    grid-template-rows: 1fr 12fr 1fr;
+
+    border: 1px solid black;
+    border-width: 0 10px;
+
     width: 100vw;
+    height: 100vh;
 }
 
 nav {
-    width: 100vw;
-    height: 4%;
     border: 1px solid black;
 
     display: flex;
-    gap: 3vw;
     justify-content: center;
+    gap: 2vw;
 }
 
-.body {
-    height: 92%;
+button {
+    min-width: 150px;
+    max-height: 100px;
 
+    margin: 15px 0;
+}
+
+.grid-container-body {
     display: grid;
-    grid-template-columns: 15vw 70vw 15vw;
+    grid-template-columns: 2fr 6fr 2fr;
+}
+
+.row {
+    width: 100%;
+    height: 100%;
+}
+
+.row-1,
+.row-2,
+.row-3 {
+    border: 1px solid black;
+}
+
+.column {
+    width: 100%;
+    height: 100%;
+}
+
+.column-1,
+.column-2,
+.column-3 {
+    border: 1px solid black;
 }
 
 .board-container {
-    /* Doesn't adjust in expected way */
-    width: 500px;
-    height: 500px;
+    height: 100%;
 
-    border: 1px solid pink;
+    border: 1px solid black;
 
     display: flex;
-    flex-flow: row;
-    flex-wrap: wrap;
-    flex-direction: row;
-    align-content: flex-start;
-
-    padding: 0;
+    justify-content: space-around;
+    align-items: center;
 }
 
 .board {
-    width: 100%;
-    height: 100%;
+    width: 80%;
+    aspect-ratio: 1 / 1;
+    border: 1px solid black;
 }
 
 footer {
