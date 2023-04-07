@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { setupBoard, boardState } from "@/scripts/board";
+import { onMounted } from "vue";
 import Square from "./Square.vue";
+
+onMounted(setupBoard);
 </script>
 
 <template>
