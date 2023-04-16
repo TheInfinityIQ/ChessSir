@@ -5,7 +5,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { boardState, getPieceWithId } from "@/scripts/board";
+import { boardState, getSquareWithId } from "@/scripts/board";
 import { getIdOfSelectedPiece, postSelectedPiece, postDeselect, makeMove, unselectPiece, isPieceSelected } from "@/scripts/state";
 import { getNotEmptyPieces, getNumNotEmptyPieces } from "@/scripts/staticValues";
 import { Piece, type IPiece, type npAny, type npVoid, type stringVoid } from "@/scripts/types";
@@ -36,18 +36,17 @@ const isSelected = ref(false);
 
 const select = () => {
     const square = new Piece(props.id, boardState[row][column].piece, props.colour);
-
+    
     if (getIdOfSelectedPiece() === props.id) {
         isSelected.value = !isSelected.value;
         return;
     }
-    postDeselect(deselect);
 
+    postDeselect(deselect);
+    
     if (square.piece === 'e' && !isPieceSelected()) {
         return;
     }
-
-
 
     if (getIdOfSelectedPiece() !== props.id && getIdOfSelectedPiece() || getIdOfSelectedPiece() === 0) {
         makeMove(square);

@@ -75,9 +75,9 @@ const getTestPieceType: (id: number) => string = (id: number) => {
 const commitMoveToBoard: moveVoid = (newMove: Move) => {
     // console.log(boardState.board);
     let fromSquare: IPiece = newMove.fromSquare;
-    if ((fromSquare.piece == "e")) {
+    if (fromSquare.piece == "e") {
         return;
-    }    
+    }
 
     let fromRow: number = Math.trunc(fromSquare.id / 8);
     let fromColumn: number = fromSquare.id % 8;
@@ -89,16 +89,16 @@ const commitMoveToBoard: moveVoid = (newMove: Move) => {
 
     let toRow: number = Math.trunc(toSquare.id / 8);
     let toColumn: number = toSquare.id % 8;
-    
+
     boardState[toRow][toColumn].piece = fromSquare.piece;
 };
 
-const getPieceWithId: numIPiece = (id: number) => {
+const getSquareWithId: numIPiece = (id: number) => {
     let row: number = Math.trunc(id! / 8);
     let column: number = id! % 8;
 
-    return boardState[row][column].piece;
+    return boardState[row][column];
 };
 
-export { setupBoard, logBoard, getBoard, getPieces, getPieceType, commitMoveToBoard, getTestPieceType, getPieceWithId };
+export { setupBoard, logBoard, getBoard, getPieces, getPieceType, commitMoveToBoard, getTestPieceType, getSquareWithId };
 export { boardState };
