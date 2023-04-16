@@ -1,6 +1,6 @@
 import type { Ref } from "vue";
 import { commitMoveToBoard } from "./board";
-import type { refVoid, IPiece, npIPiece, IMove, npVoid, moveBool } from "./types";
+import type { refVoid, IPiece, npIPiece, IMove, npVoid, moveBool, npBool } from "./types";
 import { Piece, Move } from "./types";
 
 let selectedSquareId: number | undefined;
@@ -26,6 +26,14 @@ enum ChessPiece {
 const getIdOfSelectedPiece = (): number | undefined => {
     return selectedSquareId;
 };
+
+const isPieceSelected: npBool = () => {
+    if (selectedSquarePiece) {
+        return true;
+    }
+    
+    return false;
+}
 
 const getSelectedPiece = (): any => {
     if (selectedSquareId === undefined && selectedSquarePiece === undefined && selectedSquareColour === undefined) {
@@ -204,4 +212,4 @@ const printPreviousPiece = () => {
 // Exports
 // --------------------
 
-export { getIdOfSelectedPiece, getSelectedPiece, postSelectedPiece, postPieceRef, postDeselect, printPiece, printPreviousPiece, makeMove, unselectPiece };
+export { isPieceSelected, getIdOfSelectedPiece, getSelectedPiece, postSelectedPiece, postPieceRef, postDeselect, printPiece, printPreviousPiece, makeMove, unselectPiece };

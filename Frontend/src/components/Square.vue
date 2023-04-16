@@ -6,7 +6,7 @@ export default {
 
 <script setup lang="ts">
 import { boardState, getPieceWithId } from "@/scripts/board";
-import { getIdOfSelectedPiece, postSelectedPiece, postDeselect, makeMove, unselectPiece } from "@/scripts/state";
+import { getIdOfSelectedPiece, postSelectedPiece, postDeselect, makeMove, unselectPiece, isPieceSelected } from "@/scripts/state";
 import { getNotEmptyPieces, getNumNotEmptyPieces } from "@/scripts/staticValues";
 import { Piece, type IPiece, type npAny, type npVoid, type stringVoid } from "@/scripts/types";
 import { computed, onMounted, reactive, ref, type Ref } from "vue";
@@ -41,8 +41,13 @@ const select = () => {
         isSelected.value = !isSelected.value;
         return;
     }
-
     postDeselect(deselect);
+
+    if (square.piece === 'e' && !isPieceSelected()) {
+        return;
+    }
+
+
 
     if (getIdOfSelectedPiece() !== props.id && getIdOfSelectedPiece() || getIdOfSelectedPiece() === 0) {
         makeMove(square);
@@ -60,18 +65,15 @@ const deselect = () => {
 </script>
 
 <template>
-    <div
-        :class="[
-            {
-                lighter: colour == 0,
-                darker: colour == 1,
-                selectable: isSelectable,
-                selected: isSelected,
-            },
-            boardState[row][column].piece,
-        ]"
-        @click="select"
-    ></div>
+    <div :class="[
+        {
+            lighter: colour == 0,
+            darker: colour == 1,
+            selectable: isSelectable,
+            selected: isSelected,
+        },
+        boardState[row][column].piece,
+    ]" @click="select"></div>
 </template>
 
 <style scoped>
