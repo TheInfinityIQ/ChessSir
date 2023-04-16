@@ -9,14 +9,9 @@ onMounted(setupBoard);
 <template>
     <article>
         <li v-for="row in boardState" class="parentList">
-            <li v-for="square in row" class="square-container">
-                <Square
-                    :id="square.id"
-                    :colour="square.colour"
-                    :piece="square.piece"
-                    :key="square.id"
-                />
-            </li>
+        <li v-for="square in row" class="square-container">
+            <Square :id="square.id" :colour="square.colour" :piece="square.piece" :key="square.id" />
+        </li>
         </li>
     </article>
 </template>
