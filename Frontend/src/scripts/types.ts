@@ -44,6 +44,7 @@ type npAny = () => any;
 type npString = () => string;
 type npVoid = () => void;
 type npIPiece = () => IPiece;
+type npBool = () => boolean;
 
 type boolVoid = (param: boolean) => void;
 type stringVoid = (param: string) => void;
@@ -54,5 +55,5 @@ type moveBool = (param: IMove) => boolean;
 
 // Exported types
 // --------------------
-export type { npVoid, npAny, npString, npIPiece };
+export type { npVoid, npAny, npString, npIPiece, npBool };
 export type { boolVoid, stringVoid, refVoid, moveVoid, numIPiece, moveBool };
