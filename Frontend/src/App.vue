@@ -115,7 +115,7 @@ button {
 }
 
 .board {
-    width: 80%;
+    width: 65%;
     max-width: 1000px;
     aspect-ratio: 1 / 1;
     border: 1px solid black;
