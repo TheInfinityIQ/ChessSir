@@ -5,7 +5,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { boardState, getSquareWithId } from "@/scripts/board";
+import { boardState } from "@/scripts/board";
 import { getIdOfSelectedPiece, postSelectedPiece, postDeselect, makeMove, unselectPiece, isPieceSelected } from "@/scripts/state";
 import { getNotEmptyPieces, getNumNotEmptyPieces } from "@/scripts/staticValues";
 import { Piece, type IPiece, type npAny, type npVoid, type stringVoid } from "@/scripts/types";
