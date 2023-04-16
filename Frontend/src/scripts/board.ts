@@ -15,7 +15,7 @@ const setupBoard: npVoid = () => {
         for (let column = 0; column < root; column++) {
             tempRow.push(initPieces[row * root + column]);
         }
-        boardState.push(tempRow);
+        boardState[row] = tempRow;
         tempRow = [];
     }
 };
@@ -93,6 +93,13 @@ const commitMoveToBoard: moveVoid = (newMove: Move) => {
     boardState[toRow][toColumn].piece = fromSquare.piece;
 };
 
+const getSquareWithIdWrapper: numIPiece = (id: number) => {
+    if (!boardState[0]) {
+      setupBoard();
+    }
+    return getSquareWithId(id);
+  };
+
 const getSquareWithId: numIPiece = (id: number) => {
     let row: number = Math.trunc(id! / 8);
     let column: number = id! % 8;
@@ -100,5 +107,5 @@ const getSquareWithId: numIPiece = (id: number) => {
     return boardState[row][column];
 };
 
-export { setupBoard, logBoard, getBoard, getPieces, getPieceType, commitMoveToBoard, getTestPieceType, getSquareWithId };
+export { setupBoard, logBoard, getBoard, getPieces, getPieceType, commitMoveToBoard, getTestPieceType, getSquareWithIdWrapper };
 export { boardState };

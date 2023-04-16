@@ -1,5 +1,5 @@
 import type { Ref } from "vue";
-import { commitMoveToBoard, getSquareWithId } from "./board";
+import { commitMoveToBoard, getSquareWithIdWrapper } from "./board";
 import type { refVoid, IPiece, npIPiece, IMove, npVoid, moveBool, npBool } from "./types";
 import { Piece, Move } from "./types";
 
@@ -18,6 +18,12 @@ enum ChessPiece {
     BISHOP = "b",
     KING = "k",
     QUEEN = "q",
+}
+
+enum Direction {
+    VERTICAL = "v",
+    HORIZONTAL = "h",
+    DIAGONAL = "D",
 }
 
 /*
@@ -58,7 +64,11 @@ const isPieceSelected: npBool = () => {
 };
 
 const getSelectedPiece = (): any => {
-    if (selectedSquareId === undefined && selectedSquarePiece === undefined && selectedSquareColour === undefined) {
+    if (
+        selectedSquareId === undefined &&
+        selectedSquarePiece === undefined &&
+        selectedSquareColour === undefined
+    ) {
         console.error(
             `getSelectedPiece was called when selectedSquare values were called.\nselectedSquareId: ${selectedSquareId}selectedSquarePiece: \n${selectedSquarePiece}selectedSquareColour: \n${selectedSquareColour}`
         );
@@ -106,7 +116,11 @@ const selectedIPiece: npIPiece = () => {
 };
 
 const makeMove = (newSquare: IPiece) => {
-    if ((!newSquare.id && newSquare.id != 0) || newSquare.colour === undefined || newSquare.piece === undefined) {
+    if (
+        (!newSquare.id && newSquare.id != 0) ||
+        newSquare.colour === undefined ||
+        newSquare.piece === undefined
+    ) {
         console.error(`Error in makeMove. One of the values below are undefined or falsy\n
         newSquare.id ${newSquare.id}\n
         newSquare.colour ${newSquare.colour}\n
@@ -133,7 +147,12 @@ const validateMove: moveBool = (move: IMove) => {
 };
 
 const validatePawnMove: moveBool = (move: IMove) => {
-    // isFriendlyPiece(move);
+    const fromSquare = move.fromSquare;
+    const toSquare = move.toSquare;
+
+    const pieceColour = fromSquare.piece[0];
+
+    isFriendlyPiece(pieceColour, toSquare.id);
     isMoreThanOneSquare(move); // is only okay if pawn is off starting square
     isJumpingPiece(move);
     //More than 2 squares after move one
@@ -142,16 +161,18 @@ const validatePawnMove: moveBool = (move: IMove) => {
     //Promote
     console.log("Pawn move validated");
 
-    return false;
+    return true;
 };
 
 const validateRookMove: moveBool = (move: IMove) => {
-    // isFriendlyPiece(move);
-    isDiagonalMove(move);
-    isJumpingPiece(move);
+    const fromSquare = move.fromSquare;
+    const toSquare = move.toSquare;
 
-    console.log("Rook move validated");
-    return false;
+    return !(
+        isJumpingPiece(move) ||
+        determineDirection(move) === Direction.DIAGONAL ||
+        isFriendlyPiece(fromSquare.piece[0], toSquare.id)
+    );
 };
 
 const validateKnightMove: moveBool = (move: IMove) => {
@@ -190,8 +211,12 @@ const validateKnightMove: moveBool = (move: IMove) => {
 };
 
 const validateBishopMove: moveBool = (move: IMove) => {
-    // isFriendlyPiece(move);
-    isVertOrHorizontalMove(move);
+    const fromSquare = move.fromSquare;
+    const toSquare = move.toSquare;
+
+    const pieceColour = fromSquare.piece[0];
+
+    isFriendlyPiece(pieceColour, toSquare.id);
     isJumpingPiece(move);
 
     console.log("Bishop move validated");
@@ -199,7 +224,12 @@ const validateBishopMove: moveBool = (move: IMove) => {
 };
 
 const validateKingMove: moveBool = (move: IMove) => {
-    // isFriendlyPiece(move);
+    const fromSquare = move.fromSquare;
+    const toSquare = move.toSquare;
+
+    const pieceColour = fromSquare.piece[0];
+
+    isFriendlyPiece(pieceColour, toSquare.id);
     isMoreThanOneSquare(move);
     isJumpingPiece(move);
     //Castles
@@ -209,7 +239,12 @@ const validateKingMove: moveBool = (move: IMove) => {
 };
 
 const validateQueenMove: moveBool = (move: IMove) => {
-    // isFriendlyPiece(move);
+    const fromSquare = move.fromSquare;
+    const toSquare = move.toSquare;
+
+    const pieceColour = fromSquare.piece[0];
+
+    isFriendlyPiece(pieceColour, toSquare.id);
     isJumpingPiece(move);
 
     console.log("Queen move validated");
@@ -246,12 +281,126 @@ const isMoreThanOneSquare: moveBool = () => {
     return false;
 };
 
-const isJumpingPiece: moveBool = () => {
+const determineDirection = (move: Move) => {
+    const fromSquare = move.fromSquare;
+    const toSquare = move.toSquare;
+
+    //Determine if straight line
+    const rowDifference = Math.abs(Math.floor(fromSquare.id / 8) - Math.floor(toSquare.id / 8));
+    const colDifference = Math.abs((fromSquare.id % 8) - (toSquare.id % 8));
+
+    const isDiagonalMove = rowDifference === colDifference;
+    const isVerticalMove = rowDifference > 0 && colDifference === 0;
+    const isHorizontalMove = rowDifference === 0 && colDifference > 0; // determines if both fromSquare and toSquare are in same row
+
+    if (isDiagonalMove) {
+        return Direction.DIAGONAL;
+    }
+
+    if (isVerticalMove) {
+        return Direction.VERTICAL;
+    }
+
+    if (isHorizontalMove) {
+        return Direction.HORIZONTAL;
+    }
+
+    return;
+};
+
+const isJumpingPiece: moveBool = (move: IMove) => {
+    const d = determineDirection(move);
+    console.log(d);
+
+    if (d === Direction.DIAGONAL) {
+        return jumpingPieceOnDiagonal(move);
+    }
+
+    if (d === Direction.VERTICAL) {
+        return jumpingPieceOnStraight(move, Direction.VERTICAL);
+    }
+
+    if (d === Direction.HORIZONTAL) {
+        return jumpingPieceOnStraight(move, Direction.HORIZONTAL);
+    }
+
+    // Will only happen if illegal move. Can me moved over to a new function using the log if (!(isDiagonalMove || isVerticalMove || isHorizontalMove)) return true;
+    return true;
+};
+
+const jumpingPieceOnDiagonal: moveBool = (move: Move) => {
+    const fromSquare = move.fromSquare;
+    const toSquare = move.toSquare;
+
+    let startId = Math.min(fromSquare.id, toSquare.id);
+    let endId = Math.max(fromSquare.id, toSquare.id);
+
+    const rowDiff = Math.abs(Math.floor(fromSquare.id / 8) - Math.floor(toSquare.id / 8));
+    const colDiff = Math.abs((fromSquare.id % 8) - (toSquare.id % 8));
+
+    if (rowDiff !== colDiff) {
+        // The move is not diagonal
+        return false;
+    }
+
+    let step = rowDiff === colDiff ? 9 : 7;
+
+    // Check if the move is up and left or down and right
+    if (
+        (fromSquare.id < toSquare.id && fromSquare.id % 8 > toSquare.id % 8) ||
+        (fromSquare.id > toSquare.id && fromSquare.id % 8 < toSquare.id % 8)
+    ) {
+        step = 7;
+    }
+
+    // Start checking from the next square in the direction of the move
+    startId += step;
+
+    for (let id = startId; id < endId; id += step) {
+        const square = getSquareWithIdWrapper(id);
+        if (square.piece !== "e") {
+            return true;
+        }
+    }
+
     return false;
 };
 
-const isFriendlyPiece: (friendlyColour: string, toSquareId: number) => boolean = (friendlyColour: string, toSquareId: number) => {
-    const toPiece: string = getSquareWithId(toSquareId).piece;
+const jumpingPieceOnStraight: (param: Move, direction: Direction) => boolean = (
+    move: Move,
+    direction: Direction
+) => {
+    const fromSquare = move.fromSquare;
+    const toSquare = move.toSquare;
+
+    let startId = Math.min(fromSquare.id, toSquare.id);
+    let endId = Math.max(fromSquare.id, toSquare.id);
+    let step;
+
+    if (direction === Direction.HORIZONTAL) {
+        step = 1;
+    } else {
+        step = 8;
+    }
+
+    // Start checking from the next square in the direction of the move
+    startId += step;
+
+    for (let id = startId; id < endId; id += step) {
+        const square = getSquareWithIdWrapper(id);
+        if (square.piece !== "e") {
+            return true;
+        }
+    }
+
+    return false;
+};
+
+const isFriendlyPiece: (friendlyColour: string, toSquareId: number) => boolean = (
+    friendlyColour: string,
+    toSquareId: number
+) => {
+    const toPiece: string = getSquareWithIdWrapper(toSquareId).piece;
 
     if (toPiece === "e") return false;
 
@@ -272,4 +421,15 @@ const printPreviousPiece = () => {
 // Exports
 // --------------------
 
-export { isPieceSelected, getIdOfSelectedPiece, getSelectedPiece, postSelectedPiece, postPieceRef, postDeselect, printPiece, printPreviousPiece, makeMove, unselectPiece };
+export {
+    isPieceSelected,
+    getIdOfSelectedPiece,
+    getSelectedPiece,
+    postSelectedPiece,
+    postPieceRef,
+    postDeselect,
+    printPiece,
+    printPreviousPiece,
+    makeMove,
+    unselectPiece,
+};
