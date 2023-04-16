@@ -1,6 +1,5 @@
 import type { Ref } from "vue";
 
-
 // Interfaces
 // --------------------
 export interface IPiece {
@@ -50,7 +49,7 @@ type boolVoid = (param: boolean) => void;
 type stringVoid = (param: string) => void;
 type refVoid = (param: Ref<any>) => void;
 type moveVoid = (param: IMove) => void;
-type numIPiece = (param: number) => void;
+type numIPiece = (param: number) => IPiece;
 type moveBool = (param: IMove) => boolean;
 
 // Exported types
