@@ -91,9 +91,6 @@ const commitMoveToBoard: moveVoid = (newMove: Move) => {
     let toColumn: number = toSquare.id % 8;
     
     boardState[toRow][toColumn].piece = fromSquare.piece;
-
-    //
-    // console.log(boardState);
 };
 
 const getPieceWithId: numIPiece = (id: number) => {
