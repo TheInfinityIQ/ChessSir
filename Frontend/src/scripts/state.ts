@@ -216,11 +216,13 @@ const validateBishopMove: moveBool = (move: IMove) => {
 
     const pieceColour = fromSquare.piece[0];
 
-    isFriendlyPiece(pieceColour, toSquare.id);
-    isJumpingPiece(move);
-
-    console.log("Bishop move validated");
-    return false;
+    return !(
+        isJumpingPiece(move) ||
+        determineDirection(move) === Direction.HORIZONTAL ||
+        determineDirection(move) === Direction.VERTICAL ||
+        determineDirection(move) !== Direction.DIAGONAL ||
+        isFriendlyPiece(fromSquare.piece[0], toSquare.id)
+    );
 };
 
 const validateKingMove: moveBool = (move: IMove) => {
