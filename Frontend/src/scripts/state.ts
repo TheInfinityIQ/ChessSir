@@ -11,21 +11,6 @@ let pieceRef: Ref<string>;
 
 let deselect: () => void;
 
-enum ChessPiece {
-    PAWN = "p",
-    ROOK = "r",
-    KNIGHT = "n",
-    BISHOP = "b",
-    KING = "k",
-    QUEEN = "q",
-}
-
-enum Direction {
-    VERTICAL = "v",
-    HORIZONTAL = "h",
-    DIAGONAL = "D",
-}
-
 /*
  * KnightMoveOffsets enum represents the possible ID offsets for a knight's L-shaped moves on a chessboard.
  * Each value corresponds to a specific direction and distance combination.
@@ -57,6 +42,31 @@ enum AdjacentSquareIdOffsets {
     DOWN = 8,
     DOWN_RIGHT = 9,
     DOWN_LEFT = 7,
+}
+
+enum ChessPiece {
+    PAWN = "p",
+    ROOK = "r",
+    KNIGHT = "n",
+    BISHOP = "b",
+    KING = "k",
+    QUEEN = "q",
+}
+
+enum Direction {
+    VERTICAL = "v",
+    HORIZONTAL = "h",
+    DIAGONAL = "D",
+}
+
+enum PieceAccessors {
+    COLOUR = 0,
+    TYPE = 1,
+}
+
+enum PawnAttackSquares {
+    LEFT = 7,
+    RIGHT = 9,
 }
 
 // Get Functions
@@ -158,21 +168,26 @@ const validMove: moveBool = (move: IMove) => {
 };
 
 const validPawnMove: moveBool = (move: IMove) => {
-    const fromSquare = move.fromSquare;
-    const toSquare = move.toSquare;
+    const { fromSquare, toSquare } = move;
+    const pieceColour = fromSquare.piece[PieceAccessors.COLOUR];
+    const direction = determineDirection(move);
 
-    const pieceColour = fromSquare.piece[0];
+    const idDifference = fromSquare.id - toSquare.id;
+    const isDirectionCorrect = pieceColour === "w" ? idDifference > 0 : idDifference < 0;
+    if (!isDirectionCorrect) return false;
 
-    isFriendlyPiece(pieceColour, toSquare.id);
-    isMoreThanOneSquare(move); // is only okay if pawn is off starting square
-    isJumpingPiece(move);
-    //More than 2 squares after move one
-    //Backwards
-    //En Passent
-    //Promote
-    console.log("Pawn move validated");
+    const row = Math.floor(fromSquare.id / 8);
+    const isStartingSquare = pieceColour === "w" ? row === 6 : row === 1;
+    const rowDifference = Math.abs(row - Math.floor(toSquare.id / 8));
+    if ((rowDifference === 2 && !isStartingSquare) || rowDifference > 2) return false;
 
-    return true;
+    const isVerticalMoveValid = () => direction === Direction.VERTICAL && toSquare.piece === "e";
+    const isDiagonalMoveValid = () =>
+        direction === Direction.DIAGONAL && toSquare.piece !== "e" && !isFriendlyPiece(fromSquare.piece[0], toSquare.id);
+
+    if (!isVerticalMoveValid() && !isDiagonalMoveValid()) return false;
+
+    return !isJumpingPiece(move);
 };
 
 const validRookMove: moveBool = (move: IMove) => {
@@ -428,7 +443,9 @@ const isFriendlyPiece: (friendlyColour: string, toSquareId: number) => boolean =
     return toPiece[0] === friendlyColour;
 };
 
-const getAdjacentSquares: (checkedSquareId: number) => IPiece[] | undefined = (checkedSquareId: number) => {
+const getAdjacentSquares: (checkedSquareId: number) => IPiece[] | undefined = (
+    checkedSquareId: number
+) => {
     const upperBound = 63;
     const lowerBound = 0;
     const adjacentPieces: IPiece[] = [];
@@ -441,8 +458,6 @@ const getAdjacentSquares: (checkedSquareId: number) => IPiece[] | undefined = (c
             adjacentPieces.push(getSquareWithIdWrapper(moddedId));
         }
     }
-
-    // console.log(adjacentPieces);
 
     return adjacentPieces;
 };
