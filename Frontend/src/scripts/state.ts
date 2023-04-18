@@ -130,12 +130,12 @@ const makeMove = (newSquare: IPiece) => {
 
     let move: IMove = new Move(selectedIPiece(), newSquare);
 
-    if (!validateMove(move)) return;
+    if (!validMove(move)) return;
 
     commitMoveToBoard(move);
 };
 
-const validateMove: moveBool = (move: IMove) => {
+const validMove: moveBool = (move: IMove) => {
     //Call corresponding piece type to validate a move for that piece
     const pieceType: string = move.fromSquare.piece.substring(move.fromSquare.piece.length, 1);
     const piece: ChessPiece | undefined = getChessPieceFromLetter(pieceType);
@@ -146,7 +146,7 @@ const validateMove: moveBool = (move: IMove) => {
     return validator(move);
 };
 
-const validatePawnMove: moveBool = (move: IMove) => {
+const validPawnMove: moveBool = (move: IMove) => {
     const fromSquare = move.fromSquare;
     const toSquare = move.toSquare;
 
@@ -164,7 +164,7 @@ const validatePawnMove: moveBool = (move: IMove) => {
     return true;
 };
 
-const validateRookMove: moveBool = (move: IMove) => {
+const validRookMove: moveBool = (move: IMove) => {
     const fromSquare = move.fromSquare;
     const toSquare = move.toSquare;
 
@@ -175,7 +175,7 @@ const validateRookMove: moveBool = (move: IMove) => {
     );
 };
 
-const validateKnightMove: moveBool = (move: IMove) => {
+const validKnightMove: moveBool = (move: IMove) => {
     const fromSquare = move.fromSquare;
     const toSquare = move.toSquare;
 
@@ -210,7 +210,7 @@ const validateKnightMove: moveBool = (move: IMove) => {
     return result;
 };
 
-const validateBishopMove: moveBool = (move: IMove) => {
+const validBishopMove: moveBool = (move: IMove) => {
     const fromSquare = move.fromSquare;
     const toSquare = move.toSquare;
 
@@ -225,7 +225,7 @@ const validateBishopMove: moveBool = (move: IMove) => {
     );
 };
 
-const validateKingMove: moveBool = (move: IMove) => {
+const validKingMove: moveBool = (move: IMove) => {
     const fromSquare = move.fromSquare;
     const toSquare = move.toSquare;
 
@@ -236,30 +236,31 @@ const validateKingMove: moveBool = (move: IMove) => {
     isJumpingPiece(move);
     //Castles
 
-    console.log("King move validated");
+    console.log("King move validd");
     return false;
 };
 
-const validateQueenMove: moveBool = (move: IMove) => {
+const validQueenMove: moveBool = (move: IMove) => {
     const fromSquare = move.fromSquare;
     const toSquare = move.toSquare;
 
-    const pieceColour = fromSquare.piece[0];
+    if (determineDirection(move) !== Direction.DIAGONAL && determineDirection(move) !== Direction.HORIZONTAL && determineDirection(move) !== Direction.VERTICAL) {
+        return false; // Not a valid queen move
+    }
 
-    isFriendlyPiece(pieceColour, toSquare.id);
-    isJumpingPiece(move);
-
-    console.log("Queen move validated");
-    return false;
+    return !(
+        isJumpingPiece(move) ||
+        isFriendlyPiece(fromSquare.piece[0], toSquare.id)
+    );
 };
 
 const moveValidators: Map<ChessPiece, moveBool> = new Map([
-    [ChessPiece.PAWN, validatePawnMove],
-    [ChessPiece.ROOK, validateRookMove],
-    [ChessPiece.KNIGHT, validateKnightMove],
-    [ChessPiece.BISHOP, validateBishopMove],
-    [ChessPiece.KING, validateKingMove],
-    [ChessPiece.QUEEN, validateQueenMove],
+    [ChessPiece.PAWN, validPawnMove],
+    [ChessPiece.ROOK, validRookMove],
+    [ChessPiece.KNIGHT, validKnightMove],
+    [ChessPiece.BISHOP, validBishopMove],
+    [ChessPiece.KING, validKingMove],
+    [ChessPiece.QUEEN, validQueenMove],
 ]);
 
 const getChessPieceFromLetter = (letter: string): ChessPiece | undefined => {
@@ -312,7 +313,6 @@ const determineDirection = (move: Move) => {
 
 const isJumpingPiece: moveBool = (move: IMove) => {
     const d = determineDirection(move);
-    console.log(d);
 
     if (d === Direction.DIAGONAL) {
         return jumpingPieceOnDiagonal(move);
