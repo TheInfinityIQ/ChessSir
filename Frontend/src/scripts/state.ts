@@ -1,5 +1,5 @@
 import type { Ref } from "vue";
-import { commitMoveToBoard, getSquareWithIdWrapper } from "./board";
+import { boardState, commitMoveToBoard, getSquareWithIdWrapper } from "./board";
 import type { refVoid, IPiece, npIPiece, IMove, npVoid, moveBool, npBool } from "./types";
 import { Piece, Move } from "./types";
 
@@ -46,6 +46,17 @@ enum KnightMoveOffsets {
     LEFT_DOWN = 6,
     RIGHT_UP = -6,
     RIGHT_DOWN = 10,
+}
+
+enum AdjacentSquareIdOffsets {
+    UP = -8,
+    UP_RIGHT = -7,
+    UP_LEFT = -9,
+    RIGHT = 1,
+    LEFT = -1,
+    DOWN = 8,
+    DOWN_RIGHT = 9,
+    DOWN_LEFT = 7,
 }
 
 // Get Functions
@@ -229,14 +240,10 @@ const validKingMove: moveBool = (move: IMove) => {
     const fromSquare = move.fromSquare;
     const toSquare = move.toSquare;
 
-    const pieceColour = fromSquare.piece[0];
+    getAdjacentSquares(toSquare.id);
 
-    isFriendlyPiece(pieceColour, toSquare.id);
-    isMoreThanOneSquare(move);
-    isJumpingPiece(move);
-    //Castles
+    if (validQueenMove(move) && !isMoreThanOneSquare(move)) return true;
 
-    console.log("King move validd");
     return false;
 };
 
@@ -244,14 +251,15 @@ const validQueenMove: moveBool = (move: IMove) => {
     const fromSquare = move.fromSquare;
     const toSquare = move.toSquare;
 
-    if (determineDirection(move) !== Direction.DIAGONAL && determineDirection(move) !== Direction.HORIZONTAL && determineDirection(move) !== Direction.VERTICAL) {
+    if (
+        determineDirection(move) !== Direction.DIAGONAL &&
+        determineDirection(move) !== Direction.HORIZONTAL &&
+        determineDirection(move) !== Direction.VERTICAL
+    ) {
         return false; // Not a valid queen move
     }
 
-    return !(
-        isJumpingPiece(move) ||
-        isFriendlyPiece(fromSquare.piece[0], toSquare.id)
-    );
+    return !(isJumpingPiece(move) || isFriendlyPiece(fromSquare.piece[0], toSquare.id));
 };
 
 const moveValidators: Map<ChessPiece, moveBool> = new Map([
@@ -280,7 +288,18 @@ const isVertOrHorizontalMove: moveBool = () => {
     return false;
 };
 
-const isMoreThanOneSquare: moveBool = () => {
+const isMoreThanOneSquare: moveBool = (move: IMove) => {
+    const fromSquare = move.fromSquare;
+    const toSquare = move.toSquare;
+
+    const rowDifference = Math.abs(Math.floor(fromSquare.id / 8) - Math.floor(toSquare.id / 8));
+    const colDifference = Math.abs((fromSquare.id % 8) - (toSquare.id % 8));
+
+    // Check if the move is more than one square away
+    if (rowDifference > 1 || colDifference > 1) {
+        return true;
+    }
+
     return false;
 };
 
@@ -407,6 +426,25 @@ const isFriendlyPiece: (friendlyColour: string, toSquareId: number) => boolean =
     if (toPiece === "e") return false;
 
     return toPiece[0] === friendlyColour;
+};
+
+const getAdjacentSquares: (checkedSquareId: number) => IPiece[] | undefined = (checkedSquareId: number) => {
+    const upperBound = 63;
+    const lowerBound = 0;
+    const adjacentPieces: IPiece[] = [];
+
+    for (const key in AdjacentSquareIdOffsets) {
+        const mod = AdjacentSquareIdOffsets[key as keyof typeof AdjacentSquareIdOffsets];
+        const moddedId = checkedSquareId + mod;
+
+        if (moddedId > lowerBound && moddedId < upperBound) {
+            adjacentPieces.push(getSquareWithIdWrapper(moddedId));
+        }
+    }
+
+    // console.log(adjacentPieces);
+
+    return adjacentPieces;
 };
 
 // Debug
