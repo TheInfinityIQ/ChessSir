@@ -1,5 +1,10 @@
 import type { Ref } from "vue";
-import { boardState, commitMoveToBoard, getSquareWithIdWrapper } from "./board";
+import {
+    boardState,
+    commitMoveToBoard,
+    getSquareWithIdWrapper,
+    getPreviousBoardStateWrapper,
+} from "./board";
 import type { refVoid, IPiece, npIPiece, IMove, npVoid, moveBool, npBool } from "./types";
 import { Piece, Move } from "./types";
 
@@ -59,7 +64,7 @@ enum Direction {
     DIAGONAL = "D",
 }
 
-enum PieceAccessors {
+enum PieceComp {
     COLOUR = 0,
     TYPE = 1,
 }
@@ -96,7 +101,7 @@ const getSelectedPiece = (): any => {
         return;
     }
 
-    return new Piece(selectedSquareId!, selectedSquarePiece!, selectedSquareColour!);
+    return new PieceComp(selectedSquareId!, selectedSquarePiece!, selectedSquareColour!);
 };
 
 // Value modifying functions
@@ -169,23 +174,47 @@ const validMove: moveBool = (move: IMove) => {
 
 const validPawnMove: moveBool = (move: IMove) => {
     const { fromSquare, toSquare } = move;
-    const pieceColour = fromSquare.piece[PieceAccessors.COLOUR];
+    const pieceColour = fromSquare.piece[PieceComp.COLOUR];
+    const opponentColour = pieceColour === "w" ? "b" : "w";
     const direction = determineDirection(move);
 
     const idDifference = fromSquare.id - toSquare.id;
     const isDirectionCorrect = pieceColour === "w" ? idDifference > 0 : idDifference < 0;
     if (!isDirectionCorrect) return false;
 
-    const row = Math.floor(fromSquare.id / 8);
-    const isStartingSquare = pieceColour === "w" ? row === 6 : row === 1;
-    const rowDifference = Math.abs(row - Math.floor(toSquare.id / 8));
+    const fromRowId = Math.floor(fromSquare.id / 8);
+    const isStartingSquare = pieceColour === "w" ? fromRowId === 6 : fromRowId === 1;
+    const rowDifference = Math.abs(fromRowId - Math.floor(toSquare.id / 8));
     if ((rowDifference === 2 && !isStartingSquare) || rowDifference > 2) return false;
 
     const isVerticalMoveValid = () => direction === Direction.VERTICAL && toSquare.piece === "e";
     const isDiagonalMoveValid = () =>
-        direction === Direction.DIAGONAL && toSquare.piece !== "e" && !isFriendlyPiece(fromSquare.piece[0], toSquare.id);
+        direction === Direction.DIAGONAL &&
+        toSquare.piece !== "e" &&
+        !isFriendlyPiece(fromSquare.piece[0], toSquare.id);
 
     if (!isVerticalMoveValid() && !isDiagonalMoveValid()) return false;
+
+    // En Passant
+    const prevBoardState = getPreviousBoardStateWrapper();
+
+    if (prevBoardState) {
+        const toSquareColumn = toSquare.id % 8;
+        const opponentSquareIdRowModifier = Math.floor(
+            ((fromSquare.id % 8) - (toSquare.id % 8)) * -1
+        );
+        const opponentSquareId = fromSquare.id + opponentSquareIdRowModifier;
+        const opponentSquare = getSquareWithIdWrapper(opponentSquareId);
+
+        const opponentsPawnStartingRow = pieceColour === "w" ? 1 : 6;
+        const prevOpponentsPawnExpectedPosSquareId = opponentsPawnStartingRow * 8 + toSquareColumn;
+        const prevOpponentsPawnExpectCol = prevOpponentsPawnExpectedPosSquareId % 8;
+
+        console.log("prevBoardState" + prevBoardState);
+        const prevPawnSquare = prevBoardState[opponentsPawnStartingRow][prevOpponentsPawnExpectCol];
+
+        if (prevPawnSquare.piece === "e") return false;
+    }
 
     return !isJumpingPiece(move);
 };

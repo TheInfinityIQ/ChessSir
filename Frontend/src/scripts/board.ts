@@ -3,6 +3,7 @@ import { getSquares } from "./board_setup";
 import type { IPiece, Move, moveVoid, npVoid, numIPiece } from "./types";
 
 let boardState: IPiece[][] = reactive([]);
+let previousBoardState: IPiece[][] = [];
 
 const boardSize: number = 64; // Could be updated for larger board sizes in future;
 const root: number = Math.sqrt(boardSize);
@@ -75,9 +76,11 @@ const getTestPieceType: (id: number) => string = (id: number) => {
 const commitMoveToBoard: moveVoid = (newMove: Move) => {
     // console.log(boardState.board);
     let fromSquare: IPiece = newMove.fromSquare;
-    if (fromSquare.piece == "e") {
+    if (fromSquare.piece === "e") {
         return;
     }
+
+    previousBoardState = JSON.parse(JSON.stringify(boardState));
 
     let fromRow: number = Math.trunc(fromSquare.id / 8);
     let fromColumn: number = fromSquare.id % 8;
@@ -93,12 +96,23 @@ const commitMoveToBoard: moveVoid = (newMove: Move) => {
     boardState[toRow][toColumn].piece = fromSquare.piece;
 };
 
+const getPreviousBoardState = () => {
+    return previousBoardState;
+};
+
+const getPreviousBoardStateWrapper = () => {    
+    if (!previousBoardState[0]) {
+        previousBoardState = JSON.parse(JSON.stringify(boardState));
+    }
+    return getPreviousBoardState();
+};
+
 const getSquareWithIdWrapper: numIPiece = (id: number) => {
     if (!boardState[0]) {
-      setupBoard();
+        setupBoard();
     }
     return getSquareWithId(id);
-  };
+};
 
 const getSquareWithId: numIPiece = (id: number) => {
     let row: number = Math.trunc(id! / 8);
@@ -107,5 +121,15 @@ const getSquareWithId: numIPiece = (id: number) => {
     return boardState[row][column];
 };
 
-export { setupBoard, logBoard, getBoard, getPieces, getPieceType, commitMoveToBoard, getTestPieceType, getSquareWithIdWrapper };
+export {
+    getPreviousBoardStateWrapper,
+    setupBoard,
+    logBoard,
+    getBoard,
+    getPieces,
+    getPieceType,
+    commitMoveToBoard,
+    getTestPieceType,
+    getSquareWithIdWrapper,
+};
 export { boardState };
