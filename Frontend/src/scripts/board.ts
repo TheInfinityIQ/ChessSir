@@ -117,9 +117,23 @@ const getSquareWithIdWrapper: numIPiece = (id: number) => {
 const getSquareWithId: numIPiece = (id: number) => {
     let row: number = Math.trunc(id! / 8);
     let column: number = id! % 8;
-
+    
     return boardState[row][column];
 };
+
+function findPieceById(board: IPiece[][], id: number): IPiece | undefined {
+    if (!board[0]) {
+        return undefined;
+    }
+    
+    for (const row of board) {
+        const foundPiece = row.find((piece) => piece.id === id);
+        if (foundPiece) {
+            return foundPiece;
+        }
+    }
+    return undefined;
+}
 
 export {
     getPreviousBoardStateWrapper,
@@ -131,5 +145,6 @@ export {
     commitMoveToBoard,
     getTestPieceType,
     getSquareWithIdWrapper,
+    findPieceById
 };
 export { boardState };

@@ -4,6 +4,7 @@ import {
     commitMoveToBoard,
     getSquareWithIdWrapper,
     getPreviousBoardStateWrapper,
+    findPieceById,
 } from "./board";
 import type { refVoid, IPiece, npIPiece, IMove, npVoid, moveBool, npBool } from "./types";
 import { Piece, Move } from "./types";
@@ -190,30 +191,31 @@ const validPawnMove: moveBool = (move: IMove) => {
     const isVerticalMoveValid = () => direction === Direction.VERTICAL && toSquare.piece === "e";
     const isDiagonalMoveValid = () =>
         direction === Direction.DIAGONAL &&
-        toSquare.piece !== "e" &&
         !isFriendlyPiece(fromSquare.piece[0], toSquare.id);
 
     if (!isVerticalMoveValid() && !isDiagonalMoveValid()) return false;
 
-    // En Passant
-    const prevBoardState = getPreviousBoardStateWrapper();
+    const attemptedEnPassent = direction === Direction.DIAGONAL && toSquare.piece === "e";
 
-    if (prevBoardState) {
-        const toSquareColumn = toSquare.id % 8;
-        const opponentSquareIdRowModifier = Math.floor(
-            ((fromSquare.id % 8) - (toSquare.id % 8)) * -1
-        );
-        const opponentSquareId = fromSquare.id + opponentSquareIdRowModifier;
-        const opponentSquare = getSquareWithIdWrapper(opponentSquareId);
+    console.log(`Is attempted valid: ${attemptedEnPassent}`);
+    if (attemptedEnPassent) {
+        // En Passant
+        const prevBoardState = getPreviousBoardStateWrapper();
+        const opponentPawn = pieceColour === "w" ? "bp" : "wp";
+        const opponentPawnCheckSquareId = pieceColour === "w" ? toSquare.id - 8 : toSquare.id + 8;
+        const checkColumn = ((fromSquare.id % 8 - toSquare.id % 8) * -1 + fromSquare.id);
 
-        const opponentsPawnStartingRow = pieceColour === "w" ? 1 : 6;
-        const prevOpponentsPawnExpectedPosSquareId = opponentsPawnStartingRow * 8 + toSquareColumn;
-        const prevOpponentsPawnExpectCol = prevOpponentsPawnExpectedPosSquareId % 8;
+        const isEnPassantValid = () =>
+            getSquareWithIdWrapper(checkColumn).piece === opponentPawn &&
+            findPieceById(prevBoardState, opponentPawnCheckSquareId)?.piece === opponentPawn;
 
-        console.log("prevBoardState" + prevBoardState);
-        const prevPawnSquare = prevBoardState[opponentsPawnStartingRow][prevOpponentsPawnExpectCol];
+        console.log(prevBoardState);
+        console.log(getSquareWithIdWrapper(checkColumn).piece === opponentPawn);
+        console.log(findPieceById(prevBoardState, opponentPawnCheckSquareId)?.piece)
 
-        if (prevPawnSquare.piece === "e") return false;
+        console.log(`Is valid ${isEnPassantValid()}`);
+        // console.log(fromSquare.id + rowDifference);
+        if (attemptedEnPassent && !isEnPassantValid()) return false;
     }
 
     return !isJumpingPiece(move);
