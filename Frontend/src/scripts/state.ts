@@ -102,7 +102,7 @@ const getSelectedPiece = (): any => {
         return;
     }
 
-    return new PieceComp(selectedSquareId!, selectedSquarePiece!, selectedSquareColour!);
+    return new Piece(selectedSquareId!, selectedSquarePiece!, selectedSquareColour!);
 };
 
 // Value modifying functions
@@ -164,7 +164,7 @@ const makeMove = (newSquare: IPiece) => {
 
 const validMove: moveBool = (move: IMove) => {
     //Call corresponding piece type to validate a move for that piece
-    const pieceType: string = move.fromSquare.piece.substring(move.fromSquare.piece.length, 1);
+    const pieceType: string = move.fromSquare.piece[PieceComp.TYPE];
     const piece: ChessPiece | undefined = getChessPieceFromLetter(pieceType);
 
     // if piece or moveValidators.get(piece) is falsy, then return () => false
@@ -177,48 +177,47 @@ const validPawnMove: moveBool = (move: IMove) => {
     const { fromSquare, toSquare } = move;
     const pieceColour = fromSquare.piece[PieceComp.COLOUR];
     const opponentColour = pieceColour === "w" ? "b" : "w";
-    const direction = determineDirection(move);
+    const dir = determineDirection(move);
 
-    const idDifference = fromSquare.id - toSquare.id;
-    const isDirectionCorrect = pieceColour === "w" ? idDifference > 0 : idDifference < 0;
+    const idDiff = fromSquare.id - toSquare.id;
+    const isDirectionCorrect = pieceColour === "w" ? idDiff > 0 : idDiff < 0;
     if (!isDirectionCorrect) return false;
 
     const fromRowId = Math.floor(fromSquare.id / 8);
     const isStartingSquare = pieceColour === "w" ? fromRowId === 6 : fromRowId === 1;
-    const rowDifference = Math.abs(fromRowId - Math.floor(toSquare.id / 8));
-    if ((rowDifference === 2 && !isStartingSquare) || rowDifference > 2) return false;
+    const rowDiff = Math.abs(fromRowId - Math.floor(toSquare.id / 8));
+    if ((rowDiff === 2 && !isStartingSquare) || rowDiff > 2) return false;
 
-    const isVerticalMoveValid = () => direction === Direction.VERTICAL && toSquare.piece === "e";
-    const isDiagonalMoveValid = () =>
-        direction === Direction.DIAGONAL &&
-        !isFriendlyPiece(fromSquare.piece[0], toSquare.id);
+    const isVerticalMove = dir === Direction.VERTICAL && toSquare.piece === "e";
+    const isDiagonalMove = dir === Direction.DIAGONAL && !isFriendlyPiece(fromSquare.piece[0], toSquare.id);
 
-    if (!isVerticalMoveValid() && !isDiagonalMoveValid()) return false;
+    if (!isVerticalMove && !isDiagonalMove) return false;
 
-    const attemptedEnPassent = direction === Direction.DIAGONAL && toSquare.piece === "e";
-
-    console.log(`Is attempted valid: ${attemptedEnPassent}`);
-    if (attemptedEnPassent) {
-        // En Passant
-        const prevBoardState = getPreviousBoardStateWrapper();
-        const opponentPawn = pieceColour === "w" ? "bp" : "wp";
-        const opponentPawnCheckSquareId = pieceColour === "w" ? toSquare.id - 8 : toSquare.id + 8;
-        const checkColumn = ((fromSquare.id % 8 - toSquare.id % 8) * -1 + fromSquare.id);
-
-        const isEnPassantValid = () =>
-            getSquareWithIdWrapper(checkColumn).piece === opponentPawn &&
-            findPieceById(prevBoardState, opponentPawnCheckSquareId)?.piece === opponentPawn;
-
-        console.log(prevBoardState);
-        console.log(getSquareWithIdWrapper(checkColumn).piece === opponentPawn);
-        console.log(findPieceById(prevBoardState, opponentPawnCheckSquareId)?.piece)
-
-        console.log(`Is valid ${isEnPassantValid()}`);
-        // console.log(fromSquare.id + rowDifference);
-        if (attemptedEnPassent && !isEnPassantValid()) return false;
+    if (isDiagonalMove && toSquare.piece === "e") {
+        if (!isValidEnPassant(fromSquare, toSquare, pieceColour, opponentColour)) return false;
     }
 
     return !isJumpingPiece(move);
+};
+
+const isValidEnPassant = (fromSquare: IPiece, toSquare: IPiece, pieceColour: string, opponentColour: string) => {
+    const prevBoard = getPreviousBoardStateWrapper();
+    const opponentPawn = `${opponentColour}${ChessPiece.PAWN}`;
+    const opponentCheckSquareId = pieceColour === "w" ? toSquare.id - 8 : toSquare.id + 8;
+    const attackedPawnId = ((fromSquare.id % 8) - (toSquare.id % 8)) * -1 + fromSquare.id;
+
+    const isEnPassantValid =
+        getSquareWithIdWrapper(attackedPawnId).piece === opponentPawn &&
+        findPieceById(prevBoard, opponentCheckSquareId)?.piece === opponentPawn;
+
+    if (isEnPassantValid) {
+        const attackedPawnRow = Math.floor(attackedPawnId / 8);
+        const attackedPawnColumn = Math.floor(attackedPawnId % 8);
+        boardState[attackedPawnRow][attackedPawnColumn].piece = "e";
+        return true;
+    }
+
+    return false;
 };
 
 const validRookMove: moveBool = (move: IMove) => {
@@ -284,14 +283,53 @@ const validBishopMove: moveBool = (move: IMove) => {
 
 const validKingMove: moveBool = (move: IMove) => {
     const fromSquare = move.fromSquare;
+    const pieceColour = fromSquare.piece[PieceComp.COLOUR];
     const toSquare = move.toSquare;
 
     getAdjacentSquares(toSquare.id);
 
-    if (validQueenMove(move) && !isMoreThanOneSquare(move)) return true;
+    if(willKingBeInCheck(toSquare, pieceColour)) return false;
+    if (!validQueenMove(move) || isMoreThanOneSquare(move)) return false;
 
-    return false;
+    return true;
 };
+
+const willKingBeInCheck = (kingSquare: IPiece, pieceColour: string) => {
+    // const id = kingSquare.id;
+    // const opponentColour = pieceColour === "w" ? "b" : "w";
+
+    // for (const key in KnightMoveOffsets) {
+    //     const offset = KnightMoveOffsets[key as keyof typeof KnightMoveOffsets]
+    //     const testId = offset + id;
+
+    //     if (testId > 0 && testId < 63) // Ensure no out of bounds
+    //         if (getSquareWithIdWrapper(testId).piece === opponentColour + "n") {
+    //             return true;
+    //         }
+    // }
+
+    // for (const key in AdjacentSquareIdOffsets)
+    // {
+    //     const offset = AdjacentSquareIdOffsets[key as keyof typeof AdjacentSquareIdOffsets];
+    //     let testId = offset + id;
+    //     while (testId > 0 && testId < 63) {
+    //         let squaresAway = 1;
+    //         testId = (offset * squaresAway) + id;
+    //         const checkedSquareId = getSquareWithIdWrapper(testId);
+            
+    //         if (checkedSquareId.piece[PieceComp.COLOUR] === opponentColour) {
+    //             if (squaresAway === 1 && checkedSquareId.piece[PieceComp.TYPE] === "k") return true;
+    //             if (squaresAway === 1 && 
+    //         }
+    //     }
+    // }
+
+    //Both -> King, Queen
+    //Horizontal and Vertical pieces -> Rook
+    //Diagonal pieces -> Bishop, Pawn
+    //Only one square
+    return false;
+}
 
 const validQueenMove: moveBool = (move: IMove) => {
     const fromSquare = move.fromSquare;
@@ -482,8 +520,8 @@ const getAdjacentSquares: (checkedSquareId: number) => IPiece[] | undefined = (
     const adjacentPieces: IPiece[] = [];
 
     for (const key in AdjacentSquareIdOffsets) {
-        const mod = AdjacentSquareIdOffsets[key as keyof typeof AdjacentSquareIdOffsets];
-        const moddedId = checkedSquareId + mod;
+        const offset = AdjacentSquareIdOffsets[key as keyof typeof AdjacentSquareIdOffsets];
+        const moddedId = checkedSquareId + offset;
 
         if (moddedId > lowerBound && moddedId < upperBound) {
             adjacentPieces.push(getSquareWithIdWrapper(moddedId));
