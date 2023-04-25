@@ -310,6 +310,8 @@ const willKingBeInCheck = (kingSquare: IPiece, pieceColour: string) => {
             }
     }
 
+    //Negative means that it is concerned about pawns up the board that are facing down
+    const dirMod = pieceColour === "w" ? 1 : -1;
     for (const key in AdjacentSquareIdOffsets)
     {
         const offset = AdjacentSquareIdOffsets[key as keyof typeof AdjacentSquareIdOffsets];
@@ -317,12 +319,14 @@ const willKingBeInCheck = (kingSquare: IPiece, pieceColour: string) => {
         let testId = (offset * squaresAway) + id;
         
         while (testId > 0 && testId < 63) {
-            const checkedSquareId = getSquareWithIdWrapper(testId);
+            const checkedSquare = getSquareWithIdWrapper(testId);
+            const idDifference = kingSquare.id - checkedSquare.id;
+            ;
             
-            if (checkedSquareId.piece[PieceComp.COLOUR] === opponentColour) {
-                if (squaresAway === 1 && checkedSquareId.piece[PieceComp.TYPE] === "k") return true;
+            if (checkedSquare.piece[PieceComp.COLOUR] === opponentColour) {
+                if (squaresAway === 1 && checkedSquare.piece[PieceComp.TYPE] === "k") return true;
+                if (squaresAway === 1 && idDifference === 9 * dirMod || idDifference === 7 * dirMod && checkedSquare.piece[PieceComp.TYPE] === "p") return true;
             }
-            console.log(testId);
             testId = (offset * squaresAway++) + id
         }
     }
