@@ -295,34 +295,37 @@ const validKingMove: moveBool = (move: IMove) => {
 };
 
 const willKingBeInCheck = (kingSquare: IPiece, pieceColour: string) => {
-    // const id = kingSquare.id;
-    // const opponentColour = pieceColour === "w" ? "b" : "w";
+    const id = kingSquare.id;
+    const opponentColour = pieceColour === "w" ? "b" : "w";
+    const diagonals = [AdjacentSquareIdOffsets.DOWN_LEFT, AdjacentSquareIdOffsets.DOWN_RIGHT, AdjacentSquareIdOffsets.UP_RIGHT, AdjacentSquareIdOffsets.UP_LEFT];
+    const straights = [AdjacentSquareIdOffsets.LEFT, AdjacentSquareIdOffsets.RIGHT, AdjacentSquareIdOffsets.UP, AdjacentSquareIdOffsets.DOWN];
 
-    // for (const key in KnightMoveOffsets) {
-    //     const offset = KnightMoveOffsets[key as keyof typeof KnightMoveOffsets]
-    //     const testId = offset + id;
+    for (const key in KnightMoveOffsets) {
+        const offset = KnightMoveOffsets[key as keyof typeof KnightMoveOffsets]
+        const testId = offset + id;
 
-    //     if (testId > 0 && testId < 63) // Ensure no out of bounds
-    //         if (getSquareWithIdWrapper(testId).piece === opponentColour + "n") {
-    //             return true;
-    //         }
-    // }
+        if (testId > 0 && testId < 63) // Ensure no out of bounds
+            if (getSquareWithIdWrapper(testId).piece === opponentColour + "n") {
+                return true;
+            }
+    }
 
-    // for (const key in AdjacentSquareIdOffsets)
-    // {
-    //     const offset = AdjacentSquareIdOffsets[key as keyof typeof AdjacentSquareIdOffsets];
-    //     let testId = offset + id;
-    //     while (testId > 0 && testId < 63) {
-    //         let squaresAway = 1;
-    //         testId = (offset * squaresAway) + id;
-    //         const checkedSquareId = getSquareWithIdWrapper(testId);
+    for (const key in AdjacentSquareIdOffsets)
+    {
+        const offset = AdjacentSquareIdOffsets[key as keyof typeof AdjacentSquareIdOffsets];
+        let squaresAway = 1;
+        let testId = (offset * squaresAway) + id;
+        
+        while (testId > 0 && testId < 63) {
+            const checkedSquareId = getSquareWithIdWrapper(testId);
             
-    //         if (checkedSquareId.piece[PieceComp.COLOUR] === opponentColour) {
-    //             if (squaresAway === 1 && checkedSquareId.piece[PieceComp.TYPE] === "k") return true;
-    //             if (squaresAway === 1 && 
-    //         }
-    //     }
-    // }
+            if (checkedSquareId.piece[PieceComp.COLOUR] === opponentColour) {
+                if (squaresAway === 1 && checkedSquareId.piece[PieceComp.TYPE] === "k") return true;
+            }
+            console.log(testId);
+            testId = (offset * squaresAway++) + id
+        }
+    }
 
     //Both -> King, Queen
     //Horizontal and Vertical pieces -> Rook
