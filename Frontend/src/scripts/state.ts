@@ -189,7 +189,8 @@ const validPawnMove: moveBool = (move: IMove) => {
     if ((rowDiff === 2 && !isStartingSquare) || rowDiff > 2) return false;
 
     const isVerticalMove = dir === Direction.VERTICAL && toSquare.piece === "e";
-    const isDiagonalMove = dir === Direction.DIAGONAL && !isFriendlyPiece(fromSquare.piece[0], toSquare.id);
+    const isDiagonalMove =
+        dir === Direction.DIAGONAL && !isFriendlyPiece(fromSquare.piece[0], toSquare.id);
 
     if (!isVerticalMove && !isDiagonalMove) return false;
 
@@ -200,7 +201,12 @@ const validPawnMove: moveBool = (move: IMove) => {
     return !isJumpingPiece(move);
 };
 
-const isValidEnPassant = (fromSquare: IPiece, toSquare: IPiece, pieceColour: string, opponentColour: string) => {
+const isValidEnPassant = (
+    fromSquare: IPiece,
+    toSquare: IPiece,
+    pieceColour: string,
+    opponentColour: string
+) => {
     const prevBoard = getPreviousBoardStateWrapper();
     const opponentPawn = `${opponentColour}${ChessPiece.PAWN}`;
     const opponentCheckSquareId = pieceColour === "w" ? toSquare.id - 8 : toSquare.id + 8;
@@ -288,7 +294,7 @@ const validKingMove: moveBool = (move: IMove) => {
 
     getAdjacentSquares(toSquare.id);
 
-    if(willKingBeInCheck(toSquare, pieceColour)) return false;
+    if (willKingBeInCheck(toSquare, pieceColour)) return false;
     if (!validQueenMove(move) || isMoreThanOneSquare(move)) return false;
 
     return true;
@@ -297,37 +303,94 @@ const validKingMove: moveBool = (move: IMove) => {
 const willKingBeInCheck = (kingSquare: IPiece, pieceColour: string) => {
     const id = kingSquare.id;
     const opponentColour = pieceColour === "w" ? "b" : "w";
-    const diagonals = [AdjacentSquareIdOffsets.DOWN_LEFT, AdjacentSquareIdOffsets.DOWN_RIGHT, AdjacentSquareIdOffsets.UP_RIGHT, AdjacentSquareIdOffsets.UP_LEFT];
-    const straights = [AdjacentSquareIdOffsets.LEFT, AdjacentSquareIdOffsets.RIGHT, AdjacentSquareIdOffsets.UP, AdjacentSquareIdOffsets.DOWN];
+    const diagonals = [
+        AdjacentSquareIdOffsets.DOWN_LEFT,
+        AdjacentSquareIdOffsets.DOWN_RIGHT,
+        AdjacentSquareIdOffsets.UP_RIGHT,
+        AdjacentSquareIdOffsets.UP_LEFT,
+    ];
+    const straights = [
+        AdjacentSquareIdOffsets.LEFT,
+        AdjacentSquareIdOffsets.RIGHT,
+        AdjacentSquareIdOffsets.UP,
+        AdjacentSquareIdOffsets.DOWN,
+    ];
 
     for (const key in KnightMoveOffsets) {
-        const offset = KnightMoveOffsets[key as keyof typeof KnightMoveOffsets]
+        const offset = KnightMoveOffsets[key as keyof typeof KnightMoveOffsets];
         const testId = offset + id;
 
-        if (testId > 0 && testId < 63) // Ensure no out of bounds
+        if (testId > 0 && testId < 63)
             if (getSquareWithIdWrapper(testId).piece === opponentColour + "n") {
+                // Ensure no out of bounds
                 return true;
             }
     }
 
     //Negative means that it is concerned about pawns up the board that are facing down
-    const dirMod = pieceColour === "w" ? 1 : -1;
-    for (const key in AdjacentSquareIdOffsets)
-    {
-        const offset = AdjacentSquareIdOffsets[key as keyof typeof AdjacentSquareIdOffsets];
-        let squaresAway = 1;
-        let testId = (offset * squaresAway) + id;
-        
-        while (testId > 0 && testId < 63) {
-            const checkedSquare = getSquareWithIdWrapper(testId);
-            const idDifference = kingSquare.id - checkedSquare.id;
-            ;
-            
-            if (checkedSquare.piece[PieceComp.COLOUR] === opponentColour) {
-                if (squaresAway === 1 && checkedSquare.piece[PieceComp.TYPE] === "k") return true;
-                if (squaresAway === 1 && idDifference === 9 * dirMod || idDifference === 7 * dirMod && checkedSquare.piece[PieceComp.TYPE] === "p") return true;
+    const dirMod = pieceColour === "w" ? -1 : 1;
+    const offsets: number[] = Object.entries(AdjacentSquareIdOffsets)
+        .map(([_, value]) => value)
+        .filter((value): value is number => typeof value === "number");
+
+    const startRow: number = Math.floor(id / 8);
+    const startCol: number = Math.floor(id % 8);
+
+    const columnInBounds: (currentColumn: number) => boolean = (currentColumn: number) => {
+        let result = currentColumn > 0 && currentColumn < 7;
+        return result;
+    };
+
+    const rowInBounds: (currentRow: number) => boolean = (currentRow: number) => {
+        let result = currentRow > 0 && currentRow < 7;
+        return result;
+    };
+
+    const hasRowChanged: (currentRow: number) => boolean = (currentRow: number) => {
+        if (startRow - currentRow === 0) {
+            return false;
+        }
+        return true;
+    };
+
+    const hasColChanged: (currentColumn: number) => boolean = (currentColumn: number) => {
+        if (startCol - currentColumn === 0) {
+            return false;
+        }
+        return true;
+    };
+
+    const isIdInBounds: (id: number) => boolean = () => {
+        if (id > 0 && id < 63) return true;
+        else return false;
+    }
+
+    for (const offset of offsets) {
+        let squaresAway = 1; 
+        let testedId = id + offset;
+        let testedSquare = getSquareWithIdWrapper(testedId);
+        let currentRow: number = Math.floor(testedId / 8);
+        let currentColumn: number = Math.floor(testedId % 8);
+
+        while (rowInBounds(currentRow) && columnInBounds(currentColumn)) {
+            if (hasRowChanged(currentRow) && hasColChanged(currentColumn) && testedSquare.piece[PieceComp.COLOUR] !== pieceColour) {
+                console.log("here");
+                //Check for pieces that attack on diagonals
+                if (squaresAway === 1 && testedSquare.piece[PieceComp.TYPE] === "p" &&  dirMod * offset > 0) {
+                    return true;
+                }
+            } else {
+                
             }
-            testId = (offset * squaresAway++) + id
+
+            testedId += offset;
+            
+            if (!isIdInBounds(testedId)) break;
+            
+            currentRow = Math.floor(testedId / 8);
+            currentColumn = Math.floor(testedId % 8);
+            testedSquare = getSquareWithIdWrapper(testedId);
+            squaresAway++;
         }
     }
 
@@ -336,7 +399,7 @@ const willKingBeInCheck = (kingSquare: IPiece, pieceColour: string) => {
     //Diagonal pieces -> Bishop, Pawn
     //Only one square
     return false;
-}
+};
 
 const validQueenMove: moveBool = (move: IMove) => {
     const fromSquare = move.fromSquare;
