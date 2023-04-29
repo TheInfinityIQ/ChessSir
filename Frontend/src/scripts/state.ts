@@ -301,104 +301,104 @@ const validKingMove: moveBool = (move: IMove) => {
 };
 
 const willKingBeInCheck = (kingSquare: IPiece, pieceColour: string) => {
-    const id = kingSquare.id;
+    const startingId = kingSquare.id;
+    // console.log(startingId);
     const opponentColour = pieceColour === "w" ? "b" : "w";
-    const diagonals = [
-        AdjacentSquareIdOffsets.DOWN_LEFT,
-        AdjacentSquareIdOffsets.DOWN_RIGHT,
-        AdjacentSquareIdOffsets.UP_RIGHT,
-        AdjacentSquareIdOffsets.UP_LEFT,
-    ];
-    const straights = [
-        AdjacentSquareIdOffsets.LEFT,
-        AdjacentSquareIdOffsets.RIGHT,
-        AdjacentSquareIdOffsets.UP,
-        AdjacentSquareIdOffsets.DOWN,
-    ];
 
+    //Knight
     for (const key in KnightMoveOffsets) {
         const offset = KnightMoveOffsets[key as keyof typeof KnightMoveOffsets];
-        const testId = offset + id;
+        const testId = offset + startingId;
 
-        if (testId > 0 && testId < 63)
+        if (testId > 0 && testId < 63) {
             if (getSquareWithIdWrapper(testId).piece === opponentColour + "n") {
                 // Ensure no out of bounds
                 return true;
             }
+        }
     }
 
-    //Negative means that it is concerned about pawns up the board that are facing down
-    const dirMod = pieceColour === "w" ? -1 : 1;
-    const offsets: number[] = Object.entries(AdjacentSquareIdOffsets)
-        .map(([_, value]) => value)
-        .filter((value): value is number => typeof value === "number");
+    //Pawn
+    const PawnOffset =
+        pieceColour === "w"
+            ? [AdjacentSquareIdOffsets.UP_LEFT, AdjacentSquareIdOffsets.UP_RIGHT]
+            : [AdjacentSquareIdOffsets.DOWN_LEFT, AdjacentSquareIdOffsets.DOWN_RIGHT];
+    for (const offset of PawnOffset) {
+        const testId: number = offset + startingId;
 
-    const startRow: number = Math.floor(id / 8);
-    const startCol: number = Math.floor(id % 8);
-
-    const columnInBounds: (currentColumn: number) => boolean = (currentColumn: number) => {
-        let result = currentColumn > 0 && currentColumn < 7;
-        return result;
-    };
-
-    const rowInBounds: (currentRow: number) => boolean = (currentRow: number) => {
-        let result = currentRow > 0 && currentRow < 7;
-        return result;
-    };
-
-    const hasRowChanged: (currentRow: number) => boolean = (currentRow: number) => {
-        if (startRow - currentRow === 0) {
-            return false;
-        }
-        return true;
-    };
-
-    const hasColChanged: (currentColumn: number) => boolean = (currentColumn: number) => {
-        if (startCol - currentColumn === 0) {
-            return false;
-        }
-        return true;
-    };
-
-    const isIdInBounds: (id: number) => boolean = () => {
-        if (id > 0 && id < 63) return true;
-        else return false;
-    }
-
-    for (const offset of offsets) {
-        let squaresAway = 1; 
-        let testedId = id + offset;
-        let testedSquare = getSquareWithIdWrapper(testedId);
-        let currentRow: number = Math.floor(testedId / 8);
-        let currentColumn: number = Math.floor(testedId % 8);
-
-        while (rowInBounds(currentRow) && columnInBounds(currentColumn)) {
-            if (hasRowChanged(currentRow) && hasColChanged(currentColumn) && testedSquare.piece[PieceComp.COLOUR] !== pieceColour) {
-                console.log("here");
-                //Check for pieces that attack on diagonals
-                if (squaresAway === 1 && testedSquare.piece[PieceComp.TYPE] === "p" &&  dirMod * offset > 0) {
-                    return true;
-                }
-            } else {
-                
+        if (testId > 0 && testId < 63) {
+            if (getSquareWithIdWrapper(testId).piece === opponentColour + "p") {
+                // Ensure no out of bounds
+                return true;
             }
-
-            testedId += offset;
-            
-            if (!isIdInBounds(testedId)) break;
-            
-            currentRow = Math.floor(testedId / 8);
-            currentColumn = Math.floor(testedId % 8);
-            testedSquare = getSquareWithIdWrapper(testedId);
-            squaresAway++;
         }
     }
 
-    //Both -> King, Queen
-    //Horizontal and Vertical pieces -> Rook
-    //Diagonal pieces -> Bishop, Pawn
-    //Only one square
-    return false;
+    const isAtEndOfBoard: (id: number) => boolean = (id: number) => {
+        const row = Math.floor(id / 8);
+        const column = Math.floor(id % 8);
+
+        if (row === 0 || row === 7 || column === 0 || column === 7) return true;
+        return false;
+    }
+
+    //Bishop and Queen and King
+    const Diagonal = [
+        AdjacentSquareIdOffsets.DOWN_LEFT,
+        AdjacentSquareIdOffsets.DOWN_RIGHT,
+        AdjacentSquareIdOffsets.UP_LEFT,
+        AdjacentSquareIdOffsets.UP_RIGHT,
+    ];
+
+    for (const offset of Diagonal) {
+        let squaresAway: number = 1;
+        let testId: number = offset + startingId;
+        console.log(`Offset: ${offset}`);
+
+        while (testId > 0 && testId < 63) {
+            const testPiece = getSquareWithIdWrapper(testId).piece;
+            const testPieceType = testPiece[PieceComp.TYPE];
+            if (testPieceType === "r" || testPieceType === "n" || testPieceType === "p") break;
+            console.log(`Offset ${offset} SquaresAway ${squaresAway} Test Piece ${testPiece}`);
+            if (squaresAway === 1 && testPiece === opponentColour + "k") return true;
+            if (testPiece === opponentColour + "q" || testPiece === opponentColour + "b")
+                return true;
+
+            if (isAtEndOfBoard(testId)) break;
+            
+            testId = startingId + (squaresAway++ * offset);
+        } 
+    }
+
+    //Rook && Queen && King
+    const Straigts = [
+        AdjacentSquareIdOffsets.UP,
+        AdjacentSquareIdOffsets.RIGHT,
+        AdjacentSquareIdOffsets.DOWN,
+        AdjacentSquareIdOffsets.LEFT
+    ];
+
+    for (const offset of Straigts) {
+        let squaresAway: number = 1;
+        let testId: number = offset + startingId;
+        console.log(`Offset: ${offset}`);
+
+        while (testId > 0 && testId < 63) {
+            const testPiece = getSquareWithIdWrapper(testId).piece;
+            const testPieceType = testPiece[PieceComp.TYPE];
+            if (testPieceType === "n" || testPieceType === "p" || testPiece === opponentColour + "b" || (squaresAway > 1 && testPieceType === "k") ) break;
+            console.log(`Offset ${offset} SquaresAway ${squaresAway} Test Piece ${testPiece}`);
+            if (squaresAway === 1 && testPiece === opponentColour + "k") return true;
+            if (testPieceType === "r" || testPiece === opponentColour + "q")
+                return true;
+
+            if (isAtEndOfBoard(testId)) break;
+            
+            testId = startingId + (squaresAway++ * offset);
+        } 
+    }
+
+    //Queen && King
 };
 
 const validQueenMove: moveBool = (move: IMove) => {
