@@ -13,6 +13,15 @@ let selectedSquareId: number | undefined;
 let selectedSquarePiece: string | undefined;
 let selectedSquareColour: number | undefined;
 
+let hasWhiteKingMoved: boolean = false;
+let hasBlackKingMoved: boolean = false;
+let hasKingMove = new Map<string, boolean>([
+    ["wk", false],
+    ["bk", false],
+]);
+
+// let hasRookMove = new Map< >
+
 let pieceRef: Ref<string>;
 
 let deselect: () => void;
@@ -187,6 +196,7 @@ const validPawnMove: moveBool = (move: IMove) => {
     const isStartingSquare = pieceColour === "w" ? fromRowId === 6 : fromRowId === 1;
     const rowDiff = Math.abs(fromRowId - Math.floor(toSquare.id / 8));
     if ((rowDiff === 2 && !isStartingSquare) || rowDiff > 2) return false;
+    if (rowDiff === 2 && dir === Direction.DIAGONAL) return false;
 
     const isVerticalMove = dir === Direction.VERTICAL && toSquare.piece === "e";
     const isDiagonalMove =
@@ -292,17 +302,28 @@ const validKingMove: moveBool = (move: IMove) => {
     const pieceColour = fromSquare.piece[PieceComp.COLOUR];
     const toSquare = move.toSquare;
 
+    const colDiff = Math.floor(fromSquare.id % 8) - Math.floor(toSquare.id % 8);
+    const rowDiff = Math.floor(fromSquare.id / 8) - Math.floor(toSquare.id / 8);
+
     getAdjacentSquares(toSquare.id);
 
     if (willKingBeInCheck(toSquare, pieceColour)) return false;
+    if (pieceColour === "w" && Math.abs(colDiff) === 2 && rowDiff === 0) {
+        // castleKing()
+    } else {
+    }
     if (!validQueenMove(move) || isMoreThanOneSquare(move)) return false;
+
+    //Updates to prevent castling
+    pieceColour === "w" ? (hasWhiteKingMoved = true) : (hasBlackKingMoved = true);
 
     return true;
 };
 
+const castleKing = (move: IMove, colDiff: number) => {};
+
 const willKingBeInCheck = (kingSquare: IPiece, pieceColour: string) => {
     const startingId = kingSquare.id;
-    // console.log(startingId);
     const opponentColour = pieceColour === "w" ? "b" : "w";
 
     //Knight
@@ -325,10 +346,11 @@ const willKingBeInCheck = (kingSquare: IPiece, pieceColour: string) => {
             : [AdjacentSquareIdOffsets.DOWN_LEFT, AdjacentSquareIdOffsets.DOWN_RIGHT];
     for (const offset of PawnOffset) {
         const testId: number = offset + startingId;
+        const kingAndPawnColDiff = Math.floor(testId % 8) - Math.floor(startingId % 8);
+        if (Math.abs(kingAndPawnColDiff) > 1) break;
 
         if (testId > 0 && testId < 63) {
             if (getSquareWithIdWrapper(testId).piece === opponentColour + "p") {
-                // Ensure no out of bounds
                 return true;
             }
         }
@@ -340,9 +362,9 @@ const willKingBeInCheck = (kingSquare: IPiece, pieceColour: string) => {
 
         if (row === 0 || row === 7 || column === 0 || column === 7) return true;
         return false;
-    }
+    };
 
-    //Bishop and Queen and King
+    // Bishop and Queen and King
     const Diagonal = [
         AdjacentSquareIdOffsets.DOWN_LEFT,
         AdjacentSquareIdOffsets.DOWN_RIGHT,
@@ -353,52 +375,64 @@ const willKingBeInCheck = (kingSquare: IPiece, pieceColour: string) => {
     for (const offset of Diagonal) {
         let squaresAway: number = 1;
         let testId: number = offset + startingId;
-        console.log(`Offset: ${offset}`);
 
         while (testId > 0 && testId < 63) {
             const testPiece = getSquareWithIdWrapper(testId).piece;
             const testPieceType = testPiece[PieceComp.TYPE];
-            if (testPieceType === "r" || testPieceType === "n" || testPieceType === "p") break;
-            console.log(`Offset ${offset} SquaresAway ${squaresAway} Test Piece ${testPiece}`);
-            if (squaresAway === 1 && testPiece === opponentColour + "k") return true;
-            if (testPiece === opponentColour + "q" || testPiece === opponentColour + "b")
+            if (
+                testPieceType === "r" ||
+                testPieceType === "n" ||
+                testPieceType === "p" ||
+                (squaresAway > 1 && testPieceType === "k")
+            )
+                break;
+            if (squaresAway === 1 && testPiece === opponentColour + "k") {
                 return true;
+            }
+            if (testPiece === opponentColour + "q" || testPiece === opponentColour + "b") {
+                return true;
+            }
 
             if (isAtEndOfBoard(testId)) break;
-            
-            testId = startingId + (squaresAway++ * offset);
-        } 
+
+            testId = startingId + squaresAway++ * offset;
+        }
     }
 
-    //Rook && Queen && King
+    // Rook && Queen && King
     const Straigts = [
         AdjacentSquareIdOffsets.UP,
         AdjacentSquareIdOffsets.RIGHT,
         AdjacentSquareIdOffsets.DOWN,
-        AdjacentSquareIdOffsets.LEFT
+        AdjacentSquareIdOffsets.LEFT,
     ];
 
     for (const offset of Straigts) {
         let squaresAway: number = 1;
         let testId: number = offset + startingId;
-        console.log(`Offset: ${offset}`);
 
         while (testId > 0 && testId < 63) {
             const testPiece = getSquareWithIdWrapper(testId).piece;
             const testPieceType = testPiece[PieceComp.TYPE];
-            if (testPieceType === "n" || testPieceType === "p" || testPiece === opponentColour + "b" || (squaresAway > 1 && testPieceType === "k") ) break;
-            console.log(`Offset ${offset} SquaresAway ${squaresAway} Test Piece ${testPiece}`);
-            if (squaresAway === 1 && testPiece === opponentColour + "k") return true;
-            if (testPieceType === "r" || testPiece === opponentColour + "q")
+            if (
+                testPieceType === "n" ||
+                testPieceType === "p" ||
+                testPiece === opponentColour + "b" ||
+                (squaresAway > 1 && testPieceType === "k")
+            )
+                break;
+            if (squaresAway === 1 && testPiece === opponentColour + "k") {
                 return true;
+            }
+            if (testPieceType === opponentColour + "r" || testPiece === opponentColour + "q") {
+                return true;
+            }
 
             if (isAtEndOfBoard(testId)) break;
-            
-            testId = startingId + (squaresAway++ * offset);
-        } 
-    }
 
-    //Queen && King
+            testId = startingId + squaresAway++ * offset;
+        }
+    }
 };
 
 const validQueenMove: moveBool = (move: IMove) => {

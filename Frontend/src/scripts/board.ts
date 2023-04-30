@@ -114,7 +114,7 @@ const getSquareWithIdWrapper: numIPiece = (id: number) => {
     return getSquareWithId(id);
 };
 
-const getSquareWithId: numIPiece = (id: number) => {
+const getSquareWithId: numIPiece = (id: number) => { 
     let row: number = Math.trunc(id! / 8);
     let column: number = id! % 8;
     
