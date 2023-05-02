@@ -485,7 +485,8 @@ const isKingInCheck = (kingSquare: IPiece, pieceColour: string) => {
                 testPieceType === "r" ||
                 testPieceType === "n" ||
                 testPieceType === "p" ||
-                (squaresAway > 1 && testPieceType === "k")
+                (squaresAway > 1 && testPieceType === "k") ||
+                testPiece[PieceComp.COLOUR] === pieceColour
             )
                 break;
             if (squaresAway === 1 && testPiece === opponentColour + "k") {
@@ -520,7 +521,8 @@ const isKingInCheck = (kingSquare: IPiece, pieceColour: string) => {
                 testPieceType === "n" ||
                 testPieceType === "p" ||
                 testPiece === opponentColour + "b" ||
-                (squaresAway > 1 && testPieceType === "k")
+                (squaresAway > 1 && testPieceType === "k") ||
+                testPiece[PieceComp.COLOUR] === pieceColour
             )
                 break;
             if (squaresAway === 1 && testPiece === opponentColour + "k") {
