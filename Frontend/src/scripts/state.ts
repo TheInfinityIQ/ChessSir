@@ -97,11 +97,6 @@ enum PieceComp {
     TYPE = 1,
 }
 
-enum PawnAttackSquares {
-    LEFT = 7,
-    RIGHT = 9,
-}
-
 // Get Functions
 // --------------------
 
@@ -570,14 +565,6 @@ const getChessPieceFromLetter = (letter: string): ChessPiece | undefined => {
         }
     }
     return undefined;
-};
-
-const isDiagonalMove: moveBool = () => {
-    return false;
-};
-
-const isVertOrHorizontalMove: moveBool = () => {
-    return false;
 };
 
 const isMoreThanOneSquare: moveBool = (move: IMove) => {
