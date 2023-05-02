@@ -96,11 +96,52 @@ const commitMoveToBoard: moveVoid = (newMove: Move) => {
     boardState[toRow][toColumn].piece = fromSquare.piece;
 };
 
+enum CastlingPiecesColStart {
+    ROOK_QUEENSIDE = 0,
+    ROOK_KINGSIDE = 7,
+    KING = 4,
+}
+
+enum CastlingPiecesColOffset {
+    ROOK_QUEENSIDE = 3,
+    ROOK_KINGSIDE = -2,
+    KING_KINGSIDE = 2,
+    KING_QUEENSIDE = -2,
+}
+
+const commitCastleToBoard = (pieceColour: string, castlingKingSide: boolean) => {
+    const rowToCastle = pieceColour === "w" ? 7 : 0;
+    const pieceTypes = ["k", "r"];
+    const kingAndRookNewId =
+        castlingKingSide === true
+            ? [
+                CastlingPiecesColStart.KING + CastlingPiecesColOffset.KING_KINGSIDE,
+                CastlingPiecesColStart.ROOK_KINGSIDE + CastlingPiecesColOffset.ROOK_KINGSIDE,
+              ]
+            : [
+                CastlingPiecesColStart.KING + CastlingPiecesColOffset.KING_QUEENSIDE,
+                CastlingPiecesColStart.ROOK_QUEENSIDE + CastlingPiecesColOffset.ROOK_QUEENSIDE,
+              ];
+
+    let iteration = 0;
+    for (let piece of kingAndRookNewId) {
+        boardState[rowToCastle][piece].piece = pieceColour + pieceTypes[iteration++];
+    }
+
+    if (castlingKingSide) {
+        boardState[rowToCastle][CastlingPiecesColStart.ROOK_KINGSIDE].piece = "e";
+    } else {
+        boardState[rowToCastle][CastlingPiecesColStart.ROOK_QUEENSIDE].piece = "e";
+    }
+
+    boardState[rowToCastle][CastlingPiecesColStart.KING].piece = "e";
+};
+
 const getPreviousBoardState = () => {
     return previousBoardState;
 };
 
-const getPreviousBoardStateWrapper = () => {    
+const getPreviousBoardStateWrapper = () => {
     if (!previousBoardState[0]) {
         previousBoardState = JSON.parse(JSON.stringify(boardState));
     }
@@ -114,10 +155,10 @@ const getSquareWithIdWrapper: numIPiece = (id: number) => {
     return getSquareWithId(id);
 };
 
-const getSquareWithId: numIPiece = (id: number) => { 
+const getSquareWithId: numIPiece = (id: number) => {
     let row: number = Math.trunc(id! / 8);
     let column: number = id! % 8;
-    
+
     return boardState[row][column];
 };
 
@@ -125,7 +166,7 @@ function findPieceById(board: IPiece[][], id: number): IPiece | undefined {
     if (!board[0]) {
         return undefined;
     }
-    
+
     for (const row of board) {
         const foundPiece = row.find((piece) => piece.id === id);
         if (foundPiece) {
@@ -145,6 +186,7 @@ export {
     commitMoveToBoard,
     getTestPieceType,
     getSquareWithIdWrapper,
-    findPieceById
+    findPieceById,
+    commitCastleToBoard
 };
 export { boardState };

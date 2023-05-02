@@ -5,6 +5,7 @@ import {
     getSquareWithIdWrapper,
     getPreviousBoardStateWrapper,
     findPieceById,
+    commitCastleToBoard,
 } from "./board";
 import type { refVoid, IPiece, npIPiece, IMove, npVoid, moveBool, npBool } from "./types";
 import { Piece, Move } from "./types";
@@ -13,11 +14,28 @@ let selectedSquareId: number | undefined;
 let selectedSquarePiece: string | undefined;
 let selectedSquareColour: number | undefined;
 
-let hasWhiteKingMoved: boolean = false;
-let hasBlackKingMoved: boolean = false;
-let hasKingMove = new Map<string, boolean>([
-    ["wk", false],
-    ["bk", false],
+enum CastlingPiecesId {
+    WHITE_ROOK_QUEENSIDE = 56,
+    WHITE_ROOK_KINGSIDE = 63,
+    BLACK_ROOK_QUEENSIDE = 0,
+    BLACK_ROOK_KINGSIDE = 7,
+    WHITE_KING = 60,
+    BLACK_KING = 4,
+}
+
+enum CastlingPiece {
+    QUEENSIDE_ROOK = 0,
+    KINGSIDE_ROOK = 1,
+    KING = 2,
+}
+
+let hasPieceMoved = new Map<number, boolean>([
+    [CastlingPiecesId.WHITE_ROOK_QUEENSIDE, false],
+    [CastlingPiecesId.WHITE_ROOK_KINGSIDE, false],
+    [CastlingPiecesId.BLACK_ROOK_QUEENSIDE, false],
+    [CastlingPiecesId.BLACK_ROOK_KINGSIDE, false],
+    [CastlingPiecesId.WHITE_KING, false],
+    [CastlingPiecesId.BLACK_KING, false],
 ]);
 
 // let hasRookMove = new Map< >
@@ -240,11 +258,27 @@ const validRookMove: moveBool = (move: IMove) => {
     const fromSquare = move.fromSquare;
     const toSquare = move.toSquare;
 
-    return !(
+    if (
         isJumpingPiece(move) ||
         determineDirection(move) === Direction.DIAGONAL ||
         isFriendlyPiece(fromSquare.piece[0], toSquare.id)
-    );
+    ) {
+        return false;
+    }
+
+    const rookStartingIds = [
+        CastlingPiecesId.BLACK_ROOK_KINGSIDE,
+        CastlingPiecesId.BLACK_ROOK_QUEENSIDE,
+        CastlingPiecesId.WHITE_ROOK_QUEENSIDE,
+        CastlingPiecesId.WHITE_ROOK_KINGSIDE,
+    ];
+    const foundRook = rookStartingIds.some((id) => id === fromSquare.id);
+    if (foundRook) {
+        hasPieceMoved.set(fromSquare.id, true);
+    }
+    console.log(hasPieceMoved);
+
+    return true;
 };
 
 const validKnightMove: moveBool = (move: IMove) => {
@@ -298,31 +332,99 @@ const validBishopMove: moveBool = (move: IMove) => {
 };
 
 const validKingMove: moveBool = (move: IMove) => {
+    // enum CastlingPiecesStartId {
+    //     WHITE_ROOK_QUEENSIDE = 56,
+    //     WHITE_ROOK_KINGSIDE = 63,
+    //     BLACK_ROOK_QUEENSIDE = 0,
+    //     BLACK_ROOK_KINGSIDE = 7,
+    //     WHITE_KING = 60,
+    //     BLACK_KING = 4,
+    // }
+    
     const fromSquare = move.fromSquare;
     const pieceColour = fromSquare.piece[PieceComp.COLOUR];
     const toSquare = move.toSquare;
+    const castlingKingside = move.toSquare.id - move.fromSquare.id > 0 ? true : false;
 
     const colDiff = Math.floor(fromSquare.id % 8) - Math.floor(toSquare.id % 8);
     const rowDiff = Math.floor(fromSquare.id / 8) - Math.floor(toSquare.id / 8);
 
     getAdjacentSquares(toSquare.id);
 
-    if (willKingBeInCheck(toSquare, pieceColour)) return false;
-    if (pieceColour === "w" && Math.abs(colDiff) === 2 && rowDiff === 0) {
-        // castleKing()
-    } else {
+    if (isKingInCheck(toSquare, pieceColour)) return false;
+    if (
+        Math.abs(colDiff) === 2 &&
+        rowDiff === 0 &&
+        isCastlingValid(pieceColour, castlingKingside)
+    ) {
+        commitCastleToBoard(pieceColour, castlingKingside);
     }
     if (!validQueenMove(move) || isMoreThanOneSquare(move)) return false;
 
     //Updates to prevent castling
-    pieceColour === "w" ? (hasWhiteKingMoved = true) : (hasBlackKingMoved = true);
+    pieceColour === "w"
+        ? hasPieceMoved.set(CastlingPiecesId.WHITE_KING, true)
+        : hasPieceMoved.set(CastlingPiecesId.BLACK_KING, true);
+    return true;
+};
+
+const isCastlingValid = (pieceColour: string, castlingKingside: boolean) => {
+    const pieces =
+        pieceColour === "w"
+            ? [
+                  CastlingPiecesId.WHITE_ROOK_QUEENSIDE,
+                  CastlingPiecesId.WHITE_ROOK_KINGSIDE,
+                  CastlingPiecesId.WHITE_KING,
+              ]
+            : [
+                  CastlingPiecesId.BLACK_ROOK_QUEENSIDE,
+                  CastlingPiecesId.BLACK_ROOK_KINGSIDE,
+                  CastlingPiecesId.BLACK_KING,
+              ];
+
+    console.log(castlingKingside);
+    const calcIsRoomToCastle: npBool = () => {
+        if (castlingKingside) {
+            // console.log(`Castling Kingside\n Start: ${pieces[Piece.KING]} End: ${pieces[Piece.KINGSIDE_ROOK]}`);
+            for (
+                let position = pieces[CastlingPiece.KING] + AdjacentSquareIdOffsets.RIGHT;
+                position < pieces[CastlingPiece.KINGSIDE_ROOK];
+                position++
+            ) {
+                const square = getSquareWithIdWrapper(position);
+                console.log(`Kingside Pos: ${position}`);
+                if (isKingInCheck(square, pieceColour) || square.piece !== "e") return false;
+            }
+            return true;
+        } else {
+            // console.log(`Castling Queenside\n Start: ${pieces[Piece.KING]} End: ${pieces[Piece.QUEENSIDE_ROOK]}`);
+            for (
+                let position = pieces[CastlingPiece.KING] + AdjacentSquareIdOffsets.LEFT;
+                position > pieces[CastlingPiece.QUEENSIDE_ROOK];
+                position--
+            ) {
+                const square = getSquareWithIdWrapper(position);
+                console.log(`Queenside Pos: ${position}`);
+                if (isKingInCheck(square, pieceColour) || square.piece !== "e") return false;
+            }
+            return true;
+        }
+    };
+
+    const isRoomToCastle = calcIsRoomToCastle();
+
+    if (hasPieceMoved.get(pieces[CastlingPiece.KING]) || !isRoomToCastle) return false;
+
+    if (castlingKingside) {
+        if (hasPieceMoved.get(pieces[CastlingPiece.KINGSIDE_ROOK])) return false;
+    } else {
+        if (hasPieceMoved.get(pieces[CastlingPiece.QUEENSIDE_ROOK])) return false;
+    }
 
     return true;
 };
 
-const castleKing = (move: IMove, colDiff: number) => {};
-
-const willKingBeInCheck = (kingSquare: IPiece, pieceColour: string) => {
+const isKingInCheck = (kingSquare: IPiece, pieceColour: string) => {
     const startingId = kingSquare.id;
     const opponentColour = pieceColour === "w" ? "b" : "w";
 
