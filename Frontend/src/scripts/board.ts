@@ -1,6 +1,6 @@
 import { reactive } from "vue";
 import { getSquares } from "./board_setup";
-import type { IPiece, Move, moveVoid, npVoid, numIPiece } from "./types";
+import type { IMove, IPiece, Move, moveVoid, npNumber, npString, npVoid, numIPiece } from "./types";
 
 let boardState: IPiece[][] = reactive([]);
 let previousBoardState: IPiece[][] = [];
@@ -8,6 +8,7 @@ let previousBoardState: IPiece[][] = [];
 const boardSize: number = 64; // Could be updated for larger board sizes in future;
 const root: number = Math.sqrt(boardSize);
 const initPieces: IPiece[] = getSquares();
+let totalMoves: number = 0;
 
 const setupBoard: npVoid = () => {
     let tempRow: IPiece[] = [];
@@ -73,20 +74,20 @@ const getTestPieceType: (id: number) => string = (id: number) => {
     return pieceType;
 };
 
+const getTotalMoves: npNumber = () => {
+    return totalMoves;
+};
+
 const commitMoveToBoard: moveVoid = (newMove: Move) => {
-    // console.log(boardState.board);
     let fromSquare: IPiece = newMove.fromSquare;
     if (fromSquare.piece === "e") {
         return;
     }
 
-    previousBoardState = JSON.parse(JSON.stringify(boardState));
-
     let fromRow: number = Math.trunc(fromSquare.id / 8);
     let fromColumn: number = fromSquare.id % 8;
 
     boardState[fromRow][fromColumn].piece = "e";
-    // console.log(boardState);
 
     let toSquare: IPiece = newMove.toSquare;
 
@@ -94,6 +95,7 @@ const commitMoveToBoard: moveVoid = (newMove: Move) => {
     let toColumn: number = toSquare.id % 8;
 
     boardState[toRow][toColumn].piece = fromSquare.piece;
+    totalMoves++;
 };
 
 enum CastlingPiecesColStart {
@@ -115,12 +117,12 @@ const commitCastleToBoard = (pieceColour: string, castlingKingSide: boolean) => 
     const kingAndRookNewId =
         castlingKingSide === true
             ? [
-                CastlingPiecesColStart.KING + CastlingPiecesColOffset.KING_KINGSIDE,
-                CastlingPiecesColStart.ROOK_KINGSIDE + CastlingPiecesColOffset.ROOK_KINGSIDE,
+                  CastlingPiecesColStart.KING + CastlingPiecesColOffset.KING_KINGSIDE,
+                  CastlingPiecesColStart.ROOK_KINGSIDE + CastlingPiecesColOffset.ROOK_KINGSIDE,
               ]
             : [
-                CastlingPiecesColStart.KING + CastlingPiecesColOffset.KING_QUEENSIDE,
-                CastlingPiecesColStart.ROOK_QUEENSIDE + CastlingPiecesColOffset.ROOK_QUEENSIDE,
+                  CastlingPiecesColStart.KING + CastlingPiecesColOffset.KING_QUEENSIDE,
+                  CastlingPiecesColStart.ROOK_QUEENSIDE + CastlingPiecesColOffset.ROOK_QUEENSIDE,
               ];
 
     let iteration = 0;
@@ -135,6 +137,7 @@ const commitCastleToBoard = (pieceColour: string, castlingKingSide: boolean) => 
     }
 
     boardState[rowToCastle][CastlingPiecesColStart.KING].piece = "e";
+    totalMoves++;
 };
 
 const getPreviousBoardState = () => {
@@ -162,18 +165,47 @@ const getSquareWithId: numIPiece = (id: number) => {
     return boardState[row][column];
 };
 
-function findPieceById(board: IPiece[][], id: number): IPiece | undefined {
-    if (!board[0]) {
-        return undefined;
-    }
+const getTestBoard: () => IPiece[][] = () => {
+    return JSON.parse(JSON.stringify(boardState));
+};
 
+function findPieceById(id: number, board: IPiece[][] = boardState): IPiece {
+    if (!board[0]) {
+        setupBoard();
+    }
+    let foundPiece: IPiece | undefined;
     for (const row of board) {
-        const foundPiece = row.find((piece) => piece.id === id);
+        foundPiece = row.find((piece) => piece.id === id);
         if (foundPiece) {
-            return foundPiece;
+            break;
         }
     }
-    return undefined;
+    
+    if (id < 0 || id > 63 || !foundPiece) {
+        throw new Error(`Piece with id \${id} not found or id is out of bounds`);
+    }
+
+    return foundPiece!;
+}
+
+function findKing(pieceColour: string, board: IPiece[][] = boardState) {
+    const pieceType = "k";
+    if (!board[0]) {
+        setupBoard();
+    }
+
+    let foundPiece: IPiece | undefined;
+    for (const row of board) {
+        foundPiece = row.find((square) => square.piece === pieceColour + pieceType);
+        if (foundPiece) {
+            break;
+        }
+    }
+
+    if (foundPiece === undefined) {
+        console.error("A king is missing???");
+    }
+    return foundPiece!;
 }
 
 export {
@@ -187,6 +219,9 @@ export {
     getTestPieceType,
     getSquareWithIdWrapper,
     findPieceById,
-    commitCastleToBoard
+    commitCastleToBoard,
+    getTestBoard,
+    boardState,
+    findKing,
+    getTotalMoves,
 };
-export { boardState };

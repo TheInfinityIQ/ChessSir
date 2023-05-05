@@ -1,11 +1,14 @@
 import type { Ref } from "vue";
 import {
-    boardState,
     commitMoveToBoard,
     getSquareWithIdWrapper,
     getPreviousBoardStateWrapper,
     findPieceById,
     commitCastleToBoard,
+    getTestBoard,
+    boardState,
+    findKing,
+    getTotalMoves,
 } from "./board";
 import type { refVoid, IPiece, npIPiece, IMove, npVoid, moveBool, npBool } from "./types";
 import { Piece, Move } from "./types";
@@ -38,10 +41,7 @@ let hasPieceMoved = new Map<number, boolean>([
     [CastlingPiecesId.BLACK_KING, false],
 ]);
 
-// let hasRookMove = new Map< >
-
 let pieceRef: Ref<string>;
-
 let deselect: () => void;
 
 /*
@@ -192,6 +192,9 @@ const validMove: moveBool = (move: IMove) => {
     // if piece or moveValidators.get(piece) is falsy, then return () => false
     const validator: moveBool = piece ? moveValidators.get(piece) ?? (() => false) : () => false;
 
+    // if (move.fromSquare.piece[PieceComp.TYPE] !== "k" && getTotalMoves() > 0) {
+    //     if(isKingInCheckAfterMove(move)) return false;
+    // }
     return validator(move);
 };
 
@@ -237,7 +240,7 @@ const isValidEnPassant = (
 
     const isEnPassantValid =
         getSquareWithIdWrapper(attackedPawnId).piece === opponentPawn &&
-        findPieceById(prevBoard, opponentCheckSquareId)?.piece === opponentPawn;
+        findPieceById(opponentCheckSquareId, prevBoard)?.piece === opponentPawn;
 
     if (isEnPassantValid) {
         const attackedPawnRow = Math.floor(attackedPawnId / 8);
@@ -271,7 +274,6 @@ const validRookMove: moveBool = (move: IMove) => {
     if (foundRook) {
         hasPieceMoved.set(fromSquare.id, true);
     }
-    console.log(hasPieceMoved);
 
     return true;
 };
@@ -327,15 +329,6 @@ const validBishopMove: moveBool = (move: IMove) => {
 };
 
 const validKingMove: moveBool = (move: IMove) => {
-    // enum CastlingPiecesStartId {
-    //     WHITE_ROOK_QUEENSIDE = 56,
-    //     WHITE_ROOK_KINGSIDE = 63,
-    //     BLACK_ROOK_QUEENSIDE = 0,
-    //     BLACK_ROOK_KINGSIDE = 7,
-    //     WHITE_KING = 60,
-    //     BLACK_KING = 4,
-    // }
-    
     const fromSquare = move.fromSquare;
     const pieceColour = fromSquare.piece[PieceComp.COLOUR];
     const toSquare = move.toSquare;
@@ -419,8 +412,12 @@ const isCastlingValid = (pieceColour: string, castlingKingside: boolean) => {
     return true;
 };
 
-const isKingInCheck = (kingSquare: IPiece, pieceColour: string) => {
+const isKingInCheck = (kingSquare: IPiece, pieceColour: string, board: IPiece[][] = boardState) => {
     const startingId = kingSquare.id;
+    const startingRow = Math.floor(startingId / 8);
+    const startingCol = Math.floor(startingId % 8);
+
+    console.log(`Starting Id ${startingId}`);
     const opponentColour = pieceColour === "w" ? "b" : "w";
 
     //Knight
@@ -428,8 +425,13 @@ const isKingInCheck = (kingSquare: IPiece, pieceColour: string) => {
         const offset = KnightMoveOffsets[key as keyof typeof KnightMoveOffsets];
         const testId = offset + startingId;
 
+        let rowDiff = Math.abs(startingRow - Math.floor(testId / 8));
+        let colDiff = Math.abs(startingCol - Math.floor(testId % 8));
+
+        if (rowDiff > 2 || colDiff > 2) break;
+
         if (testId > 0 && testId < 63) {
-            if (getSquareWithIdWrapper(testId).piece === opponentColour + "n") {
+            if (findPieceById(testId).piece === opponentColour + "n") {
                 // Ensure no out of bounds
                 return true;
             }
@@ -447,19 +449,11 @@ const isKingInCheck = (kingSquare: IPiece, pieceColour: string) => {
         if (Math.abs(kingAndPawnColDiff) > 1) break;
 
         if (testId > 0 && testId < 63) {
-            if (getSquareWithIdWrapper(testId).piece === opponentColour + "p") {
+            if (findPieceById(testId, board).piece === opponentColour + "p") {
                 return true;
             }
         }
     }
-
-    const isAtEndOfBoard: (id: number) => boolean = (id: number) => {
-        const row = Math.floor(id / 8);
-        const column = Math.floor(id % 8);
-
-        if (row === 0 || row === 7 || column === 0 || column === 7) return true;
-        return false;
-    };
 
     // Bishop and Queen and King
     const Diagonal = [
@@ -472,10 +466,17 @@ const isKingInCheck = (kingSquare: IPiece, pieceColour: string) => {
     for (const offset of Diagonal) {
         let squaresAway: number = 1;
         let testId: number = offset + startingId;
+        let rowDiff = 0;
+        let colDiff = 0;
 
         while (testId > 0 && testId < 63) {
-            const testPiece = getSquareWithIdWrapper(testId).piece;
+            rowDiff = Math.abs(startingRow - Math.floor(testId / 8));
+            colDiff = Math.abs(startingCol - Math.floor(testId % 8));
+            if (rowDiff > squaresAway || colDiff > squaresAway) break;
+            
+            const testPiece = findPieceById(testId, board).piece;
             const testPieceType = testPiece[PieceComp.TYPE];
+        
             if (
                 testPieceType === "r" ||
                 testPieceType === "n" ||
@@ -490,8 +491,6 @@ const isKingInCheck = (kingSquare: IPiece, pieceColour: string) => {
             if (testPiece === opponentColour + "q" || testPiece === opponentColour + "b") {
                 return true;
             }
-
-            if (isAtEndOfBoard(testId)) break;
 
             testId = startingId + squaresAway++ * offset;
         }
@@ -508,10 +507,17 @@ const isKingInCheck = (kingSquare: IPiece, pieceColour: string) => {
     for (const offset of Straigts) {
         let squaresAway: number = 1;
         let testId: number = offset + startingId;
+        let rowDiff = 0;
+        let colDiff = 0;
 
         while (testId > 0 && testId < 63) {
-            const testPiece = getSquareWithIdWrapper(testId).piece;
+            const testPiece = findPieceById(testId, board).piece;
             const testPieceType = testPiece[PieceComp.TYPE];
+            rowDiff = Math.abs(startingRow - Math.floor(testId / 8));
+            colDiff = Math.abs(startingCol - Math.floor(testId % 8));
+            if (rowDiff > squaresAway || colDiff > squaresAway) break;
+            
+            console.log(`testPiece ${testPiece} test id: ${testId}`);
             if (
                 testPieceType === "n" ||
                 testPieceType === "p" ||
@@ -526,8 +532,6 @@ const isKingInCheck = (kingSquare: IPiece, pieceColour: string) => {
             if (testPieceType === opponentColour + "r" || testPiece === opponentColour + "q") {
                 return true;
             }
-
-            if (isAtEndOfBoard(testId)) break;
 
             testId = startingId + squaresAway++ * offset;
         }
@@ -557,6 +561,26 @@ const moveValidators: Map<ChessPiece, moveBool> = new Map([
     [ChessPiece.KING, validKingMove],
     [ChessPiece.QUEEN, validQueenMove],
 ]);
+
+const isKingInCheckAfterMove = (move: IMove) => {
+    const pieceColour = move.fromSquare.piece[PieceComp.COLOUR];
+    let tempBoard = getTestBoard();
+
+    const { fromSquare, toSquare } = move;
+    let fromRow: number = Math.trunc(fromSquare.id / 8);
+    let fromColumn: number = fromSquare.id % 8;
+
+    tempBoard[fromRow][fromColumn].piece = "e";
+
+    let toRow: number = Math.trunc(toSquare.id / 8);
+    let toColumn: number = toSquare.id % 8;
+
+    tempBoard[toRow][toColumn].piece = fromSquare.piece;
+
+    console.log(`findKing ${findKing(pieceColour, tempBoard).id} colour: ${pieceColour}`);
+    console.log(tempBoard);
+    return isKingInCheck(findKing(pieceColour, tempBoard), pieceColour, tempBoard);
+};
 
 const getChessPieceFromLetter = (letter: string): ChessPiece | undefined => {
     for (const key in ChessPiece) {
