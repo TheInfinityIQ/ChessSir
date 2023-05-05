@@ -236,7 +236,11 @@ const isValidEnPassant = (
     const prevBoard = getPreviousBoardStateWrapper();
     const opponentPawn = `${opponentColour}${ChessPiece.PAWN}`;
     const opponentCheckSquareId = pieceColour === "w" ? toSquare.id - 8 : toSquare.id + 8;
-    const attackedPawnId = ((fromSquare.id % 8) - (toSquare.id % 8)) * -1 + fromSquare.id;
+    //Negative one to get correct orientiation. 
+    const attackOffset = ((fromSquare.id % 8) - (toSquare.id % 8)) * -1;
+    const attackedPawnId = attackOffset + fromSquare.id;
+    console.log(`Attack pawn ID ${attackedPawnId}`);
+    console.log(prevBoard);
 
     const isEnPassantValid =
         getSquareWithIdWrapper(attackedPawnId).piece === opponentPawn &&

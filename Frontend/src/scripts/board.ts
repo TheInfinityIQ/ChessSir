@@ -79,10 +79,8 @@ const getTotalMoves: npNumber = () => {
 };
 
 const commitMoveToBoard: moveVoid = (newMove: Move) => {
+    saveLastBoardState();
     let fromSquare: IPiece = newMove.fromSquare;
-    if (fromSquare.piece === "e") {
-        return;
-    }
 
     let fromRow: number = Math.trunc(fromSquare.id / 8);
     let fromColumn: number = fromSquare.id % 8;
@@ -94,6 +92,7 @@ const commitMoveToBoard: moveVoid = (newMove: Move) => {
     let toRow: number = Math.trunc(toSquare.id / 8);
     let toColumn: number = toSquare.id % 8;
 
+    
     boardState[toRow][toColumn].piece = fromSquare.piece;
     totalMoves++;
 };
@@ -112,6 +111,7 @@ enum CastlingPiecesColOffset {
 }
 
 const commitCastleToBoard = (pieceColour: string, castlingKingSide: boolean) => {
+    saveLastBoardState();
     const rowToCastle = pieceColour === "w" ? 7 : 0;
     const pieceTypes = ["k", "r"];
     const kingAndRookNewId =
@@ -138,6 +138,10 @@ const commitCastleToBoard = (pieceColour: string, castlingKingSide: boolean) => 
 
     boardState[rowToCastle][CastlingPiecesColStart.KING].piece = "e";
     totalMoves++;
+};
+
+const saveLastBoardState = () => {
+    previousBoardState = JSON.parse(JSON.stringify(boardState));
 };
 
 const getPreviousBoardState = () => {
@@ -180,7 +184,7 @@ function findPieceById(id: number, board: IPiece[][] = boardState): IPiece {
             break;
         }
     }
-    
+
     if (id < 0 || id > 63 || !foundPiece) {
         throw new Error(`Piece with id \${id} not found or id is out of bounds`);
     }
