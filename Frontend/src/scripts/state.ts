@@ -239,9 +239,6 @@ const isValidEnPassant = (
     //Negative one to get correct orientiation. 
     const attackOffset = ((fromSquare.id % 8) - (toSquare.id % 8)) * -1;
     const attackedPawnId = attackOffset + fromSquare.id;
-    console.log(`Attack pawn ID ${attackedPawnId}`);
-    console.log(prevBoard);
-
     const isEnPassantValid =
         getSquareWithIdWrapper(attackedPawnId).piece === opponentPawn &&
         findPieceById(opponentCheckSquareId, prevBoard)?.piece === opponentPawn;
@@ -374,29 +371,24 @@ const isCastlingValid = (pieceColour: string, castlingKingside: boolean) => {
                   CastlingPiecesId.BLACK_KING,
               ];
 
-    console.log(castlingKingside);
     const calcIsRoomToCastle: npBool = () => {
         if (castlingKingside) {
-            // console.log(`Castling Kingside\n Start: ${pieces[Piece.KING]} End: ${pieces[Piece.KINGSIDE_ROOK]}`);
             for (
                 let position = pieces[CastlingPiece.KING] + AdjacentSquareIdOffsets.RIGHT;
                 position < pieces[CastlingPiece.KINGSIDE_ROOK];
                 position++
             ) {
                 const square = getSquareWithIdWrapper(position);
-                console.log(`Kingside Pos: ${position}`);
                 if (isKingInCheck(square, pieceColour) || square.piece !== "e") return false;
             }
             return true;
         } else {
-            // console.log(`Castling Queenside\n Start: ${pieces[Piece.KING]} End: ${pieces[Piece.QUEENSIDE_ROOK]}`);
             for (
                 let position = pieces[CastlingPiece.KING] + AdjacentSquareIdOffsets.LEFT;
                 position > pieces[CastlingPiece.QUEENSIDE_ROOK];
                 position--
             ) {
                 const square = getSquareWithIdWrapper(position);
-                console.log(`Queenside Pos: ${position}`);
                 if (isKingInCheck(square, pieceColour) || square.piece !== "e") return false;
             }
             return true;
@@ -405,6 +397,7 @@ const isCastlingValid = (pieceColour: string, castlingKingside: boolean) => {
 
     const isRoomToCastle = calcIsRoomToCastle();
 
+    if (isKingInCheck(findKing(pieceColour), pieceColour)) return false;
     if (hasPieceMoved.get(pieces[CastlingPiece.KING]) || !isRoomToCastle) return false;
 
     if (castlingKingside) {
@@ -420,8 +413,6 @@ const isKingInCheck = (kingSquare: IPiece, pieceColour: string, board: IPiece[][
     const startingId = kingSquare.id;
     const startingRow = Math.floor(startingId / 8);
     const startingCol = Math.floor(startingId % 8);
-
-    console.log(`Starting Id ${startingId}`);
     const opponentColour = pieceColour === "w" ? "b" : "w";
 
     //Knight
@@ -520,8 +511,6 @@ const isKingInCheck = (kingSquare: IPiece, pieceColour: string, board: IPiece[][
             rowDiff = Math.abs(startingRow - Math.floor(testId / 8));
             colDiff = Math.abs(startingCol - Math.floor(testId % 8));
             if (rowDiff > squaresAway || colDiff > squaresAway) break;
-            
-            console.log(`testPiece ${testPiece} test id: ${testId}`);
             if (
                 testPieceType === "n" ||
                 testPieceType === "p" ||
@@ -581,8 +570,6 @@ const isKingInCheckAfterMove = (move: IMove) => {
 
     tempBoard[toRow][toColumn].piece = fromSquare.piece;
 
-    console.log(`findKing ${findKing(pieceColour, tempBoard).id} colour: ${pieceColour}`);
-    console.log(tempBoard);
     return isKingInCheck(findKing(pieceColour, tempBoard), pieceColour, tempBoard);
 };
 
