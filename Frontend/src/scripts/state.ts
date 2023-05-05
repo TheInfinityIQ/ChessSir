@@ -192,9 +192,9 @@ const validMove: moveBool = (move: IMove) => {
     // if piece or moveValidators.get(piece) is falsy, then return () => false
     const validator: moveBool = piece ? moveValidators.get(piece) ?? (() => false) : () => false;
 
-    // if (move.fromSquare.piece[PieceComp.TYPE] !== "k" && getTotalMoves() > 0) {
-    //     if(isKingInCheckAfterMove(move)) return false;
-    // }
+    if (move.fromSquare.piece[PieceComp.TYPE] !== "k" && getTotalMoves() > 0) {
+        if(isKingInCheckAfterMove(move)) return false;
+    }
     return validator(move);
 };
 
@@ -533,7 +533,7 @@ const isKingInCheck = (kingSquare: IPiece, pieceColour: string, board: IPiece[][
             if (squaresAway === 1 && testPiece === opponentColour + "k") {
                 return true;
             }
-            if (testPieceType === opponentColour + "r" || testPiece === opponentColour + "q") {
+            if (testPiece === opponentColour + "r" || testPiece === opponentColour + "q") {
                 return true;
             }
 
