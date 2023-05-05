@@ -1,4 +1,4 @@
-import type { IPiece } from "./types";
+import { Piece, type IPiece } from "./types";
 
 const getInitBoardState = () => {
     return [
@@ -27,11 +27,7 @@ const getSquares: () => IPiece[] = () => {
 
         const isLightSquare = (row % 2 === 0) === (column % 2 === 0);
 
-        squares[count] = {
-            id: count,
-            colour: isLightSquare ? 0 : 1,
-            piece: pieceValue,
-        };
+        squares[count] = new Piece (count, pieceValue, isLightSquare ? 0 : 1);
     }
 
     return squares;
