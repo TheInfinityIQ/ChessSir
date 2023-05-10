@@ -2,21 +2,26 @@
 import { setupBoard, boardState } from "@/scripts/board";
 import { onMounted } from "vue";
 import Square from "./Square.vue";
+import { getIsBoardFlipped } from "../scripts/board"
 
 onMounted(setupBoard);
 </script>
 
 <template>
-    <article>
+    <article :class="{ flipBoard: getIsBoardFlipped() }">
         <li v-for="row in boardState" class="parentList">
         <li v-for="square in row" class="square-container">
-            <Square :id="square.id" :colour="square.colour" :piece="square.piece" :key="square.id" />
+            <Square :id="square.id" :colour="square.colour" :flipped="getIsBoardFlipped()"/>
         </li>
         </li>
     </article>
 </template>
 
 <style scoped>
+.flipBoard {
+    transform: scale(-1, -1);
+}
+
 .parentList {
     width: 100%;
     height: 12.5%;

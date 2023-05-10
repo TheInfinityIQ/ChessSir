@@ -6,15 +6,16 @@ export default {
 
 <script setup lang="ts">
 import { boardState } from "@/scripts/board";
-import { getIdOfSelectedPiece, postSelectedPiece, postDeselect, makeMove, unselectPiece, isPieceSelected } from "@/scripts/state";
-import { getNotEmptyPieces, getNumNotEmptyPieces } from "@/scripts/staticValues";
-import { Piece, type IPiece, type npAny, type npVoid, type stringVoid } from "@/scripts/types";
-import { computed, onMounted, reactive, ref, type Ref } from "vue";
-import { stringifyQuery } from "vue-router";
+import { getIdOfSelectedPiece, postSelectedPiece, postDeselect, unselectPiece, isPieceSelected } from "@/scripts/state";
+import { Piece } from "@/scripts/types";
+import { computed, onMounted, ref } from "vue";
+import { getIsBoardFlipped } from "../scripts/board"
+import { makeMove } from "@/scripts/pieceRules";
 
 const props = defineProps<{
     id: number;
     colour: number;
+    flipped: boolean
 }>();
 
 // Calculate row and column from the given ID
@@ -72,6 +73,7 @@ const deselect = () => {
             selected: isSelected,
         },
         boardState[row][column].piece,
+        { flipPiece: getIsBoardFlipped() }
     ]" @click="select"></div>
 </template>
 
@@ -81,6 +83,10 @@ div {
     height: 100%;
     background-position: center;
     background-size: cover;
+}
+
+.flipPiece {
+    transform: scale(-1, -1);
 }
 
 .selectable {
