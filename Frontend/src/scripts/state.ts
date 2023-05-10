@@ -8,7 +8,7 @@ import {
     getTestBoard,
     boardState,
     findKing,
-    getTotalMoves,
+    getTotalMoves
 } from "./board";
 import type { refVoid, IPiece, npIPiece, IMove, npVoid, moveBool, npBool } from "./types";
 import { Piece, Move } from "./types";
@@ -16,6 +16,7 @@ import { Piece, Move } from "./types";
 let selectedSquareId: number | undefined;
 let selectedSquarePiece: string | undefined;
 let selectedSquareColour: number | undefined;
+let isWhitesTurn: boolean = true;
 
 enum CastlingPiecesId {
     WHITE_ROOK_QUEENSIDE = 56,
@@ -127,8 +128,14 @@ const getSelectedPiece = (): any => {
     return new Piece(selectedSquareId!, selectedSquarePiece!, selectedSquareColour!);
 };
 
+const getIsWhitesTurn = () => {
+    return isWhitesTurn;
+}
+
 // Value modifying functions
 // --------------------
+
+const toggleTurns = () => isWhitesTurn = !isWhitesTurn;
 
 const postSelectedPiece = (newPiece: IPiece): void => {
     selectedSquareId = newPiece.id;
@@ -182,12 +189,17 @@ const makeMove = (newSquare: IPiece) => {
     if (!validMove(move)) return;
 
     commitMoveToBoard(move);
+    toggleTurns();
 };
 
 const validMove: moveBool = (move: IMove) => {
     //Call corresponding piece type to validate a move for that piece
     const pieceType: string = move.fromSquare.piece[PieceComp.TYPE];
+    const pieceColour: string = move.fromSquare.piece[PieceComp.COLOUR];
     const piece: ChessPiece | undefined = getChessPieceFromLetter(pieceType);
+
+    if (getIsWhitesTurn() && pieceColour === "b") return false;
+    if (!getIsWhitesTurn() && pieceColour === "w") return false;
 
     // if piece or moveValidators.get(piece) is falsy, then return () => false
     const validator: moveBool = piece ? moveValidators.get(piece) ?? (() => false) : () => false;
@@ -391,6 +403,7 @@ const isCastlingValid = (pieceColour: string, castlingKingside: boolean) => {
                 const square = getSquareWithIdWrapper(position);
                 if (isKingInCheck(square, pieceColour) || square.piece !== "e") return false;
             }
+            
             return true;
         }
     };
