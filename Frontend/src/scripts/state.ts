@@ -1,6 +1,6 @@
-import type { Ref } from "vue";
-import type { refVoid, IPiece, npIPiece, npVoid, npBool } from "./types";
-import { Piece } from "./types";
+import type { Ref } from 'vue';
+import type { refVoid, IPiece, npIPiece, npVoid, npBool } from './types';
+import { Piece } from './types';
 
 let selectedSquareId: number | undefined;
 let selectedSquarePiece: string | undefined;
@@ -26,99 +26,95 @@ let deselect: () => void;
 // --------------------
 
 function getIdOfSelectedPiece() {
-    return selectedSquareId;
+	return selectedSquareId;
 }
 
 function isPieceSelected() {
-    if (selectedSquarePiece) {
-        return true;
-    }
+	if (selectedSquarePiece) {
+		return true;
+	}
 
-    return false;
+	return false;
 }
 
 function getSelectedPiece(): any {
-    if (
-        selectedSquareId === undefined &&
-        selectedSquarePiece === undefined &&
-        selectedSquareColour === undefined
-    ) {
-        console.error(
-            `getSelectedPiece was called when selectedSquare values were called.\nselectedSquareId: ${selectedSquareId}selectedSquarePiece: \n${selectedSquarePiece}selectedSquareColour: \n${selectedSquareColour}`
-        );
-        return;
-    }
+	if (selectedSquareId === undefined && selectedSquarePiece === undefined && selectedSquareColour === undefined) {
+		console.error(
+			`getSelectedPiece was called when selectedSquare values were called.\nselectedSquareId: ${selectedSquareId}selectedSquarePiece: \n${selectedSquarePiece}selectedSquareColour: \n${selectedSquareColour}`
+		);
+		return;
+	}
 
-    return new Piece(selectedSquareId!, selectedSquarePiece!, selectedSquareColour!);
+	return new Piece(selectedSquareId!, selectedSquarePiece!, selectedSquareColour!);
 }
 
 export function getIsWhitesTurn() {
-    return isWhitesTurn;
+	return isWhitesTurn;
 }
 
 // Value modifying functions
 // --------------------
 
 export function toggleTurns() {
-    return (isWhitesTurn = !isWhitesTurn);
+	return (isWhitesTurn = !isWhitesTurn);
 }
 
 function postSelectedPiece(newPiece: IPiece): void {
-    selectedSquareId = newPiece.id;
-    selectedSquarePiece = newPiece.piece;
-    selectedSquareColour = newPiece.colour;
+	selectedSquareId = newPiece.id;
+	selectedSquarePiece = newPiece.piece;
+	selectedSquareColour = newPiece.colour;
 }
 
 //TODO: UPDATE NAME TO MAKE MORE SENSE
 function postDeselect(newDeselect: () => void): void {
-    // If deselect is not undefined.
-    if (deselect) {
-        deselect();
-    }
+	// If deselect is not undefined.
+	if (deselect) {
+		deselect();
+	}
 
-    deselect = newDeselect;
+	deselect = newDeselect;
 }
 
 function unselectPiece() {
-    selectedSquareId = undefined;
-    selectedSquarePiece = undefined;
-    selectedSquareColour = undefined;
+	selectedSquareId = undefined;
+	selectedSquarePiece = undefined;
+	selectedSquareColour = undefined;
 }
 
 function postPieceRef(newPieceRef: Ref<string>) {
-    if (pieceRef) {
-        pieceRef.value = selectedSquarePiece!;
-    }
+	if (pieceRef) {
+		pieceRef.value = selectedSquarePiece!;
+	}
 
-    pieceRef = newPieceRef;
+	pieceRef = newPieceRef;
 }
 
 export function selectedIPiece() {
-    return new Piece(selectedSquareId!, selectedSquarePiece!, selectedSquareColour!);
+	return new Piece(selectedSquareId!, selectedSquarePiece!, selectedSquareColour!);
 }
 
 // Debug
 // --------------------
 
 function printPiece() {
-    console.log(selectedSquarePiece);
+	console.log(selectedSquarePiece);
 }
 
 function printPreviousPiece() {
-    return;
+	return;
 }
 
 // Exports
 // --------------------
 
 export {
-    isPieceSelected,
-    getIdOfSelectedPiece,
-    getSelectedPiece,
-    postSelectedPiece,
-    postPieceRef,
-    postDeselect,
-    printPiece,
-    printPreviousPiece,
-    unselectPiece,
+	isPieceSelected,
+	getIdOfSelectedPiece,
+	getSelectedPiece,
+	postSelectedPiece,
+	postPieceRef,
+	postDeselect,
+	printPiece,
+	printPreviousPiece,
+	unselectPiece,
 };

@@ -1,40 +1,40 @@
-import type { Ref } from "vue";
+import type { Ref } from 'vue';
 
 // Interfaces
 // --------------------
 export interface IPiece {
-    id: number;
-    piece: string;
-    colour: number;
+	id: number;
+	piece: string;
+	colour: number;
 }
 
 export interface IMove {
-    fromSquare: IPiece;
-    toSquare: IPiece;
+	fromSquare: IPiece;
+	toSquare: IPiece;
 }
 
 // Classes
 // --------------------
 export class Piece implements IPiece {
-    id: number;
-    piece: string;
-    colour: number;
+	id: number;
+	piece: string;
+	colour: number;
 
-    constructor(id: number, piece: string, colour: number) {
-        this.id = id;
-        this.piece = piece;
-        this.colour = colour;
-    }
+	constructor(id: number, piece: string, colour: number) {
+		this.id = id;
+		this.piece = piece;
+		this.colour = colour;
+	}
 }
 
 export class Move implements IMove {
-    fromSquare: IPiece;
-    toSquare: IPiece;
+	fromSquare: IPiece;
+	toSquare: IPiece;
 
-    constructor(fromSquare: IPiece, toSquare: IPiece) {
-        this.fromSquare = fromSquare;
-        this.toSquare = toSquare;
-    }
+	constructor(fromSquare: IPiece, toSquare: IPiece) {
+		this.fromSquare = fromSquare;
+		this.toSquare = toSquare;
+	}
 }
 
 // Type aliases
