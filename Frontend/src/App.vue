@@ -1,29 +1,27 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
 import Board from "./components/Board.vue";
-import { boardState, logBoard, setupBoard } from "./scripts/board";
+import { boardState, flipBoard, logBoard, setupBoard } from "./scripts/board";
 import { getSelectedPiece, printPiece } from "./scripts/state";
-import type { IPiece, npVoid } from "./scripts/types";
 
-const printBoard: npVoid = () => {
+function printBoard() {
     logBoard();
-};
+}
 
-const setupGame: npVoid = () => {
+function setupGame() {
     setupBoard();
-};
+}
 
-const updatePiece: npVoid = () => {
+function updatePiece() {
     printPiece();
-};
+}
 
-const printBoardState: npVoid = () => {
+function printBoardState() {
     console.log(boardState);
-};
+}
 
-const printSelectedPiece: npVoid = () => {
+function printSelectedPiece() {
     console.log(getSelectedPiece());
-};
+}
 
 // onMounted(setupGame);
 </script>
@@ -36,6 +34,7 @@ const printSelectedPiece: npVoid = () => {
             <button @click="updatePiece">print Piece</button>
             <button @click="printBoardState">print boardState</button>
             <button @click="printSelectedPiece">print SelectedPiece</button>
+            <button @click="flipBoard()">flip Board</button>
         </nav>
         <section class="grid-container-body row-2">
             <article class="column-1"></article>

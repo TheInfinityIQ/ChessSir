@@ -35,12 +35,12 @@ const notEmptyPieces: string[] = [
 
 const numOfNotEmptyPieces: number = 32;
 
-const getNotEmptyPieces = () => {
+function getNotEmptyPieces() {
     return notEmptyPieces;
-};
+}
 
-const getNumNotEmptyPieces = () => {
+function getNumNotEmptyPieces() {
     return numOfNotEmptyPieces;
-};
+}
 
 export { getNotEmptyPieces, getNumNotEmptyPieces };

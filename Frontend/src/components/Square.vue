@@ -6,23 +6,28 @@ export default {
 
 <script setup lang="ts">
 import { boardState } from "@/scripts/board";
-import { getIdOfSelectedPiece, postSelectedPiece, postDeselect, unselectPiece, isPieceSelected } from "@/scripts/state";
+import {
+    getIdOfSelectedPiece,
+    postSelectedPiece,
+    postDeselect,
+    unselectPiece,
+    isPieceSelected,
+} from "@/scripts/state";
 import { Piece } from "@/scripts/types";
 import { computed, onMounted, ref } from "vue";
-import { getIsBoardFlipped } from "../scripts/board"
+import { getIsBoardFlipped } from "../scripts/board";
 import { makeMove } from "@/scripts/pieceRules";
 
 const props = defineProps<{
     id: number;
     colour: number;
-    flipped: boolean
 }>();
 
 // Calculate row and column from the given ID
 const row = Math.floor(props.id / 8);
 const column = props.id % 8;
 
-// Ensure that the input values for the piece are valid 
+// Ensure that the input values for the piece are valid
 const ensureValidity = () => {
     if (props.id > 63 || props.id < 0 || props.colour < 0 || props.colour > 1) {
         console.error("Invalid piece definition. Either piece ID or colour is invalid onMounted");
@@ -35,21 +40,24 @@ onMounted(ensureValidity);
 const isSelectable = computed(() => boardState[row][column].piece !== "e");
 const isSelected = ref(false);
 
-const select = () => {
+function select() {
     const square = new Piece(props.id, boardState[row][column].piece, props.colour);
-    
+
     if (getIdOfSelectedPiece() === props.id) {
         isSelected.value = !isSelected.value;
         return;
     }
 
     postDeselect(deselect);
-    
-    if (square.piece === 'e' && !isPieceSelected()) {
+
+    if (square.piece === "e" && !isPieceSelected()) {
         return;
     }
 
-    if (getIdOfSelectedPiece() !== props.id && getIdOfSelectedPiece() || getIdOfSelectedPiece() === 0) {
+    if (
+        (getIdOfSelectedPiece() !== props.id && getIdOfSelectedPiece()) ||
+        getIdOfSelectedPiece() === 0
+    ) {
         makeMove(square);
         unselectPiece();
         return;
@@ -57,24 +65,27 @@ const select = () => {
 
     isSelected.value = !isSelected.value;
     postSelectedPiece(square);
-};
+}
 
-const deselect = () => {
+function deselect() {
     isSelected.value = false;
-};
+}
 </script>
 
 <template>
-    <div :class="[
-        {
-            lighter: colour == 0,
-            darker: colour == 1,
-            selectable: isSelectable,
-            selected: isSelected,
-        },
-        boardState[row][column].piece,
-        { flipPiece: getIsBoardFlipped() }
-    ]" @click="select"></div>
+    <div
+        :class="[
+            {
+                lighter: colour == 0,
+                darker: colour == 1,
+                selectable: isSelectable,
+                selected: isSelected,
+            },
+            boardState[row][column].piece,
+            { flipPiece: getIsBoardFlipped() },
+        ]"
+        @click="select"
+    ></div>
 </template>
 
 <style scoped>

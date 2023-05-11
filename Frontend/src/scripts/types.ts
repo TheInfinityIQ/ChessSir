@@ -44,7 +44,7 @@ type npString = () => string;
 type npVoid = () => void;
 type npIPiece = () => IPiece;
 type npBool = () => boolean;
-type npNumber = () => number
+type npNumber = () => number;
 
 type boolVoid = (param: boolean) => void;
 type stringVoid = (param: string) => void;

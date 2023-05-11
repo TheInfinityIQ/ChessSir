@@ -22,23 +22,22 @@ let deselect: () => void;
  * - Moving right two columns (+2) and down one row (+root) results in 1root + 1startOfBoardId = 2root
  */
 
-
 // Get Functions
 // --------------------
 
-const getIdOfSelectedPiece = (): number | undefined => {
+function getIdOfSelectedPiece() {
     return selectedSquareId;
-};
+}
 
-const isPieceSelected: npBool = () => {
+function isPieceSelected() {
     if (selectedSquarePiece) {
         return true;
     }
 
     return false;
-};
+}
 
-const getSelectedPiece = (): any => {
+function getSelectedPiece(): any {
     if (
         selectedSquareId === undefined &&
         selectedSquarePiece === undefined &&
@@ -51,61 +50,63 @@ const getSelectedPiece = (): any => {
     }
 
     return new Piece(selectedSquareId!, selectedSquarePiece!, selectedSquareColour!);
-};
+}
 
-export const getIsWhitesTurn = () => {
+export function getIsWhitesTurn() {
     return isWhitesTurn;
 }
 
 // Value modifying functions
 // --------------------
 
-export const toggleTurns = () => isWhitesTurn = !isWhitesTurn;
+export function toggleTurns() {
+    return (isWhitesTurn = !isWhitesTurn);
+}
 
-const postSelectedPiece = (newPiece: IPiece): void => {
+function postSelectedPiece(newPiece: IPiece): void {
     selectedSquareId = newPiece.id;
     selectedSquarePiece = newPiece.piece;
     selectedSquareColour = newPiece.colour;
-};
+}
 
 //TODO: UPDATE NAME TO MAKE MORE SENSE
-const postDeselect = (newDeselect: () => void): void => {
+function postDeselect(newDeselect: () => void): void {
     // If deselect is not undefined.
     if (deselect) {
         deselect();
     }
 
     deselect = newDeselect;
-};
+}
 
-const unselectPiece: npVoid = () => {
+function unselectPiece() {
     selectedSquareId = undefined;
     selectedSquarePiece = undefined;
     selectedSquareColour = undefined;
-};
+}
 
-const postPieceRef: refVoid = (newPieceRef: Ref<string>) => {
+function postPieceRef(newPieceRef: Ref<string>) {
     if (pieceRef) {
         pieceRef.value = selectedSquarePiece!;
     }
 
     pieceRef = newPieceRef;
-};
+}
 
-export const selectedIPiece: npIPiece = () => {
+export function selectedIPiece() {
     return new Piece(selectedSquareId!, selectedSquarePiece!, selectedSquareColour!);
-};
+}
 
 // Debug
 // --------------------
 
-const printPiece = () => {
+function printPiece() {
     console.log(selectedSquarePiece);
-};
+}
 
-const printPreviousPiece = () => {
+function printPreviousPiece() {
     return;
-};
+}
 
 // Exports
 // --------------------
