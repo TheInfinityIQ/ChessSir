@@ -6,9 +6,8 @@ import { Piece } from './types';
 let boardState: IPiece[][] = reactive([]);
 let previousBoardState: IPiece[][] = [];
 
-const boardSize: number = 64; // Could be updated for larger board sizes in future;
+export const boardSize: number = 64; // Could be updated for larger board sizes in future;
 export const rankAndFileValue: number = Math.sqrt(boardSize);
-
 export const finalRankIndex: number = rankAndFileValue - 1;
 export const startingRankIndex: number = 0;
 export const endOfBoardId: number = boardSize - 1;
