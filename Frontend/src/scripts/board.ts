@@ -87,6 +87,7 @@ function getTotalMoves() {
 
 export function flipBoard() {
 	isBoardFlipped = !isBoardFlipped;
+	// Used to refresh piece orientation and trigger reactivity. 
 	boardState.push([new Piece(999, 'e', 999)]);
 	boardState.splice(finalRankIndex + 1);
 }
