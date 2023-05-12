@@ -9,28 +9,28 @@ import {
 	getSquareWithIdWrapper,
 	getTestBoard,
 	getTotalMoves,
-	rankAndFileValue as rootOfBoard,
+	rankAndFileValue,
 	startOfBoardId,
 } from './board';
 import { getIsWhitesTurn, selectedIPiece, toggleTurns } from './state';
-import { type IPiece, type IMove, Move, type moveBool, type npBool } from './types';
+import { type IPiece, type IMove, Move, type moveBool } from './types';
 
-enum CastlingPiecesId {
+export enum CastlingPiecesId {
 	WHITE_ROOK_QUEENSIDE = 56,
-	WHITE_ROOK_KINGSIDE = endOfBoardId,
-	BLACK_ROOK_QUEENSIDE = startOfBoardId,
+	WHITE_ROOK_KINGSIDE = 63,
+	BLACK_ROOK_QUEENSIDE = 0,
 	BLACK_ROOK_KINGSIDE = 7,
 	WHITE_KING = 60,
 	BLACK_KING = 4,
 }
 
-enum CastlingPiece {
+export enum CastlingPiece {
 	QUEENSIDE_ROOK = 0,
 	KINGSIDE_ROOK = 1,
 	KING = 2,
 }
 
-enum KnightMoveOffsets {
+export enum KnightMoveOffsets {
 	UP_LEFT = -17,
 	UP_RIGHT = -15,
 	DOWN_LEFT = 15,
@@ -41,18 +41,18 @@ enum KnightMoveOffsets {
 	RIGHT_DOWN = 10,
 }
 
-enum AdjacentSquareIdOffsets {
-	UP = -rootOfBoard,
+export enum AdjacentSquareIdOffsets {
+	UP = -8,
 	UP_RIGHT = -7,
 	UP_LEFT = -9,
 	RIGHT = 1,
 	LEFT = -1,
-	DOWN = rootOfBoard,
+	DOWN = 8,
 	DOWN_RIGHT = 9,
 	DOWN_LEFT = 7,
 }
 
-enum ChessPiece {
+export enum ChessPiece {
 	PAWN = 'p',
 	ROOK = 'r',
 	KNIGHT = 'n',
@@ -61,24 +61,33 @@ enum ChessPiece {
 	QUEEN = 'q',
 }
 
-enum Direction {
+export enum Direction {
 	VERTICAL = 'v',
 	HORIZONTAL = 'h',
 	DIAGONAL = 'D',
 }
 
-enum PieceComp {
+export enum PieceProps {
 	COLOUR = 0,
 	TYPE = 1,
 }
 
-let hasPieceMoved = new Map<number, boolean>([
+export const hasPieceMoved = new Map<number, boolean>([
 	[CastlingPiecesId.WHITE_ROOK_QUEENSIDE, false],
 	[CastlingPiecesId.WHITE_ROOK_KINGSIDE, false],
 	[CastlingPiecesId.BLACK_ROOK_QUEENSIDE, false],
 	[CastlingPiecesId.BLACK_ROOK_KINGSIDE, false],
 	[CastlingPiecesId.WHITE_KING, false],
 	[CastlingPiecesId.BLACK_KING, false],
+]);
+
+export const moveValidators: Map<ChessPiece, moveBool> = new Map([
+	[ChessPiece.PAWN, validPawnMove],
+	[ChessPiece.ROOK, validRookMove],
+	[ChessPiece.KNIGHT, validKnightMove],
+	[ChessPiece.BISHOP, validBishopMove],
+	[ChessPiece.KING, validKingMove],
+	[ChessPiece.QUEEN, validQueenMove],
 ]);
 
 // Value modifying functions
@@ -103,8 +112,8 @@ export function makeMove(newSquare: IPiece) {
 
 function validMove(move: IMove) {
 	//Call corresponding piece type to validate a move for that piece
-	const pieceType: string = move.fromSquare.piece[PieceComp.TYPE];
-	const pieceColour: string = move.fromSquare.piece[PieceComp.COLOUR];
+	const pieceType: string = move.fromSquare.piece[PieceProps.TYPE];
+	const pieceColour: string = move.fromSquare.piece[PieceProps.COLOUR];
 	const piece: ChessPiece | undefined = getChessPieceFromLetter(pieceType);
 
 	if (getIsWhitesTurn() && pieceColour === 'b') return false;
@@ -113,7 +122,7 @@ function validMove(move: IMove) {
 	// if piece or moveValidators.get(piece) is falsy, then return () => false
 	const validator: moveBool = piece ? moveValidators.get(piece) ?? (() => false) : () => false;
 
-	if (move.fromSquare.piece[PieceComp.TYPE] !== 'k' && getTotalMoves() > startOfBoardId) {
+	if (move.fromSquare.piece[PieceProps.TYPE] !== 'k' && getTotalMoves() > startOfBoardId) {
 		if (isKingInCheckAfterMove(move)) return false;
 	}
 	return validator(move);
@@ -121,7 +130,7 @@ function validMove(move: IMove) {
 
 function validPawnMove(move: IMove) {
 	const { fromSquare, toSquare } = move;
-	const pieceColour = fromSquare.piece[PieceComp.COLOUR];
+	const pieceColour = fromSquare.piece[PieceProps.COLOUR];
 	const opponentColour = pieceColour === 'w' ? 'b' : 'w';
 	const dir = determineDirection(move);
 
@@ -129,9 +138,9 @@ function validPawnMove(move: IMove) {
 	const isDirectionCorrect = pieceColour === 'w' ? idDiff > startOfBoardId : idDiff < startOfBoardId;
 	if (!isDirectionCorrect) return false;
 
-	const fromRowId = Math.floor(fromSquare.id / rootOfBoard);
+	const fromRowId = Math.floor(fromSquare.id / rankAndFileValue);
 	const isStartingSquare = pieceColour === 'w' ? fromRowId === 6 : fromRowId === 1;
-	const rowDiff = Math.abs(fromRowId - Math.floor(toSquare.id / rootOfBoard));
+	const rowDiff = Math.abs(fromRowId - Math.floor(toSquare.id / rankAndFileValue));
 	if ((rowDiff === 2 && !isStartingSquare) || rowDiff > 2) return false;
 	if (rowDiff === 2 && dir === Direction.DIAGONAL) return false;
 
@@ -150,17 +159,17 @@ function validPawnMove(move: IMove) {
 function isValidEnPassant(fromSquare: IPiece, toSquare: IPiece, pieceColour: string, opponentColour: string) {
 	const prevBoard = getPreviousBoardStateWrapper();
 	const opponentPawn = `${opponentColour}${ChessPiece.PAWN}`;
-	const opponentCheckSquareId = pieceColour === 'w' ? toSquare.id - rootOfBoard : toSquare.id + rootOfBoard;
+	const opponentCheckSquareId = pieceColour === 'w' ? toSquare.id - rankAndFileValue : toSquare.id + rankAndFileValue;
 	//Negative one to get correct orientiation.
-	const attackOffset = ((fromSquare.id % rootOfBoard) - (toSquare.id % rootOfBoard)) * -1;
+	const attackOffset = ((fromSquare.id % rankAndFileValue) - (toSquare.id % rankAndFileValue)) * -1;
 	const attackedPawnId = attackOffset + fromSquare.id;
 	const isEnPassantValid =
 		getSquareWithIdWrapper(attackedPawnId).piece === opponentPawn &&
 		findPieceById(opponentCheckSquareId, prevBoard)?.piece === opponentPawn;
 
 	if (isEnPassantValid) {
-		const attackedPawnRow = Math.floor(attackedPawnId / rootOfBoard);
-		const attackedPawnColumn = Math.floor(attackedPawnId % rootOfBoard);
+		const attackedPawnRow = Math.floor(attackedPawnId / rankAndFileValue);
+		const attackedPawnColumn = Math.floor(attackedPawnId % rankAndFileValue);
 		boardState[attackedPawnRow][attackedPawnColumn].piece = 'e';
 		return true;
 	}
@@ -244,12 +253,12 @@ function validBishopMove(move: IMove) {
 
 function validKingMove(move: IMove) {
 	const fromSquare = move.fromSquare;
-	const pieceColour = fromSquare.piece[PieceComp.COLOUR];
+	const pieceColour = fromSquare.piece[PieceProps.COLOUR];
 	const toSquare = move.toSquare;
 	const castlingKingside = toSquare.id - fromSquare.id > startOfBoardId ? true : false;
 
-	const colDiff = Math.floor(fromSquare.id % rootOfBoard) - Math.floor(toSquare.id % rootOfBoard);
-	const rowDiff = Math.floor(fromSquare.id / rootOfBoard) - Math.floor(toSquare.id / rootOfBoard);
+	const colDiff = Math.floor(fromSquare.id % rankAndFileValue) - Math.floor(toSquare.id % rankAndFileValue);
+	const rowDiff = Math.floor(fromSquare.id / rankAndFileValue) - Math.floor(toSquare.id / rankAndFileValue);
 
 	if (isKingInCheck(toSquare, pieceColour)) return false;
 	console.log('King is Not In check');
@@ -330,8 +339,8 @@ function isCastlingValid(pieceColour: string, castlingKingside: boolean) {
 
 function isKingInCheck(kingSquare: IPiece, pieceColour: string, board: IPiece[][] = boardState) {
 	const startingId = kingSquare.id;
-	const startingRow = Math.floor(startingId / rootOfBoard);
-	const startingCol = Math.floor(startingId % rootOfBoard);
+	const startingRow = Math.floor(startingId / rankAndFileValue);
+	const startingCol = Math.floor(startingId % rankAndFileValue);
 	const opponentColour = pieceColour === 'w' ? 'b' : 'w';
 
 	//Knight
@@ -340,8 +349,8 @@ function isKingInCheck(kingSquare: IPiece, pieceColour: string, board: IPiece[][
 		const testId = offset + startingId;
 		const maxKnightRowOrColDiff = 2;
 
-		let rowDiff = Math.abs(startingRow - Math.floor(testId / rootOfBoard));
-		let colDiff = Math.abs(startingCol - Math.floor(testId % rootOfBoard));
+		let rowDiff = Math.abs(startingRow - Math.floor(testId / rankAndFileValue));
+		let colDiff = Math.abs(startingCol - Math.floor(testId % rankAndFileValue));
 
 		if (rowDiff > maxKnightRowOrColDiff || colDiff > maxKnightRowOrColDiff) break;
 
@@ -360,7 +369,7 @@ function isKingInCheck(kingSquare: IPiece, pieceColour: string, board: IPiece[][
 			: [AdjacentSquareIdOffsets.DOWN_LEFT, AdjacentSquareIdOffsets.DOWN_RIGHT];
 	for (const offset of PawnOffset) {
 		const testId: number = offset + startingId;
-		const kingAndPawnColDiff = Math.floor(testId % rootOfBoard) - Math.floor(startingId % rootOfBoard);
+		const kingAndPawnColDiff = Math.floor(testId % rankAndFileValue) - Math.floor(startingId % rankAndFileValue);
 		if (Math.abs(kingAndPawnColDiff) > 1) break;
 
 		if (testId > startOfBoardId && testId < endOfBoardId) {
@@ -385,22 +394,22 @@ function isKingInCheck(kingSquare: IPiece, pieceColour: string, board: IPiece[][
 		let colDiff = 0;
 
 		while (testId > startOfBoardId && testId < endOfBoardId) {
-			rowDiff = Math.abs(startingRow - Math.floor(testId / rootOfBoard));
-			colDiff = Math.abs(startingCol - Math.floor(testId % rootOfBoard));
+			rowDiff = Math.abs(startingRow - Math.floor(testId / rankAndFileValue));
+			colDiff = Math.abs(startingCol - Math.floor(testId % rankAndFileValue));
 			/*
                 Avoids Ids increments and loops around to other side of board. Example, checking horizontal on row 0 and current Id is 7, then we add AdjacentSquareIdOffsets.UP_LEFT.
             */
 			if (rowDiff > squaresAway || colDiff > squaresAway) break;
 
 			const testPiece = findPieceById(testId, board).piece;
-			const testPieceType = testPiece[PieceComp.TYPE];
+			const testPieceType = testPiece[PieceProps.TYPE];
 			//Pieces to Ignore
 			if (
 				testPieceType === 'r' ||
 				testPieceType === 'n' ||
 				testPieceType === 'p' ||
 				(squaresAway > 1 && testPieceType === 'k') ||
-				testPiece[PieceComp.COLOUR] === pieceColour
+				testPiece[PieceProps.COLOUR] === pieceColour
 			)
 				break;
 			if (squaresAway === 1 && testPiece === opponentColour + 'k') {
@@ -430,9 +439,9 @@ function isKingInCheck(kingSquare: IPiece, pieceColour: string, board: IPiece[][
 
 		while (testId > startOfBoardId && testId < endOfBoardId) {
 			const testPiece = findPieceById(testId, board).piece;
-			const testPieceType = testPiece[PieceComp.TYPE];
-			rowDiff = Math.abs(startingRow - Math.floor(testId / rootOfBoard));
-			colDiff = Math.abs(startingCol - Math.floor(testId % rootOfBoard));
+			const testPieceType = testPiece[PieceProps.TYPE];
+			rowDiff = Math.abs(startingRow - Math.floor(testId / rankAndFileValue));
+			colDiff = Math.abs(startingCol - Math.floor(testId % rankAndFileValue));
 			if (rowDiff > squaresAway || colDiff > squaresAway) break;
 			//Pieces to Ignore
 			if (
@@ -440,7 +449,7 @@ function isKingInCheck(kingSquare: IPiece, pieceColour: string, board: IPiece[][
 				testPieceType === 'p' ||
 				testPiece === opponentColour + 'b' ||
 				(squaresAway > 1 && testPieceType === 'k') ||
-				testPiece[PieceComp.COLOUR] === pieceColour
+				testPiece[PieceProps.COLOUR] === pieceColour
 			)
 				break;
 			if (squaresAway === 1 && testPiece === opponentColour + 'k') {
@@ -472,27 +481,18 @@ function validQueenMove(move: IMove) {
 	return !(isJumpingPiece(move) || isFriendlyPiece(fromSquare.piece[startOfBoardId], toSquare.id));
 }
 
-const moveValidators: Map<ChessPiece, moveBool> = new Map([
-	[ChessPiece.PAWN, validPawnMove],
-	[ChessPiece.ROOK, validRookMove],
-	[ChessPiece.KNIGHT, validKnightMove],
-	[ChessPiece.BISHOP, validBishopMove],
-	[ChessPiece.KING, validKingMove],
-	[ChessPiece.QUEEN, validQueenMove],
-]);
-
 function isKingInCheckAfterMove(move: IMove) {
-	const pieceColour = move.fromSquare.piece[PieceComp.COLOUR];
+	const pieceColour = move.fromSquare.piece[PieceProps.COLOUR];
 	let tempBoard = getTestBoard();
 
 	const { fromSquare, toSquare } = move;
-	let fromRow: number = Math.trunc(fromSquare.id / rootOfBoard);
-	let fromColumn: number = fromSquare.id % rootOfBoard;
+	let fromRow: number = Math.trunc(fromSquare.id / rankAndFileValue);
+	let fromColumn: number = fromSquare.id % rankAndFileValue;
 
 	tempBoard[fromRow][fromColumn].piece = 'e';
 
-	let toRow: number = Math.trunc(toSquare.id / rootOfBoard);
-	let toColumn: number = toSquare.id % rootOfBoard;
+	let toRow: number = Math.trunc(toSquare.id / rankAndFileValue);
+	let toColumn: number = toSquare.id % rankAndFileValue;
 
 	tempBoard[toRow][toColumn].piece = fromSquare.piece;
 
@@ -508,12 +508,12 @@ function getChessPieceFromLetter(letter: string): ChessPiece | undefined {
 	return undefined;
 }
 
-function isMoreThanOneSquare(move: IMove) {
+export function isMoreThanOneSquare(move: IMove) {
 	const fromSquare = move.fromSquare;
 	const toSquare = move.toSquare;
 
-	const rowDifference = Math.abs(Math.floor(fromSquare.id / rootOfBoard) - Math.floor(toSquare.id / rootOfBoard));
-	const colDifference = Math.abs((fromSquare.id % rootOfBoard) - (toSquare.id % rootOfBoard));
+	const rowDifference = Math.abs(Math.floor(fromSquare.id / rankAndFileValue) - Math.floor(toSquare.id / rankAndFileValue));
+	const colDifference = Math.abs((fromSquare.id % rankAndFileValue) - (toSquare.id % rankAndFileValue));
 
 	// Check if the move is more than one square away
 	if (rowDifference > 1 || colDifference > 1) {
@@ -528,8 +528,8 @@ function determineDirection(move: Move) {
 	const toSquare = move.toSquare;
 
 	//Determine if straight line
-	const rowDifference = Math.abs(Math.floor(fromSquare.id / rootOfBoard) - Math.floor(toSquare.id / rootOfBoard));
-	const colDifference = Math.abs((fromSquare.id % rootOfBoard) - (toSquare.id % rootOfBoard));
+	const rowDifference = Math.abs(Math.floor(fromSquare.id / rankAndFileValue) - Math.floor(toSquare.id / rankAndFileValue));
+	const colDifference = Math.abs((fromSquare.id % rankAndFileValue) - (toSquare.id % rankAndFileValue));
 
 	const isDiagonalMove = rowDifference === colDifference;
 	const isVerticalMove = rowDifference > startOfBoardId && colDifference === startOfBoardId;
@@ -576,8 +576,8 @@ function jumpingPieceOnDiagonal(move: Move) {
 	let startId = Math.min(fromSquare.id, toSquare.id);
 	let endId = Math.max(fromSquare.id, toSquare.id);
 
-	const rowDiff = Math.abs(Math.floor(fromSquare.id / rootOfBoard) - Math.floor(toSquare.id / rootOfBoard));
-	const colDiff = Math.abs((fromSquare.id % rootOfBoard) - (toSquare.id % rootOfBoard));
+	const rowDiff = Math.abs(Math.floor(fromSquare.id / rankAndFileValue) - Math.floor(toSquare.id / rankAndFileValue));
+	const colDiff = Math.abs((fromSquare.id % rankAndFileValue) - (toSquare.id % rankAndFileValue));
 
 	if (rowDiff !== colDiff) {
 		// The move is not diagonal
@@ -588,8 +588,8 @@ function jumpingPieceOnDiagonal(move: Move) {
 
 	// Check if the move is up and left or down and right
 	if (
-		(fromSquare.id < toSquare.id && fromSquare.id % rootOfBoard > toSquare.id % rootOfBoard) ||
-		(fromSquare.id > toSquare.id && fromSquare.id % rootOfBoard < toSquare.id % rootOfBoard)
+		(fromSquare.id < toSquare.id && fromSquare.id % rankAndFileValue > toSquare.id % rankAndFileValue) ||
+		(fromSquare.id > toSquare.id && fromSquare.id % rankAndFileValue < toSquare.id % rankAndFileValue)
 	) {
 		step = 7;
 	}
@@ -618,7 +618,7 @@ function jumpingPieceOnStraight(move: Move, direction: Direction) {
 	if (direction === Direction.HORIZONTAL) {
 		step = 1;
 	} else {
-		step = rootOfBoard;
+		step = rankAndFileValue;
 	}
 
 	// Start checking from the next square in the direction of the move
