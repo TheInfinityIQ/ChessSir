@@ -9,11 +9,11 @@ onMounted(setupBoard);
 
 <template>
     <article :class="{ flipBoard: getIsBoardFlipped() }">
-        <li v-for="row in boardState" class="parentList">
-        <li v-for="square in row" class="square-container">
+        <div v-for="row in boardState" class="parentList">
+        <div v-for="square in row" class="square-container">
             <Square :id="square.id" :colour="square.colour" :flipped="getIsBoardFlipped()"/>
-        </li>
-        </li>
+        </div>
+    </div>
     </article>
 </template>
 
