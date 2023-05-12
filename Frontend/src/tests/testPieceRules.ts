@@ -2,7 +2,3 @@ import { commitCastleToBoard, endOfBoardId, findKing, getSquareWithIdWrapper, ge
 import { PieceProps, CastlingPiecesId, ChessPiece, Direction, hasPieceMoved, isMoreThanOneSquare } from "@/scripts/pieceRules";
 import { toggleTurns } from "@/scripts/state";
 import type { IMove, Move } from "@/scripts/types";
-
-describe('isMoreThanOneSquare', () => {
-    test()
-})
