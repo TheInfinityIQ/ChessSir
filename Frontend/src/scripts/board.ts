@@ -1,4 +1,4 @@
-import { reactive } from 'vue';
+import { reactive, ref, type Ref } from 'vue';
 import { getSquares } from './board_setup';
 import type { IPiece, Move, moveVoid, npNumber, npVoid, numIPiece } from './types';
 import { Piece } from './types';
@@ -7,22 +7,22 @@ let boardState: IPiece[][] = reactive([]);
 let previousBoardState: IPiece[][] = [];
 
 export const boardSize: number = 64; // Could be updated for larger board sizes in future;
-export const rankAndFileValue: number = Math.sqrt(boardSize);
-export const finalRowValue: number = rankAndFileValue - 1;
-export const startingRowValue: number = 0;
+export const rowAndColValue: number = Math.sqrt(boardSize);
+export const endRowValue: number = rowAndColValue - 1;
+export const startRowValue: number = 0;
 export const endOfBoardId: number = boardSize - 1;
 export const startOfBoardId: number = 0;
 
 const initPieces: IPiece[] = getSquares();
 let totalMoves: number = 0;
-let isBoardFlipped: boolean = false;
+let isBoardFlipped: Ref<boolean> = ref(false);
 
 function setupBoard() {
 	let tempRow: IPiece[] = [];
 
-	for (let row = startingRowValue; row < rankAndFileValue; row++) {
-		for (let column = 0; column < rankAndFileValue; column++) {
-			tempRow.push(initPieces[row * rankAndFileValue + column]);
+	for (let row = startRowValue; row < rowAndColValue; row++) {
+		for (let column = 0; column < rowAndColValue; column++) {
+			tempRow.push(initPieces[row * rowAndColValue + column]);
 		}
 		boardState[row] = tempRow;
 		tempRow = [];
@@ -86,10 +86,7 @@ function getTotalMoves() {
 }
 
 export function flipBoard() {
-	isBoardFlipped = !isBoardFlipped;
-	// Used to refresh piece orientation and trigger reactivity. 
-	boardState.push([new Piece(999, 'e', 999)]);
-	boardState.splice(finalRowValue + 1);
+	isBoardFlipped.value = !isBoardFlipped.value;
 }
 
 export function getIsBoardFlipped() {
@@ -100,15 +97,15 @@ function commitMoveToBoard(newMove: Move) {
 	saveLastBoardState();
 	let fromSquare: IPiece = newMove.fromSquare;
 
-	let fromRow: number = Math.trunc(fromSquare.id / rankAndFileValue);
-	let fromColumn: number = fromSquare.id % rankAndFileValue;
+	let fromRow: number = Math.trunc(fromSquare.id / rowAndColValue);
+	let fromColumn: number = fromSquare.id % rowAndColValue;
 
 	boardState[fromRow][fromColumn].piece = 'e';
 
 	let toSquare: IPiece = newMove.toSquare;
 
-	let toRow: number = Math.trunc(toSquare.id / rankAndFileValue);
-	let toColumn: number = toSquare.id % rankAndFileValue;
+	let toRow: number = Math.trunc(toSquare.id / rowAndColValue);
+	let toColumn: number = toSquare.id % rowAndColValue;
 
 	boardState[toRow][toColumn].piece = fromSquare.piece;
 	totalMoves++;
@@ -130,7 +127,7 @@ enum CastlingPiecesColOffset {
 
 function commitCastleToBoard(pieceColour: string, castlingKingSide: boolean) {
 	saveLastBoardState();
-	const rowToCastle = pieceColour === 'w' ? finalRowValue : startingRowValue;
+	const rowToCastle = pieceColour === 'w' ? endRowValue : startRowValue;
 	const pieceTypes = ['k', 'r'];
 	const kingAndRookNewId =
 		castlingKingSide === true
@@ -182,8 +179,8 @@ function getSquareWithIdWrapper(id: number) {
 }
 
 function getSquareWithId(id: number) {
-	let row: number = Math.trunc(id! / rankAndFileValue);
-	let column: number = id! % rankAndFileValue;
+	let row: number = Math.trunc(id! / rowAndColValue);
+	let column: number = id! % rowAndColValue;
 
 	return boardState[row][column];
 }

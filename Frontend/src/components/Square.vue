@@ -17,6 +17,8 @@ const props = defineProps<{
 	colour: number;
 }>();
 
+const isBoardFlipped = computed(() => getIsBoardFlipped())
+
 // Calculate row and column from the given ID
 const row = Math.floor(props.id / 8);
 const column = props.id % 8;
@@ -73,7 +75,7 @@ function deselect() {
 				selected: isSelected,
 			},
 			boardState[row][column].piece,
-			{ flipPiece: getIsBoardFlipped() },
+			{ flipPiece: isBoardFlipped.value },
 		]"
 		@click="select"
 	></div>
