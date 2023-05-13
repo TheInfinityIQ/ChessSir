@@ -8,8 +8,8 @@ let previousBoardState: IPiece[][] = [];
 
 export const boardSize: number = 64; // Could be updated for larger board sizes in future;
 export const rankAndFileValue: number = Math.sqrt(boardSize);
-export const finalRankIndex: number = rankAndFileValue - 1;
-export const startingRankIndex: number = 0;
+export const finalRowValue: number = rankAndFileValue - 1;
+export const startingRowValue: number = 0;
 export const endOfBoardId: number = boardSize - 1;
 export const startOfBoardId: number = 0;
 
@@ -20,7 +20,7 @@ let isBoardFlipped: boolean = false;
 function setupBoard() {
 	let tempRow: IPiece[] = [];
 
-	for (let row = startingRankIndex; row < rankAndFileValue; row++) {
+	for (let row = startingRowValue; row < rankAndFileValue; row++) {
 		for (let column = 0; column < rankAndFileValue; column++) {
 			tempRow.push(initPieces[row * rankAndFileValue + column]);
 		}
@@ -89,7 +89,7 @@ export function flipBoard() {
 	isBoardFlipped = !isBoardFlipped;
 	// Used to refresh piece orientation and trigger reactivity. 
 	boardState.push([new Piece(999, 'e', 999)]);
-	boardState.splice(finalRankIndex + 1);
+	boardState.splice(finalRowValue + 1);
 }
 
 export function getIsBoardFlipped() {
@@ -130,7 +130,7 @@ enum CastlingPiecesColOffset {
 
 function commitCastleToBoard(pieceColour: string, castlingKingSide: boolean) {
 	saveLastBoardState();
-	const rowToCastle = pieceColour === 'w' ? finalRankIndex : startingRankIndex;
+	const rowToCastle = pieceColour === 'w' ? finalRowValue : startingRowValue;
 	const pieceTypes = ['k', 'r'];
 	const kingAndRookNewId =
 		castlingKingSide === true
