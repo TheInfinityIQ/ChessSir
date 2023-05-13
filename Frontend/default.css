@@ -11,50 +11,50 @@ body {
 }
 
 .wr {
-	background-image: url('../assets/pieces/wr.png');
+	background-image: url('./src/assets/pieces/wr.png');
 }
 
 .wn {
-	background-image: url('../assets/pieces/wn.png');
+	background-image: url('./src/assets/pieces/wn.png');
 }
 
 .wb {
-	background-image: url('../assets/pieces/wb.png');
+	background-image: url('./src/assets/pieces/wb.png');
 }
 
 .wk {
-	background-image: url('../assets/pieces/wk.png');
+	background-image: url('./src/assets/pieces/wk.png');
 }
 
 .wq {
-	background-image: url('../assets/pieces/wq.png');
+	background-image: url('./src/assets/pieces/wq.png');
 }
 
 .wp {
-	background-image: url('../assets/pieces/wp.png');
+	background-image: url('./src/assets/pieces/wp.png');
 }
 
 /* Black Pieces */
 .br {
-	background-image: url('../assets/pieces/br.png');
+	background-image: url('./src/assets/pieces/br.png');
 }
 
 .bn {
-	background-image: url('../assets/pieces/bn.png');
+	background-image: url('./src/assets/pieces/bn.png');
 }
 
 .bb {
-	background-image: url('../assets/pieces/bb.png');
+	background-image: url('./src/assets/pieces/bb.png');
 }
 
 .bk {
-	background-image: url('../assets/pieces/bk.png');
+	background-image: url('./src/assets/pieces/bk.png');
 }
 
 .bq {
-	background-image: url('../assets/pieces/bq.png');
+	background-image: url('./src/assets/pieces/bq.png');
 }
 
 .bp {
-	background-image: url('../assets/pieces/bp.png');
+	background-image: url('./src/assets/pieces/bp.png');
 }
