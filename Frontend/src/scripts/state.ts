@@ -1,4 +1,4 @@
-import type { Ref } from 'vue';
+import { ref, type Ref } from 'vue';
 import type { refVoid, IPiece, npIPiece, npVoid, npBool } from './types';
 import { Piece } from './types';
 
@@ -6,6 +6,7 @@ let selectedSquareId: number | undefined;
 let selectedSquarePiece: string | undefined;
 let selectedSquareColour: number | undefined;
 let isWhitesTurn: boolean = true;
+let isPromotionActive: Ref<boolean> = ref(false); 
 
 let pieceRef: Ref<string>;
 let deselect: () => void;
@@ -52,11 +53,19 @@ export function getIsWhitesTurn() {
 	return isWhitesTurn;
 }
 
+export function getIsPromotionActive() {
+	return isPromotionActive;
+}
+
 // Value modifying functions
 // --------------------
 
 export function toggleTurns() {
 	return (isWhitesTurn = !isWhitesTurn);
+}
+
+export function toggleIsPromotionActive() {
+	isPromotionActive.value = !isPromotionActive.value;
 }
 
 function postSelectedPiece(newPiece: IPiece): void {

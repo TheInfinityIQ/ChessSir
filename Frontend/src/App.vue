@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import Board from './components/Board.vue';
+import PromotionModal from './components/PromotionModal.vue';
 import { boardState, flipBoard, logBoard, setupBoard } from './scripts/board';
-import { getSelectedPiece, printPiece } from './scripts/state';
+import { getSelectedPiece, printPiece, toggleIsPromotionActive } from './scripts/state';
 
 function printBoard() {
 	logBoard();
@@ -35,11 +36,13 @@ function printSelectedPiece() {
 			<button @click="printBoardState">print boardState</button>
 			<button @click="printSelectedPiece">print SelectedPiece</button>
 			<button @click="flipBoard()">flip Board</button>
+			<button @click="toggleIsPromotionActive()">toggle modal</button>
 		</nav>
 		<section class="grid-container-body row-2">
 			<article class="column-1"></article>
 			<article class="board-container column-2">
-				<Board class="board" />
+				<PromotionModal />
+				<Board />
 			</article>
 			<article class="column-3"></article>
 		</section>
@@ -67,11 +70,11 @@ nav {
 	display: flex;
 	justify-content: center;
 	gap: 2vw;
+
 }
 
 button {
-	min-width: 150px;
-	max-height: 100px;
+	width: 1fr;
 
 	margin: 15px 0;
 }
@@ -109,15 +112,11 @@ button {
 	border: 1px solid black;
 
 	display: flex;
-	justify-content: space-around;
+	justify-content: center;
 	align-items: center;
-}
+	flex-direction: column;
 
-.board {
-	width: 65%;
-	max-width: 1000px;
-	aspect-ratio: 1 / 1;
-	border: 1px solid black;
+	padding: 0;
 }
 
 footer {
