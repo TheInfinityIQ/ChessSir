@@ -6,7 +6,7 @@ export default {
 
 <script setup lang="ts">
 import { boardState } from '@/scripts/board';
-import { getIdOfSelectedPiece, postSelectedPiece, postDeselect, unselectPiece, isPieceSelected, getIsPromotionActive } from '@/scripts/state';
+import { getIdOfSelectedPiece, postSelectedPiece, postDeselect, unselectPiece, isPieceSelected } from '@/scripts/state';
 import { Piece } from '@/scripts/types';
 import { computed, onMounted, ref } from 'vue';
 import { getIsBoardFlipped } from '../scripts/board';
@@ -17,7 +17,7 @@ const props = defineProps<{
 	colour: number;
 }>();
 
-const isBoardFlipped = computed(() => getIsBoardFlipped())
+const isBoardFlipped = computed(() => getIsBoardFlipped());
 
 // Calculate row and column from the given ID
 const row = Math.floor(props.id / 8);
@@ -37,7 +37,6 @@ const isSelectable = computed(() => boardState[row][column].piece !== 'e');
 const isSelected = ref(false);
 
 function select() {
-	console.log(getIsPromotionActive().value);
 	const square = new Piece(props.id, boardState[row][column].piece, props.colour);
 
 	if (getIdOfSelectedPiece() === props.id) {

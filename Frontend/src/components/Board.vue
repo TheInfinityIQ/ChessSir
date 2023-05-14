@@ -5,7 +5,7 @@ import Square from './Square.vue';
 import { getIsBoardFlipped } from '../scripts/board';
 
 onMounted(setupBoard);
-const isBoardFlipped = computed(() => getIsBoardFlipped())
+const isBoardFlipped = computed(() => getIsBoardFlipped());
 </script>
 
 <template>

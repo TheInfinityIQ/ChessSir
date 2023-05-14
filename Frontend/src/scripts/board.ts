@@ -149,7 +149,7 @@ function commitCastleToBoard(pieceColour: string, castlingKingSide: boolean) {
 	endTurn();
 }
 
-function endTurn(){
+function endTurn() {
 	totalMoves++;
 	flipBoard();
 	toggleTurns();
