@@ -1,0 +1,45 @@
+<script setup lang="ts">
+const props = defineProps({
+	piece: String,
+});
+</script>
+
+<template>
+	<div class="piece-promotion-container">
+		<div :class="props.piece" class="modal-piece"></div>
+	</div>
+</template>
+
+<style scoped>
+.piece-promotion-container {
+    width: 60%;
+    min-width: 80px;
+    max-width: 125px;
+    aspect-ratio: 1 / 1;
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    background-color: #F7F7F7;
+    border: 1px solid #D1D1D1;
+    border-radius: 20px;
+    box-shadow: 0px 2px 10px rgba(0,0,0,0.1);
+    
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+.piece-promotion-container:hover {
+    transform: scale(1.1);
+    box-shadow: 0px 4px 20px rgba(0,0,0,0.2);
+}
+
+.modal-piece {
+    width: 70%;
+    height: 70%;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+</style>

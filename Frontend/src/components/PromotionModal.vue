@@ -1,28 +1,37 @@
 <script setup lang="ts">
-import { getIsPromotionActive } from '@/scripts/state';
+import { getIsPromotionActive, getPawnPromotionColour } from '@/scripts/state';
 import { computed } from 'vue';
+import PieceModalComponent from './PieceModalComponent.vue';
 
 const isPromotionActiveComputed = computed(() => getIsPromotionActive());
+const pieceColour = computed(() => getPawnPromotionColour());
+const promotionPieces = ['q', 'n', 'r', 'b'];
 
 </script>
 
 <template>
-	<div class="promotion-modal" v-if="isPromotionActiveComputed.value">
-        
-    </div>
+	<aside v-if="isPromotionActiveComputed.value" class="promotion-modal">
+		<PieceModalComponent v-for="pieceType in promotionPieces" :piece="pieceColour.value + pieceType"></PieceModalComponent>
+	</aside>
 </template>
 
 <style scoped>
-
-.promotion-modal {
+.promotion-modal {    
     width: 90%;
+    /* Matches Board max-width */
+    max-width: 1000px; 
+    height: 150px;
     
-    height: 100px;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    
+    background-color: #F7F7F7;
+    border: 1px solid #D1D1D1;
+    border-radius: 20px;
+    box-shadow: 0px 2px 10px rgba(0,0,0,0.1);
 
-    border: 1px solid black;
+    padding: 20px;
+    margin: 20px auto;
 }
-
- 
-
-
 </style>

@@ -6,7 +6,9 @@ let selectedSquareId: number | undefined;
 let selectedSquarePiece: string | undefined;
 let selectedSquareColour: number | undefined;
 let isWhitesTurn: boolean = true;
-let isPromotionActive: Ref<boolean> = ref(false); 
+const isPromotionActive: Ref<boolean> = ref(false);
+const pawnPromotionColour: Ref<string> = ref('');
+
 
 let pieceRef: Ref<string>;
 let deselect: () => void;
@@ -57,6 +59,10 @@ export function getIsPromotionActive() {
 	return isPromotionActive;
 }
 
+export function getPawnPromotionColour(){
+	return pawnPromotionColour;
+}
+
 // Value modifying functions
 // --------------------
 
@@ -68,14 +74,21 @@ export function toggleIsPromotionActive() {
 	isPromotionActive.value = !isPromotionActive.value;
 }
 
-function postSelectedPiece(newPiece: IPiece): void {
+export function selectedIPiece() {
+	return new Piece(selectedSquareId!, selectedSquarePiece!, selectedSquareColour!);
+}
+
+export function setPawnPromotionColour(colour: string) {
+	pawnPromotionColour.value = colour;
+}
+
+function setSelectedPiece(newPiece: IPiece): void {
 	selectedSquareId = newPiece.id;
 	selectedSquarePiece = newPiece.piece;
 	selectedSquareColour = newPiece.colour;
 }
 
-//TODO: UPDATE NAME TO MAKE MORE SENSE
-function postDeselect(newDeselect: () => void): void {
+function setDeselect(newDeselect: () => void): void {
 	// If deselect is not undefined.
 	if (deselect) {
 		deselect();
@@ -90,7 +103,7 @@ function unselectPiece() {
 	selectedSquareColour = undefined;
 }
 
-function postPieceRef(newPieceRef: Ref<string>) {
+function setPieceRef(newPieceRef: Ref<string>) {
 	if (pieceRef) {
 		pieceRef.value = selectedSquarePiece!;
 	}
@@ -98,32 +111,7 @@ function postPieceRef(newPieceRef: Ref<string>) {
 	pieceRef = newPieceRef;
 }
 
-export function selectedIPiece() {
-	return new Piece(selectedSquareId!, selectedSquarePiece!, selectedSquareColour!);
-}
-
-// Debug
-// --------------------
-
-function printPiece() {
-	console.log(selectedSquarePiece);
-}
-
-function printPreviousPiece() {
-	return;
-}
-
 // Exports
 // --------------------
 
-export {
-	isPieceSelected,
-	getIdOfSelectedPiece,
-	getSelectedPiece,
-	postSelectedPiece,
-	postPieceRef,
-	postDeselect,
-	printPiece,
-	printPreviousPiece,
-	unselectPiece,
-};
+export { isPieceSelected, getIdOfSelectedPiece, getSelectedPiece, setSelectedPiece as postSelectedPiece, setPieceRef as postPieceRef, setDeselect as postDeselect, unselectPiece };

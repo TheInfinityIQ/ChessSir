@@ -1,3 +1,4 @@
+import { computed, ref } from 'vue';
 import {
 	boardState,
 	commitCastleToBoard,
@@ -14,7 +15,7 @@ import {
 	startOfBoardId,
 	startRowValue,
 } from './board';
-import { getIsWhitesTurn, selectedIPiece, toggleIsPromotionActive, toggleTurns } from './state';
+import { getIsPromotionActive, getIsWhitesTurn, selectedIPiece, setPawnPromotionColour, toggleIsPromotionActive, toggleTurns } from './state';
 import { type IPiece, type IMove, Move, type moveBool } from './types';
 
 export enum CastlingPiecesId {
@@ -95,6 +96,8 @@ export const moveValidators: Map<ChessPiece, moveBool> = new Map([
 // Value modifying functions
 // --------------------
 
+const isModalActive = getIsPromotionActive();
+
 export function makeMove(newSquare: IPiece) {
 	if ((!newSquare.id && newSquare.id != startOfBoardId) || newSquare.colour === undefined || newSquare.piece === undefined) {
 		console.error(`Error in makeMove. One of the values below are undefined or falsy\n
@@ -107,7 +110,12 @@ export function makeMove(newSquare: IPiece) {
 	let move: IMove = new Move(selectedIPiece(), newSquare);
 
 	if (!validMove(move)) return;
+	if (isModalActive.value) return;
 
+	endTurn(move);
+}
+
+function endTurn(move: IMove) {
 	commitMoveToBoard(move);
 	toggleTurns();
 }
@@ -164,6 +172,7 @@ function isValidPawnPromotion(pieceColour: string, toSquare: IPiece) {
 	const checkedRow = Math.floor(toSquare.id / rowAndColValue);
 
 	if (pieceColour === 'w' ? checkedRow === startRowValue : checkedRow === endRowValue) {
+		setPawnPromotionColour(pieceColour);
 		toggleIsPromotionActive();
 	}
 }

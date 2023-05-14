@@ -2,7 +2,7 @@
 import Board from './components/Board.vue';
 import PromotionModal from './components/PromotionModal.vue';
 import { boardState, flipBoard, logBoard, setupBoard } from './scripts/board';
-import { getSelectedPiece, printPiece, toggleIsPromotionActive } from './scripts/state';
+import { getSelectedPiece, toggleIsPromotionActive } from './scripts/state';
 
 function printBoard() {
 	logBoard();
@@ -12,10 +12,6 @@ function setupGame() {
 	setupBoard();
 }
 
-function updatePiece() {
-	printPiece();
-}
-
 function printBoardState() {
 	console.log(boardState);
 }
@@ -23,8 +19,6 @@ function printBoardState() {
 function printSelectedPiece() {
 	console.log(getSelectedPiece());
 }
-
-// onMounted(setupGame);
 </script>
 
 <template>
@@ -32,7 +26,6 @@ function printSelectedPiece() {
 		<nav class="row-1">
 			<button @click="printBoard">print board</button>
 			<button @click="setupGame">setup board</button>
-			<button @click="updatePiece">print Piece</button>
 			<button @click="printBoardState">print boardState</button>
 			<button @click="printSelectedPiece">print SelectedPiece</button>
 			<button @click="flipBoard()">flip Board</button>
