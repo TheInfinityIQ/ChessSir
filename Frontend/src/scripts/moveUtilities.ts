@@ -1,93 +1,20 @@
-import { computed, ref } from 'vue';
 import {
-	boardState,
-	commitCastleToBoard,
-	commitMoveToBoard,
-	endOfBoardId,
+	rowAndColValue,
+	startRowValue,
 	endRowValue,
-	findKing,
-	findPieceById,
 	getPreviousBoardStateWrapper,
 	getSquareWithIdWrapper,
-	getTestBoard,
-	getTotalMoves,
-	rowAndColValue,
+	findPieceById,
+	boardState,
+	findKing,
 	startOfBoardId,
-	startRowValue,
+	endOfBoardId,
+	getTestBoard,
 } from './board';
-import { getIsPromotionActive, getIsWhitesTurn, selectedIPiece, setPawnPromotionColour, setPawnPromotionMove, toggleIsPromotionActive, toggleTurns } from './state';
-import { type IPiece, type IMove, Move, type moveBool } from './types';
-
-const isModalActive = getIsPromotionActive();
-
-export enum CastlingPiecesId {
-	WHITE_ROOK_QUEENSIDE = 56,
-	WHITE_ROOK_KINGSIDE = 63,
-	BLACK_ROOK_QUEENSIDE = 0,
-	BLACK_ROOK_KINGSIDE = 7,
-	WHITE_KING = 60,
-	BLACK_KING = 4,
-}
-
-export enum CastlingPiece {
-	QUEENSIDE_ROOK = 0,
-	KINGSIDE_ROOK = 1,
-	KING = 2,
-}
-
-/*
- * KnightMoveOffsets enum represents the possible ID offsets for a knight's L-shaped moves on a chessboard.
- * Each value corresponds to a specific direction and distance combination.
- *
- * Example: Assuming the fromSquare has an id of 1root, the knight can move to squares with the following ids:
- * 1, 3, 33, 35, root, 24, 12, 2root
- *
- * Explanation:
- * - Moving up two rows (-16) and left one column (-1) results in 1root - 17 = 1
- * - Moving right two columns (+2) and down one row (+root) results in 1root + 1startOfBoardId = 2root
- */
-
-export enum KnightMoveOffsets {
-	UP_LEFT = -17,
-	UP_RIGHT = -15,
-	DOWN_LEFT = 15,
-	DOWN_RIGHT = 17,
-	LEFT_UP = -10,
-	LEFT_DOWN = 6,
-	RIGHT_UP = -6,
-	RIGHT_DOWN = 10,
-}
-
-export enum AdjacentSquareIdOffsets {
-	UP = -8,
-	UP_RIGHT = -7,
-	UP_LEFT = -9,
-	RIGHT = 1,
-	LEFT = -1,
-	DOWN = 8,
-	DOWN_RIGHT = 9,
-	DOWN_LEFT = 7,
-}
-
-export enum ChessPiece {
-	PAWN = 'p',
-	ROOK = 'r',
-	KNIGHT = 'n',
-	BISHOP = 'b',
-	KING = 'k',
-	QUEEN = 'q',
-}
-
-export enum Direction {
-	VERTICAL = 'v',
-	HORIZONTAL = 'h',
-	DIAGONAL = 'D',
-}
-
-export enum PieceProps {
-	COLOUR = 0,
-	TYPE = 1,
-}
+import { CastlingPiece } from './moveValidation';
+import { setPawnPromotionMove, setPawnPromotionColour, toggleIsPromotionActive } from './state';
+import { CastlingPiecesId, ChessPiece, AdjacentSquareIdOffsets, KnightMoveOffsets, PieceProps, Direction } from './staticValues';
+import type { IMove, IPiece, Move } from './types';
 
 export const hasPieceMoved = new Map<number, boolean>([
 	[CastlingPiecesId.WHITE_ROOK_QUEENSIDE, false],
@@ -98,85 +25,7 @@ export const hasPieceMoved = new Map<number, boolean>([
 	[CastlingPiecesId.BLACK_KING, false],
 ]);
 
-export const moveValidators: Map<ChessPiece, moveBool> = new Map([
-	[ChessPiece.PAWN, validPawnMove],
-	[ChessPiece.ROOK, validRookMove],
-	[ChessPiece.KNIGHT, validKnightMove],
-	[ChessPiece.BISHOP, validBishopMove],
-	[ChessPiece.KING, validKingMove],
-	[ChessPiece.QUEEN, validQueenMove],
-]);
-
-// Value modifying functions
-// --------------------
-
-export function makeMove(newSquare: IPiece) {
-	if ((!newSquare.id && newSquare.id != startOfBoardId) || newSquare.colour === undefined || newSquare.piece === undefined) {
-		console.error(`Error in makeMove. One of the values below are undefined or falsy\n
-        newSquare.id ${newSquare.id}\n
-        newSquare.colour ${newSquare.colour}\n
-        newSquare.piece ${newSquare.piece}`);
-		return;
-	}
-
-	let move: IMove = new Move(selectedIPiece(), newSquare);
-
-	if (!validMove(move)) return;
-	if (isModalActive.value) return;
-
-	commitMoveToBoard(move);
-	
-}
-
-function validMove(move: IMove) {
-	//Call corresponding piece type to validate a move for that piece
-	const pieceType: string = move.fromSquare.piece[PieceProps.TYPE];
-	const pieceColour: string = move.fromSquare.piece[PieceProps.COLOUR];
-	const piece: ChessPiece | undefined = getChessPieceFromLetter(pieceType);
-
-	if (getIsWhitesTurn() && pieceColour === 'b') return false;
-	if (!getIsWhitesTurn() && pieceColour === 'w') return false;
-
-	// if piece or moveValidators.get(piece) is falsy, then return () => false
-	const validator: moveBool = piece ? moveValidators.get(piece) ?? (() => false) : () => false;
-
-	if (move.fromSquare.piece[PieceProps.TYPE] !== 'k' && getTotalMoves() > startOfBoardId) {
-		if (isKingInCheckAfterMove(move)) return false;
-	}
-	return validator(move);
-}
-
-function validPawnMove(move: IMove) {
-	const { fromSquare, toSquare } = move;
-	const pieceColour = fromSquare.piece[PieceProps.COLOUR];
-	const opponentColour = pieceColour === 'w' ? 'b' : 'w';
-	const dir = determineDirection(move);
-
-	const idDiff = fromSquare.id - toSquare.id;
-	const isDirectionCorrect = pieceColour === 'w' ? idDiff > startOfBoardId : idDiff < startOfBoardId;
-	if (!isDirectionCorrect) return false;
-
-	const fromRowId = Math.floor(fromSquare.id / rowAndColValue);
-	const isStartingSquare = pieceColour === 'w' ? fromRowId === 6 : fromRowId === 1;
-	const rowDiff = Math.abs(fromRowId - Math.floor(toSquare.id / rowAndColValue));
-	if ((rowDiff === 2 && !isStartingSquare) || rowDiff > 2) return false;
-	if (rowDiff === 2 && dir === Direction.DIAGONAL) return false;
-
-	const isVerticalMove = dir === Direction.VERTICAL && toSquare.piece === 'e';
-	const isDiagonalMove = dir === Direction.DIAGONAL && !isFriendlyPiece(fromSquare.piece[startOfBoardId], toSquare.id);
-
-	if (!isVerticalMove && !isDiagonalMove) return false;
-
-	if (isDiagonalMove && toSquare.piece === 'e') {
-		if (!isValidEnPassant(fromSquare, toSquare, pieceColour, opponentColour)) return false;
-	}
-
-	isValidPawnPromotion(pieceColour, toSquare, move);
-
-	return !isJumpingPiece(move);
-}
-
-function isValidPawnPromotion(pieceColour: string, toSquare: IPiece, move: IMove) {
+export function isValidPawnPromotion(pieceColour: string, toSquare: IPiece, move: IMove) {
 	const checkedRow = Math.floor(toSquare.id / rowAndColValue);
 
 	if (pieceColour === 'w' ? checkedRow === startRowValue : checkedRow === endRowValue) {
@@ -186,7 +35,7 @@ function isValidPawnPromotion(pieceColour: string, toSquare: IPiece, move: IMove
 	}
 }
 
-function isValidEnPassant(fromSquare: IPiece, toSquare: IPiece, pieceColour: string, opponentColour: string) {
+export function isValidEnPassant(fromSquare: IPiece, toSquare: IPiece, pieceColour: string, opponentColour: string) {
 	const prevBoard = getPreviousBoardStateWrapper();
 	const opponentPawn = `${opponentColour}${ChessPiece.PAWN}`;
 	const opponentCheckSquareId = pieceColour === 'w' ? toSquare.id - rowAndColValue : toSquare.id + rowAndColValue;
@@ -205,108 +54,11 @@ function isValidEnPassant(fromSquare: IPiece, toSquare: IPiece, pieceColour: str
 	return false;
 }
 
-function validRookMove(move: IMove) {
-	const fromSquare = move.fromSquare;
-	const toSquare = move.toSquare;
-
-	if (isJumpingPiece(move) || determineDirection(move) === Direction.DIAGONAL || isFriendlyPiece(fromSquare.piece[startOfBoardId], toSquare.id)) {
-		return false;
-	}
-
-	const rookStartingIds = [
-		CastlingPiecesId.BLACK_ROOK_KINGSIDE,
-		CastlingPiecesId.BLACK_ROOK_QUEENSIDE,
-		CastlingPiecesId.WHITE_ROOK_QUEENSIDE,
-		CastlingPiecesId.WHITE_ROOK_KINGSIDE,
-	];
-	const foundRook = rookStartingIds.some((id) => id === fromSquare.id);
-	if (foundRook) {
-		hasPieceMoved.set(fromSquare.id, true);
-	}
-
-	return true;
-}
-
-function validKnightMove(move: IMove) {
-	const fromSquare = move.fromSquare;
-	const toSquare = move.toSquare;
-
-	const pieceColour = fromSquare.piece[startOfBoardId];
-
-	const validIdsMods = [
-		KnightMoveOffsets.UP_LEFT,
-		KnightMoveOffsets.UP_RIGHT,
-		KnightMoveOffsets.DOWN_LEFT,
-		KnightMoveOffsets.DOWN_RIGHT,
-		KnightMoveOffsets.LEFT_UP,
-		KnightMoveOffsets.LEFT_DOWN,
-		KnightMoveOffsets.RIGHT_UP,
-		KnightMoveOffsets.RIGHT_DOWN,
-	];
-
-	const validIDs: number[] = [];
-
-	validIdsMods.forEach((value: number) => {
-		let modId = value + fromSquare.id;
-		const lessThanUpBound = value + fromSquare.id < endOfBoardId;
-		const moreThanlowBound = value + fromSquare.id > startOfBoardId;
-		const notFriendlyPiece = !isFriendlyPiece(pieceColour, toSquare.id);
-
-		if (lessThanUpBound && moreThanlowBound && notFriendlyPiece) {
-			validIDs.push(modId);
-		}
-	});
-
-	const result = validIDs.some((id) => id === toSquare.id);
-
-	return result;
-}
-
-function validBishopMove(move: IMove) {
-	const fromSquare = move.fromSquare;
-	const toSquare = move.toSquare;
-
-	return !(
-		isJumpingPiece(move) ||
-		determineDirection(move) === Direction.HORIZONTAL ||
-		determineDirection(move) === Direction.VERTICAL ||
-		determineDirection(move) !== Direction.DIAGONAL ||
-		isFriendlyPiece(fromSquare.piece[startOfBoardId], toSquare.id)
-	);
-}
-
-function validKingMove(move: IMove) {
-	const fromSquare = move.fromSquare;
-	const pieceColour = fromSquare.piece[PieceProps.COLOUR];
-	const toSquare = move.toSquare;
-	const castlingKingside = toSquare.id - fromSquare.id > startOfBoardId ? true : false;
-
-	const colDiff = Math.floor(fromSquare.id % rowAndColValue) - Math.floor(toSquare.id % rowAndColValue);
-	const rowDiff = Math.floor(fromSquare.id / rowAndColValue) - Math.floor(toSquare.id / rowAndColValue);
-
-	if (isKingInCheck(toSquare, pieceColour)) return false;
-	console.log('King is Not In check');
-
-	console.log(`Is Col Diff two: ${Math.abs(colDiff) === 2}, is rowDiff 0: ${rowDiff === 0}, is CastlingValid: ${isCastlingValid(pieceColour, castlingKingside)}`);
-	if (Math.abs(colDiff) === 2 && rowDiff === 0 && isCastlingValid(pieceColour, castlingKingside)) {
-		commitCastleToBoard(pieceColour, castlingKingside);
-		toggleTurns();
-	}
-
-	if (!validQueenMove(move) || isMoreThanOneSquare(move)) return false;
-
-	//Updates to prevent castling
-	pieceColour === 'w' ? hasPieceMoved.set(CastlingPiecesId.WHITE_KING, true) : hasPieceMoved.set(CastlingPiecesId.BLACK_KING, true);
-	return true;
-}
-
-function isCastlingValid(pieceColour: string, castlingKingside: boolean) {
+export function isCastlingValid(pieceColour: string, castlingKingside: boolean) {
 	const pieces =
 		pieceColour === 'w'
 			? [CastlingPiecesId.WHITE_ROOK_QUEENSIDE, CastlingPiecesId.WHITE_ROOK_KINGSIDE, CastlingPiecesId.WHITE_KING]
 			: [CastlingPiecesId.BLACK_ROOK_QUEENSIDE, CastlingPiecesId.BLACK_ROOK_KINGSIDE, CastlingPiecesId.BLACK_KING];
-
-	console.log(`pieceColour when castling is ${pieceColour}.`);
 
 	function calcIsRoomToCastle() {
 		if (castlingKingside) {
@@ -316,21 +68,16 @@ function isCastlingValid(pieceColour: string, castlingKingside: boolean) {
 			}
 			return true;
 		} else {
-			console.log(`Position: ${pieces[CastlingPiece.KING] + AdjacentSquareIdOffsets.LEFT}\nPiece: ${pieces[CastlingPiece.QUEENSIDE_ROOK]}`);
 			for (let position = pieces[CastlingPiece.KING] + AdjacentSquareIdOffsets.LEFT; position > pieces[CastlingPiece.QUEENSIDE_ROOK]; position--) {
 				const square = getSquareWithIdWrapper(position);
-				console.log(`Not Empty Square: ${square.piece !== 'e'}, King is in Check ${isKingInCheck(square, pieceColour)}`);
 				if (isKingInCheck(square, pieceColour) || square.piece !== 'e') return false;
 			}
-
-			console.log('Castling Is Valid');
 
 			return true;
 		}
 	}
 
 	const isRoomToCastle = calcIsRoomToCastle();
-	console.log(`RoomToCastle: ${isRoomToCastle}`);
 
 	if (isKingInCheck(findKing(pieceColour), pieceColour)) return false;
 	if (hasPieceMoved.get(pieces[CastlingPiece.KING]) || !isRoomToCastle) return false;
@@ -344,7 +91,7 @@ function isCastlingValid(pieceColour: string, castlingKingside: boolean) {
 	return true;
 }
 
-function isKingInCheck(kingSquare: IPiece, pieceColour: string, board: IPiece[][] = boardState) {
+export function isKingInCheck(kingSquare: IPiece, pieceColour: string, board: IPiece[][] = boardState) {
 	const startingId = kingSquare.id;
 	const startingRow = Math.floor(startingId / rowAndColValue);
 	const startingCol = Math.floor(startingId % rowAndColValue);
@@ -461,18 +208,7 @@ function isKingInCheck(kingSquare: IPiece, pieceColour: string, board: IPiece[][
 	return false;
 }
 
-function validQueenMove(move: IMove) {
-	const fromSquare = move.fromSquare;
-	const toSquare = move.toSquare;
-
-	if (determineDirection(move) !== Direction.DIAGONAL && determineDirection(move) !== Direction.HORIZONTAL && determineDirection(move) !== Direction.VERTICAL) {
-		return false; // Not a valid queen move
-	}
-
-	return !(isJumpingPiece(move) || isFriendlyPiece(fromSquare.piece[startOfBoardId], toSquare.id));
-}
-
-function isKingInCheckAfterMove(move: IMove) {
+export function isKingInCheckAfterMove(move: IMove) {
 	const pieceColour = move.fromSquare.piece[PieceProps.COLOUR];
 	let tempBoard = getTestBoard();
 
@@ -490,7 +226,7 @@ function isKingInCheckAfterMove(move: IMove) {
 	return isKingInCheck(findKing(pieceColour, tempBoard), pieceColour, tempBoard);
 }
 
-function getChessPieceFromLetter(letter: string): ChessPiece | undefined {
+export function getChessPieceFromLetter(letter: string): ChessPiece | undefined {
 	for (const key in ChessPiece) {
 		if (ChessPiece[key as keyof typeof ChessPiece] === letter) {
 			return ChessPiece[key as keyof typeof ChessPiece];
@@ -514,7 +250,7 @@ export function isMoreThanOneSquare(move: IMove) {
 	return false;
 }
 
-function determineDirection(move: Move) {
+export function determineDirection(move: Move) {
 	const fromSquare = move.fromSquare;
 	const toSquare = move.toSquare;
 
@@ -541,7 +277,7 @@ function determineDirection(move: Move) {
 	return;
 }
 
-function isJumpingPiece(move: IMove) {
+export function isJumpingPiece(move: IMove) {
 	const d = determineDirection(move);
 
 	if (d === Direction.DIAGONAL) {
@@ -560,7 +296,7 @@ function isJumpingPiece(move: IMove) {
 	return true;
 }
 
-function jumpingPieceOnDiagonal(move: Move) {
+export function jumpingPieceOnDiagonal(move: Move) {
 	const fromSquare = move.fromSquare;
 	const toSquare = move.toSquare;
 
@@ -598,7 +334,7 @@ function jumpingPieceOnDiagonal(move: Move) {
 	return false;
 }
 
-function jumpingPieceOnStraight(move: Move, direction: Direction) {
+export function jumpingPieceOnStraight(move: IMove, direction: Direction) {
 	const fromSquare = move.fromSquare;
 	const toSquare = move.toSquare;
 
@@ -625,7 +361,7 @@ function jumpingPieceOnStraight(move: Move, direction: Direction) {
 	return false;
 }
 
-function isFriendlyPiece(friendlyColour: string, toSquareId: number) {
+export function isFriendlyPiece(friendlyColour: string, toSquareId: number) {
 	const toPiece: string = getSquareWithIdWrapper(toSquareId).piece;
 
 	if (toPiece === 'e') return false;

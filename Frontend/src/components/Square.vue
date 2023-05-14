@@ -6,26 +6,27 @@ export default {
 
 <script setup lang="ts">
 import { boardState } from '@/scripts/board';
-import { getIdOfSelectedPiece, postSelectedPiece, postDeselect, unselectPiece, isPieceSelected } from '@/scripts/state';
+import { getIdOfSelectedPiece, postSelectedPiece, postDeselect, unselectPiece, isPieceSelected, getIsKingInCheck } from '@/scripts/state';
 import { Piece } from '@/scripts/types';
 import { computed, onMounted, ref } from 'vue';
 import { getIsBoardFlipped } from '../scripts/board';
-import { makeMove } from '@/scripts/pieceRules';
+import { makeMove } from '@/scripts/moveValidation';
 
 const props = defineProps<{
 	id: number;
-	colour: number;
+	squareColour: number;
 }>();
-
-const isBoardFlipped = computed(() => getIsBoardFlipped());
 
 // Calculate row and column from the given ID
 const row = Math.floor(props.id / 8);
-const column = props.id % 8;
+const column = Math.floor(props.id % 8);
+
+const isBoardFlipped = computed(() => getIsBoardFlipped());
+const isKingInCheck = computed(() => getIsKingInCheck(props.id, boardState[row][column].piece));
 
 // Ensure that the input values for the piece are valid
 const ensureValidity = () => {
-	if (props.id > 63 || props.id < 0 || props.colour < 0 || props.colour > 1) {
+	if (props.id > 63 || props.id < 0 || props.squareColour < 0 || props.squareColour > 1) {
 		console.error('Invalid piece definition. Either piece ID or colour is invalid onMounted');
 	}
 };
@@ -37,7 +38,7 @@ const isSelectable = computed(() => boardState[row][column].piece !== 'e');
 const isSelected = ref(false);
 
 function select() {
-	const square = new Piece(props.id, boardState[row][column].piece, props.colour);
+	const square = new Piece(props.id, boardState[row][column].piece, props.squareColour);
 
 	if (getIdOfSelectedPiece() === props.id) {
 		isSelected.value = !isSelected.value;
@@ -69,13 +70,14 @@ function deselect() {
 	<div
 		:class="[
 			{
-				lighter: colour == 0,
-				darker: colour == 1,
+				lighter: squareColour == 0,
+				darker: squareColour == 1,
 				selectable: isSelectable,
 				selected: isSelected,
 			},
 			boardState[row][column].piece,
 			{ flipPiece: isBoardFlipped.value },
+			{ inCheck: isKingInCheck },
 		]"
 		@click="select"
 	></div>
@@ -87,6 +89,10 @@ div {
 	height: 100%;
 	background-position: center;
 	background-size: cover;
+}
+
+.inCheck {
+	background-color: red;
 }
 
 .flipPiece {

@@ -1,8 +1,8 @@
 import { reactive, ref, type Ref } from 'vue';
 import { getSquares } from './board_setup';
-import type { IPiece, Move, moveVoid, npNumber, npVoid, numIPiece } from './types';
-import { Piece } from './types';
+import type { IPiece, Move } from './types';
 import { getPawnPromotionMove, getPawnPromotionPiece, toggleIsPromotionActive, toggleTurns } from './state';
+import { CastlingPiecesColStart, CastlingPiecesColOffset } from './staticValues';
 
 let boardState: IPiece[][] = reactive([]);
 let previousBoardState: IPiece[][] = [];
@@ -14,7 +14,7 @@ export const startRowValue: number = 0;
 export const endOfBoardId: number = boardSize - 1;
 export const startOfBoardId: number = 0;
 
-const testToggleFlipBoard: Ref<boolean> = ref(true);
+const testToggleFlipBoard: Ref<boolean> = ref(false);
 export function toggleFlipBoard() {
 	testToggleFlipBoard.value = !testToggleFlipBoard.value;
 }
@@ -123,19 +123,6 @@ function commitMoveToBoard(newMove: Move) {
 	endTurn();
 }
 
-enum CastlingPiecesColStart {
-	ROOK_QUEENSIDE = 0,
-	ROOK_KINGSIDE = 7,
-	KING = 4,
-}
-
-enum CastlingPiecesColOffset {
-	ROOK_QUEENSIDE = 3,
-	ROOK_KINGSIDE = -2,
-	KING_KINGSIDE = 2,
-	KING_QUEENSIDE = -2,
-}
-
 function commitCastleToBoard(pieceColour: string, castlingKingSide: boolean) {
 	saveLastBoardState();
 	const rowToCastle = pieceColour === 'w' ? endRowValue : startRowValue;
@@ -162,16 +149,16 @@ function commitCastleToBoard(pieceColour: string, castlingKingSide: boolean) {
 
 function endTurn() {
 	// if(isCheckmate());
-	
+
+	console.log('End Turn');
+
 	totalMoves++;
-	
+
 	toggleTurns();
 	flipBoard();
 }
 
-function isCheckmate() {
-	
-}
+function isCheckmate() {}
 
 export function commitPawnPromotionToBoard() {
 	const move = getPawnPromotionMove();

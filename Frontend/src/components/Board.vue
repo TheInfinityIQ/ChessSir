@@ -12,7 +12,7 @@ const isBoardFlipped = computed(() => getIsBoardFlipped());
 	<article :class="{ flipBoard: isBoardFlipped.value }" class="board">
 		<div v-for="row in boardState" class="parentList">
 			<div v-for="square in row" class="square-container">
-				<Square :id="square.id" :colour="square.colour" :flipped="isBoardFlipped.value" />
+				<Square :id="square.id" :squareColour="square.colour" :flipped="isBoardFlipped.value" />
 			</div>
 		</div>
 	</article>

@@ -1,16 +1,22 @@
-import { reactive, ref, type Ref } from 'vue';
+import type { Ref } from 'vue';
 import type { IMove, IPiece } from './types';
+
+import { reactive, ref } from 'vue';
 import { Move, Piece } from './types';
+import { isKingInCheck } from './moveUtilities';
 
 let selectedSquareId: number | undefined;
 let selectedSquarePiece: string | undefined;
 let selectedSquareColour: number | undefined;
-let isWhitesTurn: boolean = true;
+const isWhitesTurn: Ref<boolean> = ref(true);
+
+const tempIPiece = new Piece(0, '', 2);
+let pawnPromotionMove: IMove = reactive(new Move(tempIPiece, tempIPiece));
+
+const kingInCheckState: Ref<boolean> = ref(false);
 const isPromotionActive: Ref<boolean> = ref(false);
 const pawnPromotionColour: Ref<string> = ref('');
 const pawnPromotionPiece: Ref<string> = ref('');
-const tempIPiece = new Piece(0, '', 2);
-let pawnPromotionMove: IMove = reactive(new Move(tempIPiece, tempIPiece));
 
 let deselect: () => void;
 
@@ -45,6 +51,7 @@ export function getPawnPromotionMove() {
 }
 
 export function getIsWhitesTurn() {
+	console.log(isWhitesTurn.value);
 	return isWhitesTurn;
 }
 
@@ -60,11 +67,21 @@ export function getPawnPromotionPiece() {
 	return pawnPromotionPiece;
 }
 
+export function getIsKingInCheck(id: number, pieceColour: string) {
+	//create temp piece to check id instead of piece.
+	kingInCheckState.value = isKingInCheck(new Piece(id, 't' + pieceColour, 1), pieceColour);
+
+	return kingInCheckState;
+}
+
 // Value modifying functions
 // --------------------
 
 export function toggleTurns() {
-	return (isWhitesTurn = !isWhitesTurn);
+	console.log(`Before toggle`);
+	isWhitesTurn.value = !isWhitesTurn.value;
+
+	return;
 }
 
 export function toggleIsPromotionActive() {
@@ -116,11 +133,4 @@ function unselectPiece() {
 // Exports
 // --------------------
 
-export {
-	isPieceSelected,
-	getIdOfSelectedPiece,
-	getSelectedPiece,
-	setSelectedPiece as postSelectedPiece,
-	setDeselect as postDeselect,
-	unselectPiece,
-};
+export { isPieceSelected, getIdOfSelectedPiece, getSelectedPiece, setSelectedPiece as postSelectedPiece, setDeselect as postDeselect, unselectPiece };
