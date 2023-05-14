@@ -1,6 +1,6 @@
-import { ref, type Ref } from 'vue';
-import type { refVoid, IPiece, npIPiece, npVoid, npBool } from './types';
-import { Piece } from './types';
+import { reactive, ref, type Ref } from 'vue';
+import type { IMove, IPiece } from './types';
+import { Move, Piece } from './types';
 
 let selectedSquareId: number | undefined;
 let selectedSquarePiece: string | undefined;
@@ -8,9 +8,10 @@ let selectedSquareColour: number | undefined;
 let isWhitesTurn: boolean = true;
 const isPromotionActive: Ref<boolean> = ref(false);
 const pawnPromotionColour: Ref<string> = ref('');
+const pawnPromotionPiece: Ref<string> = ref('');
+const tempIPiece = new Piece(0, '', 2);
+let pawnPromotionMove: IMove = reactive(new Move(tempIPiece, tempIPiece));
 
-
-let pieceRef: Ref<string>;
 let deselect: () => void;
 
 /*
@@ -51,6 +52,10 @@ function getSelectedPiece(): any {
 	return new Piece(selectedSquareId!, selectedSquarePiece!, selectedSquareColour!);
 }
 
+export function getPawnPromotionMove() {
+	return pawnPromotionMove;
+}
+
 export function getIsWhitesTurn() {
 	return isWhitesTurn;
 }
@@ -59,8 +64,12 @@ export function getIsPromotionActive() {
 	return isPromotionActive;
 }
 
-export function getPawnPromotionColour(){
+export function getPawnPromotionColour() {
 	return pawnPromotionColour;
+}
+
+export function getPawnPromotionPiece() {
+	return pawnPromotionPiece;
 }
 
 // Value modifying functions
@@ -78,8 +87,21 @@ export function selectedIPiece() {
 	return new Piece(selectedSquareId!, selectedSquarePiece!, selectedSquareColour!);
 }
 
+export function setPawnPromotionMove(move: IMove) {
+	pawnPromotionMove = move;
+}
+
 export function setPawnPromotionColour(colour: string) {
 	pawnPromotionColour.value = colour;
+}
+
+export function setPawnPromotionPiece(piece: string | undefined) {
+	if (piece === undefined) {
+		console.log(`setPawnPromotionPiece is undefined...`);
+		return;
+	}
+
+	pawnPromotionPiece.value = piece;
 }
 
 function setSelectedPiece(newPiece: IPiece): void {
@@ -114,4 +136,12 @@ function setPieceRef(newPieceRef: Ref<string>) {
 // Exports
 // --------------------
 
-export { isPieceSelected, getIdOfSelectedPiece, getSelectedPiece, setSelectedPiece as postSelectedPiece, setPieceRef as postPieceRef, setDeselect as postDeselect, unselectPiece };
+export {
+	isPieceSelected,
+	getIdOfSelectedPiece,
+	getSelectedPiece,
+	setSelectedPiece as postSelectedPiece,
+	setPieceRef as postPieceRef,
+	setDeselect as postDeselect,
+	unselectPiece,
+};

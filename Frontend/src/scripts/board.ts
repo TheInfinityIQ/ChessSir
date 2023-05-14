@@ -2,6 +2,7 @@ import { reactive, ref, type Ref } from 'vue';
 import { getSquares } from './board_setup';
 import type { IPiece, Move, moveVoid, npNumber, npVoid, numIPiece } from './types';
 import { Piece } from './types';
+import { getPawnPromotionMove, getPawnPromotionPiece, toggleIsPromotionActive, toggleTurns } from './state';
 
 let boardState: IPiece[][] = reactive([]);
 let previousBoardState: IPiece[][] = [];
@@ -108,8 +109,7 @@ function commitMoveToBoard(newMove: Move) {
 	let toColumn: number = toSquare.id % rowAndColValue;
 
 	boardState[toRow][toColumn].piece = fromSquare.piece;
-	totalMoves++;
-	flipBoard();
+	endTurn();
 }
 
 enum CastlingPiecesColStart {
@@ -131,14 +131,8 @@ function commitCastleToBoard(pieceColour: string, castlingKingSide: boolean) {
 	const pieceTypes = ['k', 'r'];
 	const kingAndRookNewId =
 		castlingKingSide === true
-			? [
-					CastlingPiecesColStart.KING + CastlingPiecesColOffset.KING_KINGSIDE,
-					CastlingPiecesColStart.ROOK_KINGSIDE + CastlingPiecesColOffset.ROOK_KINGSIDE,
-			  ]
-			: [
-					CastlingPiecesColStart.KING + CastlingPiecesColOffset.KING_QUEENSIDE,
-					CastlingPiecesColStart.ROOK_QUEENSIDE + CastlingPiecesColOffset.ROOK_QUEENSIDE,
-			  ];
+			? [CastlingPiecesColStart.KING + CastlingPiecesColOffset.KING_KINGSIDE, CastlingPiecesColStart.ROOK_KINGSIDE + CastlingPiecesColOffset.ROOK_KINGSIDE]
+			: [CastlingPiecesColStart.KING + CastlingPiecesColOffset.KING_QUEENSIDE, CastlingPiecesColStart.ROOK_QUEENSIDE + CastlingPiecesColOffset.ROOK_QUEENSIDE];
 
 	let iteration = 0;
 	for (let piece of kingAndRookNewId) {
@@ -152,8 +146,29 @@ function commitCastleToBoard(pieceColour: string, castlingKingSide: boolean) {
 	}
 
 	boardState[rowToCastle][CastlingPiecesColStart.KING].piece = 'e';
+	endTurn();
+}
+
+function endTurn(){
 	totalMoves++;
 	flipBoard();
+	toggleTurns();
+}
+
+export function commitPawnPromotionToBoard() {
+	const move = getPawnPromotionMove();
+	const piece = getPawnPromotionPiece().value;
+
+	const { fromSquare, toSquare } = move;
+	const fromRow = Math.floor(fromSquare.id / rowAndColValue);
+	const fromCol = Math.floor(fromSquare.id % rowAndColValue);
+	const toRow = Math.floor(toSquare.id / rowAndColValue);
+	const toCol = Math.floor(toSquare.id % rowAndColValue);
+
+	boardState[fromRow][fromCol].piece = 'e';
+	boardState[toRow][toCol].piece = piece;
+	toggleIsPromotionActive();
+	endTurn();
 }
 
 function saveLastBoardState() {

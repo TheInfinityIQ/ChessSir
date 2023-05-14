@@ -1,12 +1,20 @@
 <script setup lang="ts">
+import { commitPawnPromotionToBoard } from '@/scripts/board';
+import { setPawnPromotionPiece } from '@/scripts/state';
+
 const props = defineProps({
 	piece: String,
 });
+
+function promotePiece() {
+    setPawnPromotionPiece(props.piece);
+    commitPawnPromotionToBoard();
+}
 </script>
 
 <template>
 	<div class="piece-promotion-container">
-		<div :class="props.piece" class="modal-piece"></div>
+		<div :class="props.piece" class="modal-piece" @click="promotePiece"></div>
 	</div>
 </template>
 
