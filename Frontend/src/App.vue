@@ -63,7 +63,6 @@ nav {
 	display: flex;
 	justify-content: center;
 	gap: 2vw;
-
 }
 
 button {
