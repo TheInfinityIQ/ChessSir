@@ -1,19 +1,6 @@
 import { Piece, type IPiece } from './types';
+import { initBoardState } from './staticValues'
 
-function getInitBoardState() {
-	return [
-		['br', 'bn', 'bb', 'bq', 'bk', 'bb', 'bn', 'br'],
-		['bp', 'bp', 'bp', 'bp', 'bp', 'bp', 'bp', 'bp'],
-		['e', 'e', 'e', 'e', 'e', 'e', 'e', 'e'],
-		['e', 'e', 'e', 'e', 'e', 'e', 'e', 'e'],
-		['e', 'e', 'e', 'e', 'e', 'e', 'e', 'e'],
-		['e', 'e', 'e', 'e', 'e', 'e', 'e', 'e'],
-		['wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp'],
-		['wr', 'wn', 'wb', 'wq', 'wk', 'wb', 'wn', 'wr'],
-	];
-}
-
-const initBoardState: string[][] = getInitBoardState();
 let row: number, column: number, pieceValue: string;
 
 function getSquares() {
@@ -33,4 +20,4 @@ function getSquares() {
 	return squares;
 }
 
-export { getSquares, getInitBoardState };
+export { getSquares };
