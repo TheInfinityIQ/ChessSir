@@ -35,6 +35,18 @@ export enum CastlingPiece {
 	KING = 2,
 }
 
+/*
+ * KnightMoveOffsets enum represents the possible ID offsets for a knight's L-shaped moves on a chessboard.
+ * Each value corresponds to a specific direction and distance combination.
+ *
+ * Example: Assuming the fromSquare has an id of 1root, the knight can move to squares with the following ids:
+ * 1, 3, 33, 35, root, 24, 12, 2root
+ *
+ * Explanation:
+ * - Moving up two rows (-16) and left one column (-1) results in 1root - 17 = 1
+ * - Moving right two columns (+2) and down one row (+root) results in 1root + 1startOfBoardId = 2root
+ */
+
 export enum KnightMoveOffsets {
 	UP_LEFT = -17,
 	UP_RIGHT = -15,
@@ -113,6 +125,7 @@ export function makeMove(newSquare: IPiece) {
 	if (isModalActive.value) return;
 
 	commitMoveToBoard(move);
+	
 }
 
 function validMove(move: IMove) {

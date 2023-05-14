@@ -14,18 +14,6 @@ let pawnPromotionMove: IMove = reactive(new Move(tempIPiece, tempIPiece));
 
 let deselect: () => void;
 
-/*
- * KnightMoveOffsets enum represents the possible ID offsets for a knight's L-shaped moves on a chessboard.
- * Each value corresponds to a specific direction and distance combination.
- *
- * Example: Assuming the fromSquare has an id of 1root, the knight can move to squares with the following ids:
- * 1, 3, 33, 35, root, 24, 12, 2root
- *
- * Explanation:
- * - Moving up two rows (-16) and left one column (-1) results in 1root - 17 = 1
- * - Moving right two columns (+2) and down one row (+root) results in 1root + 1startOfBoardId = 2root
- */
-
 // Get Functions
 // --------------------
 
@@ -125,14 +113,6 @@ function unselectPiece() {
 	selectedSquareColour = undefined;
 }
 
-function setPieceRef(newPieceRef: Ref<string>) {
-	if (pieceRef) {
-		pieceRef.value = selectedSquarePiece!;
-	}
-
-	pieceRef = newPieceRef;
-}
-
 // Exports
 // --------------------
 
@@ -141,7 +121,6 @@ export {
 	getIdOfSelectedPiece,
 	getSelectedPiece,
 	setSelectedPiece as postSelectedPiece,
-	setPieceRef as postPieceRef,
 	setDeselect as postDeselect,
 	unselectPiece,
 };
