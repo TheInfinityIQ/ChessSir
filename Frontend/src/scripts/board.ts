@@ -14,6 +14,14 @@ export const startRowValue: number = 0;
 export const endOfBoardId: number = boardSize - 1;
 export const startOfBoardId: number = 0;
 
+const testToggleFlipBoard: Ref<boolean> = ref(true);
+export function toggleFlipBoard() {
+	testToggleFlipBoard.value = !testToggleFlipBoard.value;
+}
+export function getToggleFlipBoard() {
+	return testToggleFlipBoard;
+}
+
 const initPieces: IPiece[] = getSquares();
 let totalMoves: number = 0;
 let isBoardFlipped: Ref<boolean> = ref(false);
@@ -87,6 +95,9 @@ function getTotalMoves() {
 }
 
 export function flipBoard() {
+	if (!testToggleFlipBoard.value) {
+		return;
+	}
 	isBoardFlipped.value = !isBoardFlipped.value;
 }
 
@@ -150,9 +161,16 @@ function commitCastleToBoard(pieceColour: string, castlingKingSide: boolean) {
 }
 
 function endTurn() {
+	// if(isCheckmate());
+	
 	totalMoves++;
-	flipBoard();
+	
 	toggleTurns();
+	flipBoard();
+}
+
+function isCheckmate() {
+	
 }
 
 export function commitPawnPromotionToBoard() {

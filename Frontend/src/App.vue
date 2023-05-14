@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Board from './components/Board.vue';
 import PromotionModal from './components/PromotionModal.vue';
-import { boardState, flipBoard, logBoard, setupBoard } from './scripts/board';
+import { boardState, flipBoard, getToggleFlipBoard, logBoard, setupBoard, toggleFlipBoard } from './scripts/board';
 import { getSelectedPiece, toggleIsPromotionActive } from './scripts/state';
 
 function printBoard() {
@@ -30,6 +30,7 @@ function printSelectedPiece() {
 			<button @click="printSelectedPiece">print SelectedPiece</button>
 			<button @click="flipBoard()">flip Board</button>
 			<button @click="toggleIsPromotionActive()">toggle modal</button>
+			<button @click="toggleFlipBoard()">no flip {{ !getToggleFlipBoard().value }}</button>
 		</nav>
 		<section class="grid-container-body row-2">
 			<article class="column-1"></article>
