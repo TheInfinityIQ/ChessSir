@@ -1,136 +1,79 @@
-import type { Ref } from 'vue';
+import type { ComputedRef, Ref } from 'vue';
 import type { IMove, IPiece } from './types';
 
-import { reactive, ref } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import { Move, Piece } from './types';
-import { isKingInCheck } from './moveUtilities';
+import { defineStore } from 'pinia';
+import { UnselectedPiece, tempIPiece } from './staticValues';
+import { setupBoard } from './board';
 
-let selectedSquareId: number | undefined;
-let selectedSquarePiece: string | undefined;
-let selectedSquareColour: number | undefined;
-const isWhitesTurn: Ref<boolean> = ref(true);
 
-const tempIPiece = new Piece(0, '', 2);
-let pawnPromotionMove: IMove = reactive(new Move(tempIPiece, tempIPiece));
 
-const kingInCheckState: Ref<boolean> = ref(false);
-const isPromotionActive: Ref<boolean> = ref(false);
-const pawnPromotionColour: Ref<string> = ref('');
-const pawnPromotionPiece: Ref<string> = ref('');
+export const useGameStore = defineStore('game', () => {
+	const kingInCheck: Ref<boolean> = ref(false);
+	const isPromotionActive: Ref<boolean> = ref(false);
+	const pawnPromotionColour: Ref<string> = ref('');
+	const pawnPromotionPiece: Ref<string> = ref('');
+	const selectedSquarePiece: Ref<string | undefined> = ref('');
+	const selectedSquareColour: Ref<number | undefined> = ref(-1);
+	const selectedSquareId: Ref<number | undefined> = ref(-1);
+	const isWhitesTurn: Ref<boolean> = ref(true);
+	const totalMoves: Ref<number> = ref(0);
+	const selectedPiece: ComputedRef<IPiece> = computed(() => new Piece(selectedSquareId.value!, selectedSquarePiece.value!, selectedSquareColour.value!))
+	let moveToPromote = new Move(tempIPiece, tempIPiece);
+	const game = reactive({
+		deselectContainer: () => {},
+		board: setupBoard(),
+	});
 
-let deselect: () => void;
-
-// Get Functions
-// --------------------
-
-function getIdOfSelectedPiece() {
-	return selectedSquareId;
-}
-
-function isPieceSelected() {
-	if (selectedSquarePiece) {
-		return true;
+	function incrementMoves() {
+		totalMoves.value++;
 	}
 
-	return false;
-}
-
-function getSelectedPiece(): any {
-	if (selectedSquareId === undefined && selectedSquarePiece === undefined && selectedSquareColour === undefined) {
-		console.error(
-			`getSelectedPiece was called when selectedSquare values were called.\nselectedSquareId: ${selectedSquareId}selectedSquarePiece: \n${selectedSquarePiece}selectedSquareColour: \n${selectedSquareColour}`
-		);
-		return;
+	function toggleTurns() {
+		isWhitesTurn.value = !isWhitesTurn.value;
 	}
 
-	return new Piece(selectedSquareId!, selectedSquarePiece!, selectedSquareColour!);
-}
-
-export function getPawnPromotionMove() {
-	return pawnPromotionMove;
-}
-
-export function getIsWhitesTurn() {
-	console.log(isWhitesTurn.value);
-	return isWhitesTurn;
-}
-
-export function getIsPromotionActive() {
-	return isPromotionActive;
-}
-
-export function getPawnPromotionColour() {
-	return pawnPromotionColour;
-}
-
-export function getPawnPromotionPiece() {
-	return pawnPromotionPiece;
-}
-
-export function getIsKingInCheck(id: number, pieceColour: string) {
-	//create temp piece to check id instead of piece.
-	kingInCheckState.value = isKingInCheck(new Piece(id, 't' + pieceColour, 1), pieceColour);
-
-	return kingInCheckState;
-}
-
-// Value modifying functions
-// --------------------
-
-export function toggleTurns() {
-	console.log(`Before toggle`);
-	isWhitesTurn.value = !isWhitesTurn.value;
-
-	return;
-}
-
-export function toggleIsPromotionActive() {
-	isPromotionActive.value = !isPromotionActive.value;
-}
-
-export function selectedIPiece() {
-	return new Piece(selectedSquareId!, selectedSquarePiece!, selectedSquareColour!);
-}
-
-export function setPawnPromotionMove(move: IMove) {
-	pawnPromotionMove = move;
-}
-
-export function setPawnPromotionColour(colour: string) {
-	pawnPromotionColour.value = colour;
-}
-
-export function setPawnPromotionPiece(piece: string | undefined) {
-	if (piece === undefined) {
-		console.log(`setPawnPromotionPiece is undefined...`);
-		return;
+	function togglePromotion() {
+		isPromotionActive.value = !isPromotionActive.value;
 	}
 
-	pawnPromotionPiece.value = piece;
-}
-
-function setSelectedPiece(newPiece: IPiece): void {
-	selectedSquareId = newPiece.id;
-	selectedSquarePiece = newPiece.piece;
-	selectedSquareColour = newPiece.colour;
-}
-
-function setDeselect(newDeselect: () => void): void {
-	// If deselect is not undefined.
-	if (deselect) {
-		deselect();
+	function unselectPiece() {
+		game.deselectContainer();
+		game.deselectContainer = () => {};
+		selectedSquarePiece.value = UnselectedPiece.PIECE;
+		selectedSquareColour.value = UnselectedPiece.COLOUR;
+		selectedSquareId.value = UnselectedPiece.ID;
 	}
 
-	deselect = newDeselect;
-}
+	function updateSelectedPiece(piece: IPiece) {
+		selectedSquarePiece.value = piece.piece;
+		selectedSquareColour.value = piece.colour;
+		selectedSquareId.value = piece.id;
+	}
 
-function unselectPiece() {
-	selectedSquareId = undefined;
-	selectedSquarePiece = undefined;
-	selectedSquareColour = undefined;
-}
+	function updateMoveToPromote(move: IMove) {
+		moveToPromote = move;
+	}
 
-// Exports
-// --------------------
-
-export { isPieceSelected, getIdOfSelectedPiece, getSelectedPiece, setSelectedPiece as postSelectedPiece, setDeselect as postDeselect, unselectPiece };
+	return {
+		kingInCheck,
+		isPromotionActive,
+		pawnPromotionColour,
+		selectedSquarePiece,
+		selectedSquareColour,
+		selectedSquareId,
+		isWhitesTurn,
+		pawnPromotionPiece,
+		totalMoves,
+		game,
+		selectedPiece,
+		moveToPromote,
+		updateSelectedPiece,
+		updateMoveToPromote,
+		toggleTurns,
+		togglePromotion,
+		unselectPiece,
+		incrementMoves,
+	};
+});

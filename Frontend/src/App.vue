@@ -1,35 +1,21 @@
 <script setup lang="ts">
 import Board from './components/Board.vue';
 import PromotionModal from './components/PromotionModal.vue';
-import { boardState, flipBoard, getToggleFlipBoard, logBoard, setupBoard, toggleFlipBoard } from './scripts/board';
-import { getSelectedPiece, toggleIsPromotionActive } from './scripts/state';
-
-function printBoard() {
-	logBoard();
-}
+import { flipBoard, getToggleFlipBoard, setupBoard, toggleFlipBoard } from './scripts/board';
+import { useGameStore } from './scripts/state'
+const store = useGameStore();
 
 function setupGame() {
 	setupBoard();
-}
-
-function printBoardState() {
-	console.log(boardState);
-}
-
-function printSelectedPiece() {
-	console.log(getSelectedPiece());
 }
 </script>
 
 <template>
 	<main>
 		<nav class="row-1">
-			<button @click="printBoard">print board</button>
 			<button @click="setupGame">setup board</button>
-			<button @click="printBoardState">print boardState</button>
-			<button @click="printSelectedPiece">print SelectedPiece</button>
 			<button @click="flipBoard()">flip Board</button>
-			<button @click="toggleIsPromotionActive()">toggle modal</button>
+			<button @click="store.isPromotionActive = !store.isPromotionActive">toggle modal</button>
 			<button @click="toggleFlipBoard()">no flip {{ !getToggleFlipBoard().value }}</button>
 		</nav>
 		<section class="grid-container-body row-2">

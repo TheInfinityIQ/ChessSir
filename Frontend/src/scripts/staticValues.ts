@@ -1,3 +1,5 @@
+import { Piece, type IPiece } from "./types";
+
 const notEmptyPieces: string[] = [
 	'br',
 	'bn',
@@ -32,6 +34,13 @@ const notEmptyPieces: string[] = [
 	'wn',
 	'wr',
 ];
+
+export const boardSize: number = 64; // Could be updated for larger board sizes in future;
+export const rowAndColValue: number = Math.sqrt(boardSize);
+export const endRowValue: number = rowAndColValue - 1;
+export const startRowValue: number = 0;
+export const endOfBoardId: number = boardSize - 1;
+export const startOfBoardId: number = 0;
 
 const numOfNotEmptyPieces: number = 32;
 
@@ -119,7 +128,13 @@ export enum CastlingPiecesColOffset {
 	KING_QUEENSIDE = -2,
 }
 
-export const initBoardState: string[][] = [
+export enum UnselectedPiece {
+	COLOUR = -1,
+	ID = -1,
+	PIECE = ""
+}
+
+export const initBoard: string[][] = [
 	['br', 'bn', 'bb', 'bq', 'bk', 'bb', 'bn', 'br'],
 	['bp', 'bp', 'bp', 'bp', 'bp', 'bp', 'bp', 'bp'],
 	['e', 'e', 'e', 'e', 'e', 'e', 'e', 'e'],
@@ -129,3 +144,5 @@ export const initBoardState: string[][] = [
 	['wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp'],
 	['wr', 'wn', 'wb', 'wq', 'wk', 'wb', 'wn', 'wr']
 ];
+
+export const tempIPiece: IPiece = new Piece(UnselectedPiece.ID, UnselectedPiece.PIECE, UnselectedPiece.COLOUR);

@@ -1,16 +1,14 @@
 <script setup lang="ts">
-import { getIsPromotionActive, getPawnPromotionColour } from '@/scripts/state';
 import { computed } from 'vue';
 import PieceModalComponent from './PieceModalComponent.vue';
-
-const isPromotionActiveComputed = computed(() => getIsPromotionActive());
-const pieceColour = computed(() => getPawnPromotionColour());
+import { useGameStore } from '../scripts/state'
+const store = useGameStore();
 const promotionPieces = ['q', 'n', 'r', 'b'];
 </script>
 
 <template>
-	<aside v-if="isPromotionActiveComputed.value" class="promotion-modal">
-		<PieceModalComponent v-for="pieceType in promotionPieces" :piece="pieceColour.value + pieceType"></PieceModalComponent>
+	<aside v-if="store.isPromotionActive" class="promotion-modal">
+		<PieceModalComponent v-for="pieceType in promotionPieces" :piece="store.pawnPromotionColour + pieceType"></PieceModalComponent>
 	</aside>
 </template>
 

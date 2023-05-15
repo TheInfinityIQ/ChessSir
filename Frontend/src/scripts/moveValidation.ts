@@ -1,4 +1,4 @@
-import { commitCastleToBoard, commitMoveToBoard, endOfBoardId, getTotalMoves, rowAndColValue, startOfBoardId } from './board';
+import { commitCastleToBoard, commitMoveToBoard } from './board';
 import {
 	determineDirection,
 	getChessPieceFromLetter,
@@ -12,9 +12,9 @@ import {
 	isValidEnPassant,
 	isValidPawnPromotion,
 } from './moveUtilities';
-import { getIsPromotionActive, getIsWhitesTurn, selectedIPiece, toggleTurns } from './state';
-import { CastlingPiecesId, ChessPiece, Direction, KnightMoveOffsets, PieceProps } from './staticValues';
+import { CastlingPiecesId, ChessPiece, Direction, KnightMoveOffsets, PieceProps, endOfBoardId, rowAndColValue, startOfBoardId } from './staticValues';
 import { type IPiece, type IMove, Move, type moveBool } from './types';
+import { useGameStore } from './state'
 
 export enum CastlingPiece {
 	QUEENSIDE_ROOK = 0,
@@ -32,6 +32,7 @@ export const moveValidators: Map<ChessPiece, moveBool> = new Map([
 ]);
 
 export function makeMove(newSquare: IPiece) {
+	const store = useGameStore();
 	if ((!newSquare.id && newSquare.id != startOfBoardId) || newSquare.colour === undefined || newSquare.piece === undefined) {
 		console.error(`Error in makeMove. One of the values below are undefined or falsy\n
         newSquare.id ${newSquare.id}\n
@@ -40,28 +41,28 @@ export function makeMove(newSquare: IPiece) {
 		return;
 	}
 
-	let move: IMove = new Move(selectedIPiece(), newSquare);
+	let move: IMove = new Move(store.selectedPiece, newSquare);
 
 	if (!validMove(move)) return;
-	if (getIsPromotionActive().value) return;
+	if (store.isPromotionActive) return;
 
 	commitMoveToBoard(move);
 }
 
 function validMove(move: IMove) {
+	const store = useGameStore();
 	//Call corresponding piece type to validate a move for that piece
 	const pieceType: string = move.fromSquare.piece[PieceProps.TYPE];
 	const pieceColour: string = move.fromSquare.piece[PieceProps.COLOUR];
 	const piece: ChessPiece | undefined = getChessPieceFromLetter(pieceType);
-	const isWhitesTurn = getIsWhitesTurn();
 
-	if (isWhitesTurn.value && pieceColour === 'b') return false;
-	if (!isWhitesTurn.value && pieceColour === 'w') return false;
+	if (store.isWhitesTurn && pieceColour === 'b') return false;
+	if (!store.isWhitesTurn && pieceColour === 'w') return false;
 
 	// if piece or moveValidators.get(piece) is falsy, then return () => false
 	const validator: moveBool = piece ? moveValidators.get(piece) ?? (() => false) : () => false;
 
-	if (move.fromSquare.piece[PieceProps.TYPE] !== 'k' && getTotalMoves() > startOfBoardId) {
+	if (move.fromSquare.piece[PieceProps.TYPE] !== 'k' && store.totalMoves > startOfBoardId) {
 		if (isKingInCheckAfterMove(move)) return false;
 	}
 	return validator(move);

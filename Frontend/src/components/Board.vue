@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { setupBoard, boardState } from '@/scripts/board';
+import { setupBoard } from '@/scripts/board';
 import { computed, onMounted } from 'vue';
 import Square from './Square.vue';
 import { getIsBoardFlipped } from '../scripts/board';
+import { useGameStore } from '../scripts/state'
+const store = useGameStore();
 
 onMounted(setupBoard);
 const isBoardFlipped = computed(() => getIsBoardFlipped());
@@ -10,7 +12,7 @@ const isBoardFlipped = computed(() => getIsBoardFlipped());
 
 <template>
 	<article :class="{ flipBoard: isBoardFlipped.value }" class="board">
-		<div v-for="row in boardState" class="parentList">
+		<div v-for="row in store.game.board" class="parentList">
 			<div v-for="square in row" class="square-container">
 				<Square :id="square.id" :squareColour="square.colour" :flipped="isBoardFlipped.value" />
 			</div>

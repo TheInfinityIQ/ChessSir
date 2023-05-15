@@ -1,13 +1,18 @@
 <script setup lang="ts">
 import { commitPawnPromotionToBoard } from '@/scripts/board';
-import { setPawnPromotionPiece } from '@/scripts/state';
+import { useGameStore } from '../scripts/state'
+const store = useGameStore();
 
 const props = defineProps({
 	piece: String,
 });
 
 function promotePiece() {
-	setPawnPromotionPiece(props.piece);
+	if (!props.piece) {
+		console.log(`props.piece is undefined in promotePiece function in PieceModalComponent`);
+		return;
+	}
+	store.pawnPromotionPiece = props.piece;
 	commitPawnPromotionToBoard();
 }
 </script>

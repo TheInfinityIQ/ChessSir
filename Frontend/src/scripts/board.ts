@@ -1,18 +1,9 @@
 import { reactive, ref, type Ref } from 'vue';
-import { getSquares } from './board_setup';
-import type { IPiece, Move } from './types';
-import { getPawnPromotionMove, getPawnPromotionPiece, toggleIsPromotionActive, toggleTurns } from './state';
-import { CastlingPiecesColStart, CastlingPiecesColOffset } from './staticValues';
+import { Piece, type IPiece, type Move } from './types';
+import { CastlingPiecesColStart, CastlingPiecesColOffset, initBoard, endOfBoardId, endRowValue, rowAndColValue, startOfBoardId, startRowValue } from './staticValues';
+import { useGameStore } from './state'
 
-let boardState: IPiece[][] = reactive([]);
 let previousBoardState: IPiece[][] = [];
-
-export const boardSize: number = 64; // Could be updated for larger board sizes in future;
-export const rowAndColValue: number = Math.sqrt(boardSize);
-export const endRowValue: number = rowAndColValue - 1;
-export const startRowValue: number = 0;
-export const endOfBoardId: number = boardSize - 1;
-export const startOfBoardId: number = 0;
 
 const testToggleFlipBoard: Ref<boolean> = ref(false);
 export function toggleFlipBoard() {
@@ -22,76 +13,38 @@ export function getToggleFlipBoard() {
 	return testToggleFlipBoard;
 }
 
-const initPieces: IPiece[] = getSquares();
 let totalMoves: number = 0;
 let isBoardFlipped: Ref<boolean> = ref(false);
 
-function setupBoard() {
+function getPieceType(id: number) {
+	const store = useGameStore();
+	let pieceType = 'Invalid ID';
+
+	store.game.board.forEach((row) => {
+		row.forEach((piece) => {
+			if (piece.id == id) {
+				pieceType = piece.piece;
+			}
+		});
+	});
+
+	return pieceType;
+}
+
+export function setupBoard() {
+	let board: IPiece[][] = [];
 	let tempRow: IPiece[] = [];
 
 	for (let row = startRowValue; row < rowAndColValue; row++) {
 		for (let column = 0; column < rowAndColValue; column++) {
-			tempRow.push(initPieces[row * rowAndColValue + column]);
+			const tempPiece = getSquares()[row * rowAndColValue + column];
+			tempRow.push(new Piece(tempPiece.id, tempPiece.piece, tempPiece.colour));
 		}
-		boardState[row] = tempRow;
+		board[row] = tempRow;
 		tempRow = [];
 	}
-}
 
-function logBoard() {
-	console.log(boardState);
-}
-
-function getBoard() {
-	return [];
-}
-
-function getPieces() {
-	if (!boardState[0]) {
-		setupBoard();
-	}
-
-	let pieces: IPiece[] = [];
-
-	boardState.forEach((row) => {
-		row.forEach((piece) => {
-			pieces.push(piece);
-		});
-	});
-
-	return pieces;
-}
-
-function getPieceType(id: number) {
-	let pieceType = 'Invalid ID';
-
-	boardState.forEach((row) => {
-		row.forEach((piece) => {
-			if (piece.id == id) {
-				pieceType = piece.piece;
-			}
-		});
-	});
-
-	return pieceType;
-}
-
-function getTestPieceType(id: number) {
-	let pieceType = 'Invalid ID';
-
-	boardState.forEach((row) => {
-		row.forEach((piece) => {
-			if (piece.id == id) {
-				pieceType = piece.piece;
-			}
-		});
-	});
-
-	return pieceType;
-}
-
-function getTotalMoves() {
-	return totalMoves;
+	return board;
 }
 
 export function flipBoard() {
@@ -105,25 +58,45 @@ export function getIsBoardFlipped() {
 	return isBoardFlipped;
 }
 
+function getSquares() {
+	const squares: IPiece[] = [];
+	let row: number, column: number, piece: string
+
+	for (let count = 0; count < 64; count++) {
+		row = Math.floor(count / rowAndColValue);
+		column = count % rowAndColValue;
+
+		piece = initBoard[row][column];
+
+		const isLightSquare = (row % 2 === 0) === (column % 2 === 0);
+
+		squares[count] = new Piece(count, piece, isLightSquare ? 0 : 1);
+	}
+
+	return squares;
+}
+
 function commitMoveToBoard(newMove: Move) {
 	saveLastBoardState();
+	const store = useGameStore();
 	let fromSquare: IPiece = newMove.fromSquare;
 
 	let fromRow: number = Math.trunc(fromSquare.id / rowAndColValue);
 	let fromColumn: number = fromSquare.id % rowAndColValue;
 
-	boardState[fromRow][fromColumn].piece = 'e';
+	store.game.board[fromRow][fromColumn].piece = 'e';
 
 	let toSquare: IPiece = newMove.toSquare;
 
 	let toRow: number = Math.trunc(toSquare.id / rowAndColValue);
 	let toColumn: number = toSquare.id % rowAndColValue;
 
-	boardState[toRow][toColumn].piece = fromSquare.piece;
+	store.game.board[toRow][toColumn].piece = fromSquare.piece;
 	endTurn();
 }
 
 function commitCastleToBoard(pieceColour: string, castlingKingSide: boolean) {
+	const store = useGameStore();
 	saveLastBoardState();
 	const rowToCastle = pieceColour === 'w' ? endRowValue : startRowValue;
 	const pieceTypes = ['k', 'r'];
@@ -134,35 +107,35 @@ function commitCastleToBoard(pieceColour: string, castlingKingSide: boolean) {
 
 	let iteration = 0;
 	for (let piece of kingAndRookNewId) {
-		boardState[rowToCastle][piece].piece = pieceColour + pieceTypes[iteration++];
+		store.game.board[rowToCastle][piece].piece = pieceColour + pieceTypes[iteration++];
 	}
 
 	if (castlingKingSide) {
-		boardState[rowToCastle][CastlingPiecesColStart.ROOK_KINGSIDE].piece = 'e';
+		store.game.board[rowToCastle][CastlingPiecesColStart.ROOK_KINGSIDE].piece = 'e';
 	} else {
-		boardState[rowToCastle][CastlingPiecesColStart.ROOK_QUEENSIDE].piece = 'e';
+		store.game.board[rowToCastle][CastlingPiecesColStart.ROOK_QUEENSIDE].piece = 'e';
 	}
 
-	boardState[rowToCastle][CastlingPiecesColStart.KING].piece = 'e';
+	store.game.board[rowToCastle][CastlingPiecesColStart.KING].piece = 'e';
 	endTurn();
 }
 
 function endTurn() {
+	const store = useGameStore();
 	// if(isCheckmate());
 
 	console.log('End Turn');
 
 	totalMoves++;
 
-	toggleTurns();
+	store.toggleTurns();
 	flipBoard();
 }
 
-function isCheckmate() {}
-
 export function commitPawnPromotionToBoard() {
-	const move = getPawnPromotionMove();
-	const piece = getPawnPromotionPiece().value;
+	const store = useGameStore();
+	const move = store.moveToPromote;
+	const piece = store.pawnPromotionPiece;
 
 	const { fromSquare, toSquare } = move;
 	const fromRow = Math.floor(fromSquare.id / rowAndColValue);
@@ -170,14 +143,15 @@ export function commitPawnPromotionToBoard() {
 	const toRow = Math.floor(toSquare.id / rowAndColValue);
 	const toCol = Math.floor(toSquare.id % rowAndColValue);
 
-	boardState[fromRow][fromCol].piece = 'e';
-	boardState[toRow][toCol].piece = piece;
-	toggleIsPromotionActive();
+	store.game.board[fromRow][fromCol].piece = 'e';
+	store.game.board[toRow][toCol].piece = piece;
+	store.togglePromotion();
 	endTurn();
 }
 
 function saveLastBoardState() {
-	previousBoardState = JSON.parse(JSON.stringify(boardState));
+	const store = useGameStore();
+	previousBoardState = JSON.parse(JSON.stringify(store.game.board));
 }
 
 function getPreviousBoardState() {
@@ -185,34 +159,27 @@ function getPreviousBoardState() {
 }
 
 function getPreviousBoardStateWrapper() {
+	const store = useGameStore();
 	if (!previousBoardState[0]) {
-		previousBoardState = JSON.parse(JSON.stringify(boardState));
+		previousBoardState = JSON.parse(JSON.stringify(store.game.board));
 	}
 	return getPreviousBoardState();
 }
 
-function getSquareWithIdWrapper(id: number) {
-	if (!boardState[0]) {
-		setupBoard();
-	}
-	return getSquareWithId(id);
-}
-
-function getSquareWithId(id: number) {
+export function getSquareWithId(id: number) {
+	const store = useGameStore();
 	let row: number = Math.trunc(id! / rowAndColValue);
 	let column: number = id! % rowAndColValue;
 
-	return boardState[row][column];
+	return store.game.board[row][column];
 }
 
 function getTestBoard() {
-	return JSON.parse(JSON.stringify(boardState));
+	const store = useGameStore();
+	return JSON.parse(JSON.stringify(store.game.board));
 }
 
-function findPieceById(id: number, board: IPiece[][] = boardState): IPiece {
-	if (!board[0]) {
-		setupBoard();
-	}
+function findPieceWithId(id: number, board: IPiece[][]): IPiece {	
 	let foundPiece: IPiece | undefined;
 	for (const row of board) {
 		foundPiece = row.find((piece) => piece.id === id);
@@ -221,18 +188,15 @@ function findPieceById(id: number, board: IPiece[][] = boardState): IPiece {
 		}
 	}
 
-	if (id < startOfBoardId || id > endOfBoardId || !foundPiece) {
-		throw new Error(`Piece with id \${id} not found or id is out of bounds`);
+	if (id <= startOfBoardId || id > endOfBoardId || !foundPiece) {
+		throw new Error(`Piece with id ${id} not found or id is out of bounds`);
 	}
 
 	return foundPiece!;
 }
 
-function findKing(pieceColour: string, board: IPiece[][] = boardState) {
+function findKingOnBoard(pieceColour: string, board: IPiece[][]) {
 	const pieceType = 'k';
-	if (!board[0]) {
-		setupBoard();
-	}
 
 	let foundPiece: IPiece | undefined;
 	for (const row of board) {
@@ -250,18 +214,10 @@ function findKing(pieceColour: string, board: IPiece[][] = boardState) {
 
 export {
 	getPreviousBoardStateWrapper,
-	setupBoard,
-	logBoard,
-	getBoard,
-	getPieces,
 	getPieceType,
 	commitMoveToBoard,
-	getTestPieceType,
-	getSquareWithIdWrapper,
-	findPieceById,
+	findPieceWithId,
 	commitCastleToBoard,
 	getTestBoard,
-	boardState,
-	findKing,
-	getTotalMoves,
+	findKingOnBoard,
 };

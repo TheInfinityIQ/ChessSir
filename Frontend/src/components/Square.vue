@@ -5,24 +5,43 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { boardState } from '@/scripts/board';
-import { getIdOfSelectedPiece, postSelectedPiece, postDeselect, unselectPiece, isPieceSelected, getIsKingInCheck } from '@/scripts/state';
-import { Piece } from '@/scripts/types';
-import { computed, onMounted, ref } from 'vue';
-import { getIsBoardFlipped } from '../scripts/board';
+import { findPieceWithId, getIsBoardFlipped } from '@/scripts/board';
 import { makeMove } from '@/scripts/moveValidation';
+import { PieceProps, ChessPiece, rowAndColValue } from '@/scripts/staticValues';
+import { Piece } from '@/scripts/types';
+import { type ComputedRef, computed, onMounted, ref, type Ref, reactive } from 'vue';
+import { useGameStore } from '../scripts/state'
+const store = useGameStore();
 
 const props = defineProps<{
 	id: number;
 	squareColour: number;
 }>();
 
+let isKingInCheck: ComputedRef<boolean> = computed(() => false);
+const pieceOnSquare = findPieceWithId(props.id);
+
 // Calculate row and column from the given ID
-const row = Math.floor(props.id / 8);
-const column = Math.floor(props.id % 8);
+const row = Math.floor(props.id / rowAndColValue);
+const column = props.id % rowAndColValue;
+
+const kingId = computed(() => {
+	let kId = -1;
+	for (let i = 0; i < store.game.board.length; i++) {
+		for (let j = 0; j < store.game.board[i].length; j++) {
+			if (store.game.board[i][j].piece[PieceProps.TYPE] === ChessPiece.KING) {
+				kId = i * rowAndColValue + j;
+				break;
+			}
+		}
+		if (kId != -1) {
+			break;
+		}
+	}
+	return kId;
+});
 
 const isBoardFlipped = computed(() => getIsBoardFlipped());
-const isKingInCheck = computed(() => getIsKingInCheck(props.id, boardState[row][column].piece));
 
 // Ensure that the input values for the piece are valid
 const ensureValidity = () => {
@@ -34,35 +53,26 @@ const ensureValidity = () => {
 onMounted(ensureValidity);
 
 // Check if the piece on this square is selectable
-const isSelectable = computed(() => boardState[row][column].piece !== 'e');
-const isSelected = ref(false);
+const isSelectable = computed(() => store.game.board[row][column].piece !== 'e');
 
 function select() {
-	const square = new Piece(props.id, boardState[row][column].piece, props.squareColour);
+	const move = new Piece(props.id, store.game.board[row][column].piece, props.squareColour);
+	store.game.deselectContainer = deselect;
+	store.updateSelectedPiece(move);
+	
+	if (store.selectedSquareId === props.id) pieceOnSquare.selected.value = !pieceOnSquare.selected.value ;
 
-	if (getIdOfSelectedPiece() === props.id) {
-		isSelected.value = !isSelected.value;
+	if ((store.selectedSquareId !== props.id && store.selectedSquareId) || store.selectedSquareId === 0) {
+		makeMove(move);
+		store.unselectPiece();
 		return;
 	}
 
-	postDeselect(deselect);
-
-	if (square.piece === 'e' && !isPieceSelected()) {
-		return;
-	}
-
-	if ((getIdOfSelectedPiece() !== props.id && getIdOfSelectedPiece()) || getIdOfSelectedPiece() === 0) {
-		makeMove(square);
-		unselectPiece();
-		return;
-	}
-
-	isSelected.value = !isSelected.value;
-	postSelectedPiece(square);
+	
 }
 
 function deselect() {
-	isSelected.value = false;
+	pieceOnSquare.selected.value = false;
 }
 </script>
 
@@ -73,11 +83,11 @@ function deselect() {
 				lighter: squareColour == 0,
 				darker: squareColour == 1,
 				selectable: isSelectable,
-				selected: isSelected,
+				selected: findPieceWithId(props.id).selected,
+				inCheck: props.id === kingId && isKingInCheck,
+				flipPiece: isBoardFlipped.value,
+				[store.game.board[row][column].piece]: true,
 			},
-			boardState[row][column].piece,
-			{ flipPiece: isBoardFlipped.value },
-			{ inCheck: isKingInCheck },
 		]"
 		@click="select"
 	></div>

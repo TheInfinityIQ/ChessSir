@@ -1,4 +1,4 @@
-import type { Ref } from 'vue';
+import { ref, type Ref } from 'vue';
 
 // Interfaces
 // --------------------
@@ -6,6 +6,7 @@ export interface IPiece {
 	id: number;
 	piece: string;
 	colour: number;
+	selected: Ref<boolean>;
 }
 
 export interface IMove {
@@ -19,11 +20,13 @@ export class Piece implements IPiece {
 	id: number;
 	piece: string;
 	colour: number;
+	selected: Ref<boolean>;
 
 	constructor(id: number, piece: string, colour: number) {
 		this.id = id;
 		this.piece = piece;
 		this.colour = colour;
+		this.selected = ref(false);
 	}
 }
 
