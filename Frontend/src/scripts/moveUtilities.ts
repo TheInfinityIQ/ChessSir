@@ -1,14 +1,20 @@
-import {
-	getPreviousBoardStateWrapper,
-	getTestBoard,
-	findPieceWithId,
-	findKingOnBoard,
-	setupBoard,
-} from './board';
+import { getPreviousBoardStateWrapper, getTestBoard, findPieceWithId, findKingOnBoard, setupBoard } from './board';
 import { CastlingPiece } from './moveValidation';
-import { CastlingPiecesId, ChessPiece, AdjacentSquareIdOffsets, KnightMoveOffsets, PieceProps, Direction, endOfBoardId, endRowValue, rowAndColValue, startOfBoardId, startRowValue } from './staticValues';
+import {
+	CastlingPiecesId,
+	ChessPiece,
+	AdjacentSquareIdOffsets,
+	KnightMoveOffsets,
+	PieceProps,
+	Direction,
+	endOfBoardId,
+	endRowValue,
+	rowAndColValue,
+	startOfBoardId,
+	startRowValue,
+} from './staticValues';
 import type { IMove, IPiece, Move } from './types';
-import { useGameStore } from './state'
+import { useGameStore } from './state';
 
 export const hasPieceMoved = new Map<number, boolean>([
 	[CastlingPiecesId.WHITE_ROOK_QUEENSIDE, false],
@@ -38,7 +44,7 @@ export function isValidEnPassant(fromSquare: IPiece, toSquare: IPiece, pieceColo
 	//Negative one to get correct orientiation.
 	const attackOffset = ((fromSquare.id % rowAndColValue) - (toSquare.id % rowAndColValue)) * -1;
 	const attackedPawnId = attackOffset + fromSquare.id;
-	const isEnPassantValid = findPieceWithId(attackedPawnId, store.game.board).piece === opponentPawn && findPieceWithId(opponentCheckSquareId, prevBoard)?.piece === opponentPawn;
+	const isEnPassantValid = findPieceWithId(attackedPawnId).piece === opponentPawn && findPieceWithId(opponentCheckSquareId, true)?.piece === opponentPawn;
 
 	if (isEnPassantValid) {
 		const attackedPawnRow = Math.floor(attackedPawnId / rowAndColValue);
@@ -51,6 +57,7 @@ export function isValidEnPassant(fromSquare: IPiece, toSquare: IPiece, pieceColo
 }
 
 export function isCastlingValid(pieceColour: string, castlingKingside: boolean) {
+	const store = useGameStore();
 	const pieces =
 		pieceColour === 'w'
 			? [CastlingPiecesId.WHITE_ROOK_QUEENSIDE, CastlingPiecesId.WHITE_ROOK_KINGSIDE, CastlingPiecesId.WHITE_KING]
@@ -121,7 +128,7 @@ export function isKingInCheck(kingSquare: IPiece, pieceColour: string, board: IP
 		if (Math.abs(kingAndPawnColDiff) > 1) break;
 
 		if (testId > startOfBoardId && testId < endOfBoardId) {
-			if (findPieceWithId(testId, board).piece === opponentColour + 'p') {
+			if (findPieceWithId(testId).piece === opponentColour + 'p') {
 				return true;
 			}
 		}
@@ -144,7 +151,7 @@ export function isKingInCheck(kingSquare: IPiece, pieceColour: string, board: IP
             */
 			if (rowDiff > squaresAway || colDiff > squaresAway) break;
 
-			const testPiece = findPieceWithId(testId, board).piece;
+			const testPiece = findPieceWithId(testId).piece;
 			const testPieceType = testPiece[PieceProps.TYPE];
 			//Pieces to Ignore
 			if (
@@ -176,7 +183,7 @@ export function isKingInCheck(kingSquare: IPiece, pieceColour: string, board: IP
 		let colDiff = 0;
 
 		while (testId > startOfBoardId && testId < endOfBoardId) {
-			const testPiece = findPieceWithId(testId, board).piece;
+			const testPiece = findPieceWithId(testId).piece;
 			const testPieceType = testPiece[PieceProps.TYPE];
 			rowDiff = Math.abs(startingRow - Math.floor(testId / rowAndColValue));
 			colDiff = Math.abs(startingCol - Math.floor(testId % rowAndColValue));

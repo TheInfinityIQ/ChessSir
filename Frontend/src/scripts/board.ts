@@ -1,7 +1,7 @@
 import { reactive, ref, type Ref } from 'vue';
 import { Piece, type IPiece, type Move } from './types';
 import { CastlingPiecesColStart, CastlingPiecesColOffset, initBoard, endOfBoardId, endRowValue, rowAndColValue, startOfBoardId, startRowValue } from './staticValues';
-import { useGameStore } from './state'
+import { useGameStore } from './state';
 
 let previousBoardState: IPiece[][] = [];
 
@@ -60,7 +60,7 @@ export function getIsBoardFlipped() {
 
 function getSquares() {
 	const squares: IPiece[] = [];
-	let row: number, column: number, piece: string
+	let row: number, column: number, piece: string;
 
 	for (let count = 0; count < 64; count++) {
 		row = Math.floor(count / rowAndColValue);
@@ -179,24 +179,43 @@ function getTestBoard() {
 	return JSON.parse(JSON.stringify(store.game.board));
 }
 
-function findPieceWithId(id: number, board: IPiece[][]): IPiece {	
+function findPieceWithId(id: number, usePreviousBoard: boolean = false): IPiece {
+	const store = useGameStore();
+	let board = [];
+
+	if (usePreviousBoard) {
+		board = previousBoardState;
+	} else {
+		board = store.game.board;
+	}
+
 	let foundPiece: IPiece | undefined;
-	for (const row of board) {
+
+	for (const row of store.game.board) {
 		foundPiece = row.find((piece) => piece.id === id);
 		if (foundPiece) {
 			break;
 		}
 	}
 
-	if (id <= startOfBoardId || id > endOfBoardId || !foundPiece) {
-		throw new Error(`Piece with id ${id} not found or id is out of bounds`);
+	if (id < startOfBoardId || id > endOfBoardId || !foundPiece) {
+		console.log(foundPiece);
+		throw new Error(`Piece with id ${id} not found or id is out of bounds. Found piece `);
 	}
 
 	return foundPiece!;
 }
 
-function findKingOnBoard(pieceColour: string, board: IPiece[][]) {
+function findKingOnBoard(pieceColour: string, usePreviousBoard: boolean = false) {
 	const pieceType = 'k';
+	let board = [];
+	const store = useGameStore();
+
+	if (usePreviousBoard) {
+		board = previousBoardState;
+	} else {
+		board = store.game.board;
+	}
 
 	let foundPiece: IPiece | undefined;
 	for (const row of board) {
@@ -212,12 +231,4 @@ function findKingOnBoard(pieceColour: string, board: IPiece[][]) {
 	return foundPiece!;
 }
 
-export {
-	getPreviousBoardStateWrapper,
-	getPieceType,
-	commitMoveToBoard,
-	findPieceWithId,
-	commitCastleToBoard,
-	getTestBoard,
-	findKingOnBoard,
-};
+export { getPreviousBoardStateWrapper, getPieceType, commitMoveToBoard, findPieceWithId, commitCastleToBoard, getTestBoard, findKingOnBoard };

@@ -33,7 +33,7 @@ export const moveValidators: Map<ChessPiece, moveBool> = new Map([
 
 export function makeMove(newSquare: IPiece) {
 	const store = useGameStore();
-	if ((!newSquare.id && newSquare.id != startOfBoardId) || newSquare.colour === undefined || newSquare.piece === undefined) {
+	if ((!newSquare.id && newSquare.id != 0) || newSquare.colour === undefined || newSquare.piece === undefined) {
 		console.error(`Error in makeMove. One of the values below are undefined or falsy\n
         newSquare.id ${newSquare.id}\n
         newSquare.colour ${newSquare.colour}\n
@@ -58,11 +58,11 @@ function validMove(move: IMove) {
 
 	if (store.isWhitesTurn && pieceColour === 'b') return false;
 	if (!store.isWhitesTurn && pieceColour === 'w') return false;
-
+	
 	// if piece or moveValidators.get(piece) is falsy, then return () => false
 	const validator: moveBool = piece ? moveValidators.get(piece) ?? (() => false) : () => false;
 
-	if (move.fromSquare.piece[PieceProps.TYPE] !== 'k' && store.totalMoves > startOfBoardId) {
+	if (move.fromSquare.piece[PieceProps.TYPE] !== 'k' && store.totalMoves > 0) {
 		if (isKingInCheckAfterMove(move)) return false;
 	}
 	return validator(move);

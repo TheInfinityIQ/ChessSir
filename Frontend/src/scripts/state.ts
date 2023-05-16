@@ -20,6 +20,7 @@ export const useGameStore = defineStore('game', () => {
 	const isWhitesTurn: Ref<boolean> = ref(true);
 	const totalMoves: Ref<number> = ref(0);
 	const selectedPiece: ComputedRef<IPiece> = computed(() => new Piece(selectedSquareId.value!, selectedSquarePiece.value!, selectedSquareColour.value!))
+	const selectedPieces: Ref<number[]> = ref([]);
 	let moveToPromote = new Move(tempIPiece, tempIPiece);
 	const game = reactive({
 		deselectContainer: () => {},
@@ -56,6 +57,16 @@ export const useGameStore = defineStore('game', () => {
 		moveToPromote = move;
 	}
 
+	function selectPiece(id: number) {
+		if (!selectedPieces.value.includes(id)) {
+			selectedPieces.value.push(id);
+		}
+	}
+	
+	function deselectPiece(id: number) {
+		selectedPieces.value = selectedPieces.value.filter(pieceId => pieceId !== id);
+	}
+
 	return {
 		kingInCheck,
 		isPromotionActive,
@@ -69,6 +80,9 @@ export const useGameStore = defineStore('game', () => {
 		game,
 		selectedPiece,
 		moveToPromote,
+		selectedPieces,
+		selectPiece,
+		deselectPiece,
 		updateSelectedPiece,
 		updateMoveToPromote,
 		toggleTurns,
