@@ -1,4 +1,4 @@
-import { commitCastleToBoard, commitMoveToBoard } from './board';
+import { commitCastleToBoard, commitMoveToBoard, commitPawnPromotionToBoard } from './board';
 import {
 	determineDirection,
 	getChessPieceFromLetter,
@@ -33,6 +33,8 @@ export const moveValidators: Map<ChessPiece, moveBool> = new Map([
 
 export function makeMove(newSquare: IPiece) {
 	const store = useGameStore();
+	if (store.testing) console.log(`Inside Make Move`);
+	
 	if ((!newSquare.id && newSquare.id != 0) || newSquare.colour === undefined || newSquare.piece === undefined) {
 		console.error(`Error in makeMove. One of the values below are undefined or falsy\n
         newSquare.id ${newSquare.id}\n
@@ -41,7 +43,7 @@ export function makeMove(newSquare: IPiece) {
 		return;
 	}
 
-	let move: IMove = new Move(store.selectedPiece, newSquare);
+	let move: IMove = new Move(store.specialContainer.selectedPiece, newSquare);
 
 	if (!validMove(move)) return;
 	if (store.isPromotionActive) return;
@@ -51,35 +53,39 @@ export function makeMove(newSquare: IPiece) {
 
 function validMove(move: IMove) {
 	const store = useGameStore();
+	if (store.testing) console.log(`Inside Valid Move`);
 	//Call corresponding piece type to validate a move for that piece
 	const pieceType: string = move.fromSquare.piece[PieceProps.TYPE];
 	const pieceColour: string = move.fromSquare.piece[PieceProps.COLOUR];
 	const piece: ChessPiece | undefined = getChessPieceFromLetter(pieceType);
 
-	if (store.isWhitesTurn && pieceColour === 'b') return false;
-	if (!store.isWhitesTurn && pieceColour === 'w') return false;
+	if (store.isWhitesTurn && pieceColour === ChessPiece.BLACK) return false;
+	if (!store.isWhitesTurn && pieceColour === ChessPiece.WHITE) return false;
 	
 	// if piece or moveValidators.get(piece) is falsy, then return () => false
 	const validator: moveBool = piece ? moveValidators.get(piece) ?? (() => false) : () => false;
-
-	if (move.fromSquare.piece[PieceProps.TYPE] !== 'k' && store.totalMoves > 0) {
+	if (store.testing) console.log(`Inside Valid Move Piece Type ${move.fromSquare.piece[PieceProps.TYPE]}. Total Moves: ${store.totalMoves}`);
+	if (move.fromSquare.piece[PieceProps.TYPE] !== ChessPiece.KING && store.totalMoves > 0) {
 		if (isKingInCheckAfterMove(move)) return false;
 	}
+
 	return validator(move);
 }
 
 function validPawnMove(move: IMove) {
+	const store = useGameStore();
+	if (store.testing) console.log(`Inside Valid Pawn Move`);
 	const { fromSquare, toSquare } = move;
 	const pieceColour = fromSquare.piece[PieceProps.COLOUR];
-	const opponentColour = pieceColour === 'w' ? 'b' : 'w';
+	const opponentColour = pieceColour === ChessPiece.WHITE ? ChessPiece.BLACK : ChessPiece.WHITE;
 	const dir = determineDirection(move);
 
 	const idDiff = fromSquare.id - toSquare.id;
-	const isDirectionCorrect = pieceColour === 'w' ? idDiff > startOfBoardId : idDiff < startOfBoardId;
+	const isDirectionCorrect = pieceColour === ChessPiece.WHITE ? idDiff > startOfBoardId : idDiff < startOfBoardId;
 	if (!isDirectionCorrect) return false;
 
 	const fromRowId = Math.floor(fromSquare.id / rowAndColValue);
-	const isStartingSquare = pieceColour === 'w' ? fromRowId === 6 : fromRowId === 1;
+	const isStartingSquare = pieceColour === ChessPiece.WHITE ? fromRowId === 6 : fromRowId === 1;
 	const rowDiff = Math.abs(fromRowId - Math.floor(toSquare.id / rowAndColValue));
 	if ((rowDiff === 2 && !isStartingSquare) || rowDiff > 2) return false;
 	if (rowDiff === 2 && dir === Direction.DIAGONAL) return false;
@@ -93,12 +99,15 @@ function validPawnMove(move: IMove) {
 		if (!isValidEnPassant(fromSquare, toSquare, pieceColour, opponentColour)) return false;
 	}
 
-	isValidPawnPromotion(pieceColour, toSquare, move);
+	isValidPawnPromotion(move);
 
 	return !isJumpingPiece(move);
 }
 
 function validRookMove(move: IMove) {
+	const store = useGameStore();
+	if (store.testing) console.log(`Inside Valid Rook Move`);
+	
 	const fromSquare = move.fromSquare;
 	const toSquare = move.toSquare;
 
@@ -121,6 +130,9 @@ function validRookMove(move: IMove) {
 }
 
 function validKnightMove(move: IMove) {
+	const store = useGameStore();
+	if (store.testing) console.log(`Inside Valid Knight Move`);
+	
 	const fromSquare = move.fromSquare;
 	const toSquare = move.toSquare;
 
@@ -139,6 +151,7 @@ function validKnightMove(move: IMove) {
 
 	const validIDs: number[] = [];
 
+	//Get all possible moves
 	validIdsMods.forEach((value: number) => {
 		let modId = value + fromSquare.id;
 		const lessThanUpBound = value + fromSquare.id < endOfBoardId;
@@ -156,6 +169,9 @@ function validKnightMove(move: IMove) {
 }
 
 function validBishopMove(move: IMove) {
+	const store = useGameStore();
+	if (store.testing) console.log(`Inside Valid Bishop move`);
+	
 	const fromSquare = move.fromSquare;
 	const toSquare = move.toSquare;
 
@@ -169,6 +185,9 @@ function validBishopMove(move: IMove) {
 }
 
 function validKingMove(move: IMove) {
+	const store = useGameStore();
+	if (store.testing) console.log(`Inside Valid King Move`);
+	
 	const fromSquare = move.fromSquare;
 	const pieceColour = fromSquare.piece[PieceProps.COLOUR];
 	const toSquare = move.toSquare;
@@ -177,7 +196,7 @@ function validKingMove(move: IMove) {
 	const colDiff = Math.floor(fromSquare.id % rowAndColValue) - Math.floor(toSquare.id % rowAndColValue);
 	const rowDiff = Math.floor(fromSquare.id / rowAndColValue) - Math.floor(toSquare.id / rowAndColValue);
 
-	if (isKingInCheck(toSquare, pieceColour)) return false;
+	if (isKingInCheck(toSquare, pieceColour, store.game.board)) return false;
 
 	if (Math.abs(colDiff) === 2 && rowDiff === 0 && isCastlingValid(pieceColour, castlingKingside)) {
 		commitCastleToBoard(pieceColour, castlingKingside);
@@ -186,11 +205,14 @@ function validKingMove(move: IMove) {
 	if (!validQueenMove(move) || isMoreThanOneSquare(move)) return false;
 
 	//Updates to prevent castling
-	pieceColour === 'w' ? hasPieceMoved.set(CastlingPiecesId.WHITE_KING, true) : hasPieceMoved.set(CastlingPiecesId.BLACK_KING, true);
+	pieceColour === ChessPiece.WHITE ? hasPieceMoved.set(CastlingPiecesId.WHITE_KING, true) : hasPieceMoved.set(CastlingPiecesId.BLACK_KING, true);
 	return true;
 }
 
 function validQueenMove(move: IMove) {
+	const store = useGameStore();
+	if (store.testing) console.log(`Inside Valid Queen Move`);
+	
 	const fromSquare = move.fromSquare;
 	const toSquare = move.toSquare;
 

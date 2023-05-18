@@ -12,8 +12,8 @@ function promotePiece() {
 		console.log(`props.piece is undefined in promotePiece function in PieceModalComponent`);
 		return;
 	}
-	store.pawnPromotionPiece = props.piece;
-	commitPawnPromotionToBoard();
+	store.specialContainer.pieceToPromote.piece = props.piece;
+	commitPawnPromotionToBoard(store.specialContainer.moveToPromote);
 }
 </script>
 

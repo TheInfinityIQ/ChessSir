@@ -1,4 +1,4 @@
-import { getPreviousBoardStateWrapper, getTestBoard, findPieceWithId, findKingOnBoard, setupBoard } from './board';
+import { findPieceWithId, findKingOnBoard, getPreviousBoard } from './board';
 import { CastlingPiece } from './moveValidation';
 import {
 	CastlingPiecesId,
@@ -25,26 +25,35 @@ export const hasPieceMoved = new Map<number, boolean>([
 	[CastlingPiecesId.BLACK_KING, false],
 ]);
 
-export function isValidPawnPromotion(pieceColour: string, toSquare: IPiece, move: IMove) {
+export function isValidPawnPromotion(move: IMove) {
 	const store = useGameStore();
-	const checkedRow = Math.floor(toSquare.id / rowAndColValue);
 
-	if (pieceColour === 'w' ? checkedRow === startRowValue : checkedRow === endRowValue) {
+	const checkedRow = Math.floor(move.toSquare.id / rowAndColValue);
+
+	if (move.fromSquare.piece[PieceProps.COLOUR] === ChessPiece.WHITE ? checkedRow === startRowValue : checkedRow === endRowValue) {
 		store.updateMoveToPromote(move);
-		store.pawnPromotionColour = pieceColour;
+		store.specialContainer.pieceToPromote = move.fromSquare;
 		store.togglePromotion();
 	}
 }
 
 export function isValidEnPassant(fromSquare: IPiece, toSquare: IPiece, pieceColour: string, opponentColour: string) {
 	const store = useGameStore();
-	const prevBoard = getPreviousBoardStateWrapper();
+	const prevBoard = getPreviousBoard();
+
 	const opponentPawn = `${opponentColour}${ChessPiece.PAWN}`;
-	const opponentCheckSquareId = pieceColour === 'w' ? toSquare.id - rowAndColValue : toSquare.id + rowAndColValue;
-	//Negative one to get correct orientiation.
+
+	//Get starting opponent pawn position based on piece colour
+	const opponentCheckSquareId = pieceColour === ChessPiece.WHITE ? toSquare.id - rowAndColValue : toSquare.id + rowAndColValue;
+
+	//Negative one to get correct orientiation. AttackOffset to determine if attacking left or right
 	const attackOffset = ((fromSquare.id % rowAndColValue) - (toSquare.id % rowAndColValue)) * -1;
 	const attackedPawnId = attackOffset + fromSquare.id;
-	const isEnPassantValid = findPieceWithId(attackedPawnId).piece === opponentPawn && findPieceWithId(opponentCheckSquareId, true)?.piece === opponentPawn;
+	
+	//If there is a pawn on the attacked square on current board and there is a pawn from the home square on the previos turn. 
+	const isEnPassantValid =
+		findPieceWithId(attackedPawnId, store.game.board).piece === opponentPawn && findPieceWithId(opponentCheckSquareId, prevBoard)?.piece === opponentPawn;
+
 
 	if (isEnPassantValid) {
 		const attackedPawnRow = Math.floor(attackedPawnId / rowAndColValue);
@@ -59,21 +68,21 @@ export function isValidEnPassant(fromSquare: IPiece, toSquare: IPiece, pieceColo
 export function isCastlingValid(pieceColour: string, castlingKingside: boolean) {
 	const store = useGameStore();
 	const pieces =
-		pieceColour === 'w'
+		pieceColour === ChessPiece.WHITE
 			? [CastlingPiecesId.WHITE_ROOK_QUEENSIDE, CastlingPiecesId.WHITE_ROOK_KINGSIDE, CastlingPiecesId.WHITE_KING]
 			: [CastlingPiecesId.BLACK_ROOK_QUEENSIDE, CastlingPiecesId.BLACK_ROOK_KINGSIDE, CastlingPiecesId.BLACK_KING];
 
 	function calcIsRoomToCastle() {
 		if (castlingKingside) {
 			for (let position = pieces[CastlingPiece.KING] + AdjacentSquareIdOffsets.RIGHT; position < pieces[CastlingPiece.KINGSIDE_ROOK]; position++) {
-				const square = findPieceWithId(position);
-				if (isKingInCheck(square, pieceColour) || square.piece !== 'e') return false;
+				const square = findPieceWithId(position, store.game.board);
+				if (isKingInCheck(square, pieceColour, store.game.board) || square.piece !== 'e') return false;
 			}
 			return true;
 		} else {
 			for (let position = pieces[CastlingPiece.KING] + AdjacentSquareIdOffsets.LEFT; position > pieces[CastlingPiece.QUEENSIDE_ROOK]; position--) {
-				const square = findPieceWithId(position);
-				if (isKingInCheck(square, pieceColour) || square.piece !== 'e') return false;
+				const square = findPieceWithId(position, store.game.board);
+				if (isKingInCheck(square, pieceColour, store.game.board) || square.piece !== 'e') return false;
 			}
 
 			return true;
@@ -82,7 +91,7 @@ export function isCastlingValid(pieceColour: string, castlingKingside: boolean) 
 
 	const isRoomToCastle = calcIsRoomToCastle();
 
-	if (isKingInCheck(findKingOnBoard(pieceColour), pieceColour)) return false;
+	if (isKingInCheck(findKingOnBoard(pieceColour, store.game.board), pieceColour, store.game.board)) return false;
 	if (hasPieceMoved.get(pieces[CastlingPiece.KING]) || !isRoomToCastle) return false;
 
 	if (castlingKingside) {
@@ -94,11 +103,15 @@ export function isCastlingValid(pieceColour: string, castlingKingside: boolean) 
 	return true;
 }
 
-export function isKingInCheck(kingSquare: IPiece, pieceColour: string, board: IPiece[][] = setupBoard()) {
+export function isKingInCheck(kingSquare: IPiece, pieceColour: string, board: IPiece[][]) {
+	const store = useGameStore();
+
+	if (store.testing) console.log(`Inside isKingInCheck`);
+
 	const startingId = kingSquare.id;
 	const startingRow = Math.floor(startingId / rowAndColValue);
 	const startingCol = Math.floor(startingId % rowAndColValue);
-	const opponentColour = pieceColour === 'w' ? 'b' : 'w';
+	const opponentColour = pieceColour === ChessPiece.WHITE ? ChessPiece.BLACK : ChessPiece.WHITE;
 
 	//Knight
 	for (const key in KnightMoveOffsets) {
@@ -112,7 +125,7 @@ export function isKingInCheck(kingSquare: IPiece, pieceColour: string, board: IP
 		if (rowDiff > maxKnightRowOrColDiff || colDiff > maxKnightRowOrColDiff) break;
 
 		if (testId > startOfBoardId && testId < endOfBoardId) {
-			if (findPieceWithId(testId).piece === opponentColour + 'n') {
+			if (findPieceWithId(testId, board).piece === opponentColour + ChessPiece.KNIGHT) {
 				// Ensure no out of bounds
 				return true;
 			}
@@ -121,14 +134,16 @@ export function isKingInCheck(kingSquare: IPiece, pieceColour: string, board: IP
 
 	//Pawn
 	const PawnOffset =
-		pieceColour === 'w' ? [AdjacentSquareIdOffsets.UP_LEFT, AdjacentSquareIdOffsets.UP_RIGHT] : [AdjacentSquareIdOffsets.DOWN_LEFT, AdjacentSquareIdOffsets.DOWN_RIGHT];
+		pieceColour === ChessPiece.WHITE
+			? [AdjacentSquareIdOffsets.UP_LEFT, AdjacentSquareIdOffsets.UP_RIGHT]
+			: [AdjacentSquareIdOffsets.DOWN_LEFT, AdjacentSquareIdOffsets.DOWN_RIGHT];
 	for (const offset of PawnOffset) {
 		const testId: number = offset + startingId;
 		const kingAndPawnColDiff = Math.floor(testId % rowAndColValue) - Math.floor(startingId % rowAndColValue);
 		if (Math.abs(kingAndPawnColDiff) > 1) break;
 
 		if (testId > startOfBoardId && testId < endOfBoardId) {
-			if (findPieceWithId(testId).piece === opponentColour + 'p') {
+			if (findPieceWithId(testId, board).piece === opponentColour + ChessPiece.PAWN) {
 				return true;
 			}
 		}
@@ -151,21 +166,21 @@ export function isKingInCheck(kingSquare: IPiece, pieceColour: string, board: IP
             */
 			if (rowDiff > squaresAway || colDiff > squaresAway) break;
 
-			const testPiece = findPieceWithId(testId).piece;
+			const testPiece = findPieceWithId(testId, board).piece;
 			const testPieceType = testPiece[PieceProps.TYPE];
 			//Pieces to Ignore
 			if (
-				testPieceType === 'r' ||
-				testPieceType === 'n' ||
-				testPieceType === 'p' ||
-				(squaresAway > 1 && testPieceType === 'k') ||
+				testPieceType === ChessPiece.ROOK ||
+				testPieceType === ChessPiece.KNIGHT ||
+				testPieceType === ChessPiece.PAWN ||
+				(squaresAway > 1 && testPieceType === ChessPiece.KING) ||
 				testPiece[PieceProps.COLOUR] === pieceColour
 			)
 				break;
-			if (squaresAway === 1 && testPiece === opponentColour + 'k') {
+			if (squaresAway === 1 && testPiece === opponentColour + ChessPiece.KING) {
 				return true;
 			}
-			if (testPiece === opponentColour + 'q' || testPiece === opponentColour + 'b') {
+			if (testPiece === opponentColour + ChessPiece.QUEEN || testPiece === opponentColour + ChessPiece.BLACK) {
 				return true;
 			}
 
@@ -183,24 +198,24 @@ export function isKingInCheck(kingSquare: IPiece, pieceColour: string, board: IP
 		let colDiff = 0;
 
 		while (testId > startOfBoardId && testId < endOfBoardId) {
-			const testPiece = findPieceWithId(testId).piece;
+			const testPiece = findPieceWithId(testId, board).piece;
 			const testPieceType = testPiece[PieceProps.TYPE];
 			rowDiff = Math.abs(startingRow - Math.floor(testId / rowAndColValue));
 			colDiff = Math.abs(startingCol - Math.floor(testId % rowAndColValue));
 			if (rowDiff > squaresAway || colDiff > squaresAway) break;
 			//Pieces to Ignore
 			if (
-				testPieceType === 'n' ||
-				testPieceType === 'p' ||
-				testPiece === opponentColour + 'b' ||
-				(squaresAway > 1 && testPieceType === 'k') ||
+				testPieceType === ChessPiece.KNIGHT ||
+				testPieceType === ChessPiece.PAWN ||
+				testPiece === opponentColour + ChessPiece.BLACK ||
+				(squaresAway > 1 && testPieceType === ChessPiece.KING) ||
 				testPiece[PieceProps.COLOUR] === pieceColour
 			)
 				break;
-			if (squaresAway === 1 && testPiece === opponentColour + 'k') {
+			if (squaresAway === 1 && testPiece === opponentColour + ChessPiece.KING) {
 				return true;
 			}
-			if (testPiece === opponentColour + 'r' || testPiece === opponentColour + 'q') {
+			if (testPiece === opponentColour + ChessPiece.ROOK || testPiece === opponentColour + ChessPiece.QUEEN) {
 				return true;
 			}
 
@@ -212,8 +227,10 @@ export function isKingInCheck(kingSquare: IPiece, pieceColour: string, board: IP
 }
 
 export function isKingInCheckAfterMove(move: IMove) {
+	const store = useGameStore();
+	if (store.testing) console.log(`inside isKingInCheckAfterMove`);
 	const pieceColour = move.fromSquare.piece[PieceProps.COLOUR];
-	let tempBoard = getTestBoard();
+	let tempBoard = JSON.parse(JSON.stringify(store.game.board));
 
 	const { fromSquare, toSquare } = move;
 	let fromRow: number = Math.trunc(fromSquare.id / rowAndColValue);
@@ -226,7 +243,7 @@ export function isKingInCheckAfterMove(move: IMove) {
 
 	tempBoard[toRow][toColumn].piece = fromSquare.piece;
 
-	return isKingInCheck(findKingOnBoard(pieceColour, tempBoard), pieceColour, tempBoard);
+	return isKingInCheck(findKingOnBoard(pieceColour, store.game.board), pieceColour, tempBoard);
 }
 
 export function getChessPieceFromLetter(letter: string): ChessPiece | undefined {
@@ -300,6 +317,7 @@ export function isJumpingPiece(move: IMove) {
 }
 
 export function jumpingPieceOnDiagonal(move: Move) {
+	const store = useGameStore();
 	const fromSquare = move.fromSquare;
 	const toSquare = move.toSquare;
 
@@ -328,7 +346,7 @@ export function jumpingPieceOnDiagonal(move: Move) {
 	startId += step;
 
 	for (let id = startId; id < endId; id += step) {
-		const square = findPieceWithId(id);
+		const square = findPieceWithId(id, store.game.board);
 		if (square.piece !== 'e') {
 			return true;
 		}
@@ -338,6 +356,7 @@ export function jumpingPieceOnDiagonal(move: Move) {
 }
 
 export function jumpingPieceOnStraight(move: IMove, direction: Direction) {
+	const store = useGameStore();
 	const fromSquare = move.fromSquare;
 	const toSquare = move.toSquare;
 
@@ -355,7 +374,7 @@ export function jumpingPieceOnStraight(move: IMove, direction: Direction) {
 	startId += step;
 
 	for (let id = startId; id < endId; id += step) {
-		const square = findPieceWithId(id);
+		const square = findPieceWithId(id, store.game.board);
 		if (square.piece !== 'e') {
 			return true;
 		}
@@ -365,7 +384,8 @@ export function jumpingPieceOnStraight(move: IMove, direction: Direction) {
 }
 
 export function isFriendlyPiece(friendlyColour: string, toSquareId: number) {
-	const toPiece: string = findPieceWithId(toSquareId).piece;
+	const store = useGameStore();
+	const toPiece: string = findPieceWithId(toSquareId, store.game.board).piece;
 
 	if (toPiece === 'e') return false;
 

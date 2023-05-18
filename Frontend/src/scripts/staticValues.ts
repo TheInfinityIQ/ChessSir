@@ -1,4 +1,4 @@
-import { Piece, type IPiece } from "./types";
+import { Piece, type IPiece, TempPiece } from "./types";
 
 const notEmptyPieces: string[] = [
 	'br',
@@ -102,6 +102,8 @@ export enum ChessPiece {
 	BISHOP = 'b',
 	KING = 'k',
 	QUEEN = 'q',
+	BLACK = 'b',
+	WHITE = 'w'
 }
 
 export enum Direction {
@@ -128,12 +130,6 @@ export enum CastlingPiecesColOffset {
 	KING_QUEENSIDE = -2,
 }
 
-export enum UnselectedPiece {
-	COLOUR = -1,
-	ID = -1,
-	PIECE = ""
-}
-
 export const initBoard: string[][] = [
 	['br', 'bn', 'bb', 'bq', 'bk', 'bb', 'bn', 'br'],
 	['bp', 'bp', 'bp', 'bp', 'bp', 'bp', 'bp', 'bp'],
@@ -145,4 +141,4 @@ export const initBoard: string[][] = [
 	['wr', 'wn', 'wb', 'wq', 'wk', 'wb', 'wn', 'wr']
 ];
 
-export const tempIPiece: IPiece = new Piece(UnselectedPiece.ID, UnselectedPiece.PIECE, UnselectedPiece.COLOUR);
+export const tempIPiece: IPiece = new TempPiece();

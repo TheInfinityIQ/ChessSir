@@ -1,9 +1,9 @@
 import { reactive, ref, type Ref } from 'vue';
-import { Piece, type IPiece, type Move } from './types';
+import { Piece, type IPiece, type Move, type IMove } from './types';
 import { CastlingPiecesColStart, CastlingPiecesColOffset, initBoard, endOfBoardId, endRowValue, rowAndColValue, startOfBoardId, startRowValue } from './staticValues';
 import { useGameStore } from './state';
 
-let previousBoardState: IPiece[][] = [];
+let previousBoard: IPiece[][] = [];
 
 const testToggleFlipBoard: Ref<boolean> = ref(false);
 export function toggleFlipBoard() {
@@ -12,8 +12,6 @@ export function toggleFlipBoard() {
 export function getToggleFlipBoard() {
 	return testToggleFlipBoard;
 }
-
-let totalMoves: number = 0;
 let isBoardFlipped: Ref<boolean> = ref(false);
 
 function getPieceType(id: number) {
@@ -96,8 +94,8 @@ function commitMoveToBoard(newMove: Move) {
 }
 
 function commitCastleToBoard(pieceColour: string, castlingKingSide: boolean) {
-	const store = useGameStore();
 	saveLastBoardState();
+	const store = useGameStore();
 	const rowToCastle = pieceColour === 'w' ? endRowValue : startRowValue;
 	const pieceTypes = ['k', 'r'];
 	const kingAndRookNewId =
@@ -122,20 +120,21 @@ function commitCastleToBoard(pieceColour: string, castlingKingSide: boolean) {
 
 function endTurn() {
 	const store = useGameStore();
+	
 	// if(isCheckmate());
 
 	console.log('End Turn');
 
-	totalMoves++;
+	store.totalMoves++;
 
 	store.toggleTurns();
 	flipBoard();
+	store.unselectPiece();
 }
 
-export function commitPawnPromotionToBoard() {
+export function commitPawnPromotionToBoard(move: IMove) {
+	saveLastBoardState();
 	const store = useGameStore();
-	const move = store.moveToPromote;
-	const piece = store.pawnPromotionPiece;
 
 	const { fromSquare, toSquare } = move;
 	const fromRow = Math.floor(fromSquare.id / rowAndColValue);
@@ -144,26 +143,18 @@ export function commitPawnPromotionToBoard() {
 	const toCol = Math.floor(toSquare.id % rowAndColValue);
 
 	store.game.board[fromRow][fromCol].piece = 'e';
-	store.game.board[toRow][toCol].piece = piece;
+	store.game.board[toRow][toCol].piece = store.specialContainer.pieceToPromote.piece;
 	store.togglePromotion();
 	endTurn();
 }
 
 function saveLastBoardState() {
 	const store = useGameStore();
-	previousBoardState = JSON.parse(JSON.stringify(store.game.board));
+	previousBoard = JSON.parse(JSON.stringify(store.game.board));
 }
 
-function getPreviousBoardState() {
-	return previousBoardState;
-}
-
-function getPreviousBoardStateWrapper() {
-	const store = useGameStore();
-	if (!previousBoardState[0]) {
-		previousBoardState = JSON.parse(JSON.stringify(store.game.board));
-	}
-	return getPreviousBoardState();
+export function getPreviousBoard() {
+	return previousBoard;
 }
 
 export function getSquareWithId(id: number) {
@@ -174,24 +165,10 @@ export function getSquareWithId(id: number) {
 	return store.game.board[row][column];
 }
 
-function getTestBoard() {
-	const store = useGameStore();
-	return JSON.parse(JSON.stringify(store.game.board));
-}
-
-function findPieceWithId(id: number, usePreviousBoard: boolean = false): IPiece {
-	const store = useGameStore();
-	let board = [];
-
-	if (usePreviousBoard) {
-		board = previousBoardState;
-	} else {
-		board = store.game.board;
-	}
-
+function findPieceWithId(id: number, board: IPiece[][]): IPiece {
 	let foundPiece: IPiece | undefined;
 
-	for (const row of store.game.board) {
+	for (const row of board) {
 		foundPiece = row.find((piece) => piece.id === id);
 		if (foundPiece) {
 			break;
@@ -206,16 +183,11 @@ function findPieceWithId(id: number, usePreviousBoard: boolean = false): IPiece 
 	return foundPiece!;
 }
 
-function findKingOnBoard(pieceColour: string, usePreviousBoard: boolean = false) {
-	const pieceType = 'k';
-	let board = [];
+function findKingOnBoard(pieceColour: string, board: IPiece[][]) {
 	const store = useGameStore();
-
-	if (usePreviousBoard) {
-		board = previousBoardState;
-	} else {
-		board = store.game.board;
-	}
+	if (store.testing) console.log(`Inside findKingOnBoard`);
+	
+	const pieceType = 'k';
 
 	let foundPiece: IPiece | undefined;
 	for (const row of board) {
@@ -228,7 +200,10 @@ function findKingOnBoard(pieceColour: string, usePreviousBoard: boolean = false)
 	if (foundPiece === undefined) {
 		console.error('A king is missing???');
 	}
+
+	if (store.testing) console.log(`Inside findKingOnBoard. Found Piece: ${JSON.stringify(foundPiece)}`);
+
 	return foundPiece!;
 }
 
-export { getPreviousBoardStateWrapper, getPieceType, commitMoveToBoard, findPieceWithId, commitCastleToBoard, getTestBoard, findKingOnBoard };
+export { getPieceType, commitMoveToBoard, findPieceWithId, commitCastleToBoard, findKingOnBoard };

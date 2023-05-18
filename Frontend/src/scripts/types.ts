@@ -31,6 +31,20 @@ export class Piece implements IPiece {
 	}
 }
 
+export class TempPiece implements IPiece {
+	id: number;
+	piece: string;
+	colour: number;
+	selected: boolean;
+
+	constructor() {
+		this.id = -1;
+		this.piece = "";
+		this.colour = -1;
+		this.selected = false;
+	}
+}
+
 export class Move implements IMove {
 	fromSquare: IPiece;
 	toSquare: IPiece;

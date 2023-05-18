@@ -5,12 +5,12 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { findPieceWithId, getIsBoardFlipped } from '@/scripts/board';
-import { makeMove } from '@/scripts/moveValidation';
-import { PieceProps, ChessPiece, rowAndColValue, UnselectedPiece } from '@/scripts/staticValues';
-import { Piece } from '@/scripts/types';
-import { type ComputedRef, computed, onMounted, ref, type Ref, reactive } from 'vue';
+import { getIsBoardFlipped } from '@/scripts/board';
+import { PieceProps, rowAndColValue } from '@/scripts/staticValues';
+import { Piece, TempPiece } from '@/scripts/types';
+import { computed, onMounted, type ComputedRef, type Ref, nextTick } from 'vue';
 import { useGameStore } from '../scripts/state';
+import { makeMove } from '../scripts/moveValidation';
 const store = useGameStore();
 
 const props = defineProps<{
@@ -18,15 +18,14 @@ const props = defineProps<{
 	squareColour: number;
 }>();
 
-let isKingInCheck: ComputedRef<boolean> = computed(() => false);
-const isSelected = computed(() => store.selectedPieces.includes(props.id));
-
-// Calculate row and column from the given ID
 const row = Math.floor(props.id / rowAndColValue);
 const column = props.id % rowAndColValue;
-const pieceOnSquare = store.game.board[row][column].piece;
 
-const isBoardFlipped = computed(() => getIsBoardFlipped());
+const pieceOnSquare: ComputedRef<string> = computed(() => store.game.board[row][column].piece);
+const isSelectable: ComputedRef<boolean> = computed(() => store.game.board[row][column].piece !== 'e');
+const isSelected: ComputedRef<boolean> = computed(() => store.specialContainer.selectedPiece.id === props.id);
+const isBoardFlipped: Ref<boolean> = getIsBoardFlipped();
+
 
 // Ensure that the input values for the piece are valid
 const ensureValidity = () => {
@@ -37,54 +36,34 @@ const ensureValidity = () => {
 
 onMounted(ensureValidity);
 
-// Check if the piece on this square is selectable
-const isSelectable = computed(() => store.game.board[row][column].piece !== 'e');
-
 function select() {
-    const move = new Piece(props.id, store.game.board[row][column].piece, props.squareColour);
-
+	const pieceToMove = new Piece(props.id, store.game.board[row][column].piece, props.squareColour);
+	
+    
     // If the user is trying to deselect the current piece
-    if (store.selectedSquareId === props.id) {
-        deselect();
+	if (store.specialContainer.selectedPiece.id === props.id) {
+		if (store.testing) console.log("selecting same piece");
         store.unselectPiece();
-        return;
-    }
+		return;
+	}
 
-    // If a piece was already selected and the user is trying to select a new piece of the same color
-    if (store.selectedSquareId !== UnselectedPiece.ID && pieceOnSquare[PieceProps.COLOUR] === props.squareColour) {
-        deselect();
+	// If a piece was already selected and the user is trying to select a new piece of the same color
+	if (pieceOnSquare.value[PieceProps.COLOUR] === store.specialContainer.selectedPiece.piece[PieceProps.COLOUR]) {
+		if (store.testing) console.log("selecting piece of same colour");
         store.unselectPiece();
-        store.updateSelectedPiece(move);
+		return;
+	}
+
+	// Otherwise, if no piece is currently selected, select the clicked piece
+	if (JSON.stringify(store.specialContainer.selectedPiece) === JSON.stringify(new TempPiece())) {
+		if (store.testing) console.log("selecting a piece");
+        store.specialContainer.selectedPiece = pieceToMove;
+        console.log(store.specialContainer.selectedPiece.id === props.id);
         return;
-    }
-
-    // If a piece was already selected and the user is trying to select a piece of a different color (i.e., make a move)
-    if (store.selectedSquareId !== UnselectedPiece.ID && store.selectedSquarePiece.value[PieceProps.COLOUR] !== props.squareColour) {
-        // If the selected piece is moving to an empty square
-        if (pieceOnSquare.value.piece === 'e') {
-            makeMove(move);
-            deselect();
-            store.unselectPiece();
-            return;
-        }
-        // If the selected piece is moving to an occupied square
-        if (pieceOnSquare.value.piece !== 'e' && pieceOnSquare.value.piece[PieceProps.COLOUR] !== store.selectedSquarePiece.value[PieceProps.COLOUR]) {
-            makeMove(move);
-            deselect();
-            store.unselectPiece();
-            return;
-        }
-    }
-
-    // Otherwise, if no piece is currently selected, select the clicked piece
-    if (store.selectedSquareId === UnselectedPiece.ID) {
-        store.updateSelectedPiece(move);
-        pieceOnSquare.value.selected = true;
-    }
-}
-
-function deselect() {
-    store.deselectPiece(props.id); // Add this line
+	}
+    
+    makeMove(pieceToMove);
+    store.unselectPiece();
 }
 </script>
 
@@ -96,8 +75,7 @@ function deselect() {
 				darker: squareColour == 1,
 				selectable: isSelectable,
 				selected: isSelected,
-				inCheck: props.id === kingId && isKingInCheck,
-				flipPiece: isBoardFlipped.value,
+				flipPiece: isBoardFlipped,
 				[store.game.board[row][column].piece]: true,
 			},
 		]"

@@ -2,13 +2,14 @@
 import { computed } from 'vue';
 import PieceModalComponent from './PieceModalComponent.vue';
 import { useGameStore } from '../scripts/state'
+import { PieceProps } from '@/scripts/staticValues';
 const store = useGameStore();
 const promotionPieces = ['q', 'n', 'r', 'b'];
 </script>
 
 <template>
 	<aside v-if="store.isPromotionActive" class="promotion-modal">
-		<PieceModalComponent v-for="pieceType in promotionPieces" :piece="store.pawnPromotionColour + pieceType"></PieceModalComponent>
+		<PieceModalComponent v-for="pieceType in promotionPieces" :piece="store.specialContainer.pieceToPromote.piece[PieceProps.COLOUR] + pieceType"></PieceModalComponent>
 	</aside>
 </template>
 
