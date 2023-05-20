@@ -103,7 +103,8 @@ export enum ChessPiece {
 	KING = 'k',
 	QUEEN = 'q',
 	BLACK = 'b',
-	WHITE = 'w'
+	WHITE = 'w',
+	EMPTY = 'e'
 }
 
 export enum Direction {
