@@ -1,5 +1,6 @@
 import { commitCastleToBoard, commitMoveToBoard, commitPawnPromotionToBoard } from './board';
 import {
+	allPiecesLookingAtSquare,
 	determineDirection,
 	getChessPieceFromLetter,
 	hasPieceMoved,
@@ -44,7 +45,7 @@ export function makeMove(newSquare: IPiece) {
 	}
 
 	let move: IMove = new Move(store.specialContainer.selectedPiece, newSquare);
-
+	
 	if (!validMove(move)) return;
 	if (store.isPromotionActive) return;
 
@@ -90,12 +91,12 @@ function validPawnMove(move: IMove) {
 	if ((rowDiff === 2 && !isStartingSquare) || rowDiff > 2) return false;
 	if (rowDiff === 2 && dir === Direction.DIAGONAL) return false;
 
-	const isVerticalMove = dir === Direction.VERTICAL && toSquare.piece === 'e';
+	const isVerticalMove = dir === Direction.VERTICAL && toSquare.piece === ChessPiece.EMPTY;
 	const isDiagonalMove = dir === Direction.DIAGONAL && !isFriendlyPiece(fromSquare.piece[startOfBoardId], toSquare.id);
 
 	if (!isVerticalMove && !isDiagonalMove) return false;
 
-	if (isDiagonalMove && toSquare.piece === 'e') {
+	if (isDiagonalMove && toSquare.piece === ChessPiece.EMPTY) {
 		if (!isValidEnPassant(fromSquare, toSquare, pieceColour, opponentColour)) return false;
 	}
 
@@ -186,7 +187,6 @@ function validBishopMove(move: IMove) {
 
 function validKingMove(move: IMove) {
 	const store = useGameStore();
-	if (store.testing) console.log(`Inside Valid King Move`);
 	
 	const fromSquare = move.fromSquare;
 	const pieceColour = fromSquare.piece[PieceProps.COLOUR];

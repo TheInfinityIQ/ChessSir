@@ -1,10 +1,9 @@
-import type { ComputedRef, Ref } from 'vue';
-import type { IMove, IPiece } from './types';
+import type { Ref } from 'vue';
+import type { IMove } from './types';
 
-import { computed, reactive, ref } from 'vue';
-import { Move, Piece, TempPiece } from './types';
+import { reactive, ref } from 'vue';
+import { Move, TempPiece } from './types';
 import { defineStore } from 'pinia';
-import { tempIPiece } from './staticValues';
 import { setupBoard } from './board';
 
 export const useGameStore = defineStore('game', () => {
@@ -43,6 +42,12 @@ export const useGameStore = defineStore('game', () => {
 		specialContainer.selectedPiece = new TempPiece();
 	}
 
+	function isPieceSelected() {
+
+		//Compared not equal to make function more readable. If they equaled, then no piece is selected. 
+		return JSON.stringify(specialContainer.selectedPiece) !== JSON.stringify(new TempPiece());
+	}
+
 	return {
 		kingInCheck,
 		isPromotionActive,
@@ -52,6 +57,7 @@ export const useGameStore = defineStore('game', () => {
 		selectedPieces,
 		testing,
 		specialContainer,
+		isPieceSelected,
 		unselectPiece,
 		updateMoveToPromote,
 		toggleTurns,

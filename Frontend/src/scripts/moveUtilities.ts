@@ -49,16 +49,15 @@ export function isValidEnPassant(fromSquare: IPiece, toSquare: IPiece, pieceColo
 	//Negative one to get correct orientiation. AttackOffset to determine if attacking left or right
 	const attackOffset = ((fromSquare.id % rowAndColValue) - (toSquare.id % rowAndColValue)) * -1;
 	const attackedPawnId = attackOffset + fromSquare.id;
-	
-	//If there is a pawn on the attacked square on current board and there is a pawn from the home square on the previos turn. 
+
+	//If there is a pawn on the attacked square on current board and there is a pawn from the home square on the previos turn.
 	const isEnPassantValid =
 		findPieceWithId(attackedPawnId, store.game.board).piece === opponentPawn && findPieceWithId(opponentCheckSquareId, prevBoard)?.piece === opponentPawn;
-
 
 	if (isEnPassantValid) {
 		const attackedPawnRow = Math.floor(attackedPawnId / rowAndColValue);
 		const attackedPawnColumn = Math.floor(attackedPawnId % rowAndColValue);
-		store.game.board[attackedPawnRow][attackedPawnColumn].piece = 'e';
+		store.game.board[attackedPawnRow][attackedPawnColumn].piece = ChessPiece.EMPTY;
 		return true;
 	}
 
@@ -76,13 +75,13 @@ export function isCastlingValid(pieceColour: string, castlingKingside: boolean) 
 		if (castlingKingside) {
 			for (let position = pieces[CastlingPiece.KING] + AdjacentSquareIdOffsets.RIGHT; position < pieces[CastlingPiece.KINGSIDE_ROOK]; position++) {
 				const square = findPieceWithId(position, store.game.board);
-				if (isKingInCheck(square, pieceColour, store.game.board) || square.piece !== 'e') return false;
+				if (isKingInCheck(square, pieceColour, store.game.board) || square.piece !== ChessPiece.EMPTY) return false;
 			}
 			return true;
 		} else {
 			for (let position = pieces[CastlingPiece.KING] + AdjacentSquareIdOffsets.LEFT; position > pieces[CastlingPiece.QUEENSIDE_ROOK]; position--) {
 				const square = findPieceWithId(position, store.game.board);
-				if (isKingInCheck(square, pieceColour, store.game.board) || square.piece !== 'e') return false;
+				if (isKingInCheck(square, pieceColour, store.game.board) || square.piece !== ChessPiece.EMPTY) return false;
 			}
 
 			return true;
@@ -226,6 +225,140 @@ export function isKingInCheck(kingSquare: IPiece, pieceColour: string, board: IP
 	return false;
 }
 
+export function isItCheckmate(targetOffsetColour: string, board: IPiece[][]) {
+	const store = useGameStore();
+	const king = findKingOnBoard(targetOffsetColour, store.game.board);
+
+	//Can attacking piece be captured? (draw offsets from that square )
+	//If piece can be captured, is king in check after capture? (double attack after discovery type deal)
+	//If piece can't be captured,
+}
+
+export function allPiecesLookingAtSquare(startSquare: IPiece, targetColour: string, board: IPiece[][]): IPiece[] {
+	const store = useGameStore();
+	const squareContainer: IPiece[] = [];
+
+	const originColour = startSquare.piece[PieceProps.COLOUR];
+
+	const startingId = startSquare.id;
+	const startingRow = Math.floor(startingId / rowAndColValue);
+	const startingCol = Math.floor(startingId % rowAndColValue);
+	//Knight
+	for (const key in KnightMoveOffsets) {
+		const offset = KnightMoveOffsets[key as keyof typeof KnightMoveOffsets];
+		const testId = offset + startingId;
+		const maxKnightRowOrColDiff = 2;
+
+		let rowDiff = Math.abs(startingRow - Math.floor(testId / rowAndColValue));
+		let colDiff = Math.abs(startingCol - Math.floor(testId % rowAndColValue));
+
+		if (rowDiff > maxKnightRowOrColDiff || colDiff > maxKnightRowOrColDiff) break;
+
+		if (testId > startOfBoardId && testId < endOfBoardId) {
+			const foundSquare = findPieceWithId(testId, store.game.board);
+			if (foundSquare.piece === targetColour + ChessPiece.KNIGHT) {
+				squareContainer.push(foundSquare);
+				break;
+			}
+		}
+	}
+
+	//Pawn
+	const PawnOffset =
+		originColour === ChessPiece.WHITE
+			? [AdjacentSquareIdOffsets.UP_LEFT, AdjacentSquareIdOffsets.UP_RIGHT]
+			: [AdjacentSquareIdOffsets.DOWN_LEFT, AdjacentSquareIdOffsets.DOWN_RIGHT];
+	for (const offset of PawnOffset) {
+		const testId: number = offset + startingId;
+		const kingAndPawnColDiff = Math.floor(testId % rowAndColValue) - Math.floor(startingId % rowAndColValue);
+		if (Math.abs(kingAndPawnColDiff) > 1) break;
+
+		if (testId > startOfBoardId && testId < endOfBoardId) {
+			const foundSquare = findPieceWithId(testId, board);
+			if (foundSquare.piece === targetColour + ChessPiece.PAWN) {
+				squareContainer.push(foundSquare);
+				break;
+			}
+		}
+	}
+
+	// Bishop and Queen
+	const Diagonal = [AdjacentSquareIdOffsets.DOWN_LEFT, AdjacentSquareIdOffsets.DOWN_RIGHT, AdjacentSquareIdOffsets.UP_LEFT, AdjacentSquareIdOffsets.UP_RIGHT];
+
+	for (const offset of Diagonal) {
+		let squaresAway: number = 1;
+		let testId: number = offset + startingId;
+		let rowDiff = 0;
+		let colDiff = 0;
+
+		while (testId > startOfBoardId && testId < endOfBoardId) {
+			rowDiff = Math.abs(startingRow - Math.floor(testId / rowAndColValue));
+			colDiff = Math.abs(startingCol - Math.floor(testId % rowAndColValue));
+			/*
+                Avoids Ids increments and loops around to other side of board. Example, checking horizontal on row 0 and current Id is 7, then we add AdjacentSquareIdOffsets.UP_LEFT.
+            */
+			if (rowDiff > squaresAway || colDiff > squaresAway) break;
+
+			const foundSquare = findPieceWithId(testId, store.game.board);
+
+			const testPieceColour = foundSquare.piece[PieceProps.COLOUR];
+			const testPieceType = foundSquare.piece[PieceProps.TYPE];
+			//Pieces to Ignore
+			if (testPieceType === ChessPiece.ROOK || testPieceType === ChessPiece.KNIGHT || testPieceType === ChessPiece.PAWN || testPieceColour === originColour) break;
+			//Pieces to test
+			if (foundSquare.piece === targetColour + ChessPiece.QUEEN || foundSquare.piece === targetColour + ChessPiece.BISHOP) {
+				squareContainer.push(foundSquare);
+				break;
+			}
+
+			testId = startingId + squaresAway++ * offset;
+		}
+	}
+
+	const Straights = [AdjacentSquareIdOffsets.UP, AdjacentSquareIdOffsets.RIGHT, AdjacentSquareIdOffsets.DOWN, AdjacentSquareIdOffsets.LEFT];
+
+	for (const offset of Straights) {
+		let squaresAway: number = 1;
+		let testId: number = offset + startingId;
+		let rowDiff = 0;
+		let colDiff = 0;
+
+		while (testId > startOfBoardId && testId < endOfBoardId) {
+			const foundSquare = findPieceWithId(testId, board);
+			
+			const testPieceColour = foundSquare.piece[PieceProps.COLOUR];
+			const testPieceType = foundSquare.piece[PieceProps.TYPE];
+			const testPiece = foundSquare.piece;
+
+			rowDiff = Math.abs(startingRow - Math.floor(testId / rowAndColValue));
+			colDiff = Math.abs(startingCol - Math.floor(testId % rowAndColValue));
+
+			//Avoids it from increasing offset that will make it jump from various sides of the board instead of drawing line.
+			if (rowDiff > squaresAway || colDiff > squaresAway) break;
+
+			//Pieces to Ignore
+			if (
+				testPieceType === ChessPiece.KNIGHT ||
+				testPieceType === ChessPiece.PAWN ||
+				foundSquare.piece === targetColour + ChessPiece.BLACK ||
+				testPieceColour === originColour
+			) {
+				break;
+			}
+
+			//Pieces that attack on straights
+			if (testPiece === targetColour + ChessPiece.ROOK || testPiece === targetColour + ChessPiece.QUEEN) {
+				squareContainer.push(foundSquare);
+				break;
+			}
+
+			testId = startingId + squaresAway++ * offset;
+		}
+	}
+
+	return squareContainer;
+}
+
 export function isKingInCheckAfterMove(move: IMove) {
 	const store = useGameStore();
 	if (store.testing) console.log(`inside isKingInCheckAfterMove`);
@@ -236,7 +369,7 @@ export function isKingInCheckAfterMove(move: IMove) {
 	let fromRow: number = Math.trunc(fromSquare.id / rowAndColValue);
 	let fromColumn: number = fromSquare.id % rowAndColValue;
 
-	tempBoard[fromRow][fromColumn].piece = 'e';
+	tempBoard[fromRow][fromColumn].piece = ChessPiece.EMPTY;
 
 	let toRow: number = Math.trunc(toSquare.id / rowAndColValue);
 	let toColumn: number = toSquare.id % rowAndColValue;
@@ -347,7 +480,7 @@ export function jumpingPieceOnDiagonal(move: Move) {
 
 	for (let id = startId; id < endId; id += step) {
 		const square = findPieceWithId(id, store.game.board);
-		if (square.piece !== 'e') {
+		if (square.piece !== ChessPiece.EMPTY) {
 			return true;
 		}
 	}
@@ -375,7 +508,7 @@ export function jumpingPieceOnStraight(move: IMove, direction: Direction) {
 
 	for (let id = startId; id < endId; id += step) {
 		const square = findPieceWithId(id, store.game.board);
-		if (square.piece !== 'e') {
+		if (square.piece !== ChessPiece.EMPTY) {
 			return true;
 		}
 	}
@@ -387,7 +520,7 @@ export function isFriendlyPiece(friendlyColour: string, toSquareId: number) {
 	const store = useGameStore();
 	const toPiece: string = findPieceWithId(toSquareId, store.game.board).piece;
 
-	if (toPiece === 'e') return false;
+	if (toPiece === ChessPiece.EMPTY) return false;
 
 	return toPiece[startOfBoardId] === friendlyColour;
 }
