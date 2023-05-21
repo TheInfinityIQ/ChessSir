@@ -85,6 +85,7 @@ export enum KnightMoveOffsets {
 }
 
 export enum AdjacentSquareIdOffsets {
+	NO_OFFSET = 0,
 	UP = -8,
 	UP_RIGHT = -7,
 	UP_LEFT = -9,
@@ -93,6 +94,19 @@ export enum AdjacentSquareIdOffsets {
 	DOWN = 8,
 	DOWN_RIGHT = 9,
 	DOWN_LEFT = 7,
+}
+
+export enum PawnValues {
+	UP_RIGHT_OFFSET = -15,
+	UP_LEFT_OFFSET = -17,
+	DOWN_LEFT_OFFSET = 15,
+	DOWN_RIGHT_OFFSET = 17,
+	BLACK_PAWN_START = 1,
+	WHITE_PAWN_START = 6,
+	UP_DOUBLE_MOVE_OFFSET = -16,
+	DOWN_DOUBLE_MOVE_OFFSET = 16,
+	ATTACK_VALUE_FIRST = 15,
+	ATTACK_VALUE_SECOND = 17,
 }
 
 export enum ChessPiece {
@@ -110,7 +124,7 @@ export enum ChessPiece {
 export enum Direction {
 	VERTICAL = 'v',
 	HORIZONTAL = 'h',
-	DIAGONAL = 'D',
+	DIAGONAL = 'd',
 }
 
 export enum PieceProps {

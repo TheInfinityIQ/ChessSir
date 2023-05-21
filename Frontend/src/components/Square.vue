@@ -11,7 +11,7 @@ import { Piece, TempPiece } from '@/scripts/types';
 import { computed, onMounted, type ComputedRef, type Ref, nextTick } from 'vue';
 import { useGameStore } from '../scripts/state';
 import { makeMove } from '../scripts/moveValidation';
-import { allPiecesLookingAtSquare } from '../scripts/moveUtilities';
+import { piecesToSquare } from '../scripts/moveUtilities';
 const store = useGameStore();
 
 const props = defineProps<{
@@ -71,9 +71,9 @@ function select() {
 
 function test() {
 	const store = useGameStore();
-	const pieceToMove = new Piece(props.id, store.game.board[row][column].piece[PieceProps.TYPE] + ChessPiece.WHITE, props.squareColour);
-	const targetColour = ChessPiece.BLACK;
-	console.log(allPiecesLookingAtSquare(pieceToMove, targetColour, store.game.board));
+	const pieceToMove = new Piece(props.id, ChessPiece.WHITE + store.game.board[row][column].piece[PieceProps.TYPE], props.squareColour);
+	const targetColour = ChessPiece.WHITE;
+	piecesToSquare(pieceToMove, targetColour);
 }
 </script>
 

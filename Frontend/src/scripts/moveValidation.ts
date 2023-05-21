@@ -1,6 +1,5 @@
-import { commitCastleToBoard, commitMoveToBoard, commitPawnPromotionToBoard } from './board';
+import { commitCastleToBoard, commitMoveToBoard } from './board';
 import {
-	allPiecesLookingAtSquare,
 	determineDirection,
 	getChessPieceFromLetter,
 	hasPieceMoved,
@@ -65,7 +64,6 @@ function validMove(move: IMove) {
 	
 	// if piece or moveValidators.get(piece) is falsy, then return () => false
 	const validator: moveBool = piece ? moveValidators.get(piece) ?? (() => false) : () => false;
-	if (store.testing) console.log(`Inside Valid Move Piece Type ${move.fromSquare.piece[PieceProps.TYPE]}. Total Moves: ${store.totalMoves}`);
 	if (move.fromSquare.piece[PieceProps.TYPE] !== ChessPiece.KING && store.totalMoves > 0) {
 		if (isKingInCheckAfterMove(move)) return false;
 	}
@@ -75,19 +73,22 @@ function validMove(move: IMove) {
 
 function validPawnMove(move: IMove) {
 	const store = useGameStore();
-	if (store.testing) console.log(`Inside Valid Pawn Move`);
+
 	const { fromSquare, toSquare } = move;
 	const pieceColour = fromSquare.piece[PieceProps.COLOUR];
 	const opponentColour = pieceColour === ChessPiece.WHITE ? ChessPiece.BLACK : ChessPiece.WHITE;
+	
 	const dir = determineDirection(move);
 
 	const idDiff = fromSquare.id - toSquare.id;
 	const isDirectionCorrect = pieceColour === ChessPiece.WHITE ? idDiff > startOfBoardId : idDiff < startOfBoardId;
+	
 	if (!isDirectionCorrect) return false;
 
 	const fromRowId = Math.floor(fromSquare.id / rowAndColValue);
 	const isStartingSquare = pieceColour === ChessPiece.WHITE ? fromRowId === 6 : fromRowId === 1;
 	const rowDiff = Math.abs(fromRowId - Math.floor(toSquare.id / rowAndColValue));
+	
 	if ((rowDiff === 2 && !isStartingSquare) || rowDiff > 2) return false;
 	if (rowDiff === 2 && dir === Direction.DIAGONAL) return false;
 

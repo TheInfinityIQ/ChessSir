@@ -12,6 +12,7 @@ import {
 	rowAndColValue,
 	startOfBoardId,
 	startRowValue,
+	PawnValues,
 } from './staticValues';
 import type { IMove, IPiece, Move } from './types';
 import { useGameStore } from './state';
@@ -225,7 +226,7 @@ export function isKingInCheck(kingSquare: IPiece, pieceColour: string, board: IP
 	return false;
 }
 
-export function isItCheckmate(targetOffsetColour: string, board: IPiece[][]) {
+export function isItCheckmate(targetOffsetColour: string) {
 	const store = useGameStore();
 	const king = findKingOnBoard(targetOffsetColour, store.game.board);
 
@@ -234,125 +235,213 @@ export function isItCheckmate(targetOffsetColour: string, board: IPiece[][]) {
 	//If piece can't be captured,
 }
 
-export function allPiecesLookingAtSquare(startSquare: IPiece, targetColour: string, board: IPiece[][]): IPiece[] {
+export function piecesToSquare(targetSquare: IPiece, targetColour: string): IPiece[] {
+	const squareContainer: IPiece[] = [];
+
+	squareContainer.push(
+		...knightsToTargetSquare(targetSquare, targetColour),
+		...diagonalToTargetSquare(targetSquare, targetColour),
+		...pawnToTargetSquare(targetSquare, targetColour),
+		...straightsToTargetSquare(targetSquare, targetColour)
+	);
+
+	return squareContainer;
+}
+
+function knightsToTargetSquare(targetSquare: IPiece, targetColour: string) {
 	const store = useGameStore();
 	const squareContainer: IPiece[] = [];
 
-	const originColour = startSquare.piece[PieceProps.COLOUR];
+	const startingRow = Math.floor(targetSquare.id / rowAndColValue);
+	const startingCol = Math.floor(targetSquare.id % rowAndColValue);
 
-	const startingId = startSquare.id;
-	const startingRow = Math.floor(startingId / rowAndColValue);
-	const startingCol = Math.floor(startingId % rowAndColValue);
-	//Knight
 	for (const key in KnightMoveOffsets) {
 		const offset = KnightMoveOffsets[key as keyof typeof KnightMoveOffsets];
-		const testId = offset + startingId;
+		const testId = offset + targetSquare.id;
 		const maxKnightRowOrColDiff = 2;
 
 		let rowDiff = Math.abs(startingRow - Math.floor(testId / rowAndColValue));
 		let colDiff = Math.abs(startingCol - Math.floor(testId % rowAndColValue));
 
-		if (rowDiff > maxKnightRowOrColDiff || colDiff > maxKnightRowOrColDiff) break;
+		if (rowDiff > maxKnightRowOrColDiff || colDiff > maxKnightRowOrColDiff) continue;
 
 		if (testId > startOfBoardId && testId < endOfBoardId) {
 			const foundSquare = findPieceWithId(testId, store.game.board);
 			if (foundSquare.piece === targetColour + ChessPiece.KNIGHT) {
 				squareContainer.push(foundSquare);
-				break;
 			}
 		}
 	}
+
+	console.log(`Knights to target square:\n`);
+	console.log(squareContainer);
+	return squareContainer;
+}
+
+function pawnToTargetSquare(targetSquare: IPiece, targetColour: string) {
+	console.log(targetSquare);
+	const store = useGameStore();
+
+	const squareContainer: IPiece[] = [];
+	const targetCol = targetSquare.id % rowAndColValue;
+	const targetRow = Math.floor(targetSquare.id / rowAndColValue);
+
+	const opponentColour = targetSquare.piece[PieceProps.COLOUR] === ChessPiece.WHITE ? ChessPiece.BLACK : ChessPiece.WHITE;
 
 	//Pawn
 	const PawnOffset =
-		originColour === ChessPiece.WHITE
-			? [AdjacentSquareIdOffsets.UP_LEFT, AdjacentSquareIdOffsets.UP_RIGHT]
-			: [AdjacentSquareIdOffsets.DOWN_LEFT, AdjacentSquareIdOffsets.DOWN_RIGHT];
+		targetColour === ChessPiece.WHITE
+			? [
+					AdjacentSquareIdOffsets.DOWN_LEFT,
+					AdjacentSquareIdOffsets.DOWN_RIGHT,
+					AdjacentSquareIdOffsets.DOWN,
+					AdjacentSquareIdOffsets.NO_OFFSET,
+					PawnValues.DOWN_DOUBLE_MOVE_OFFSET,
+			  ]
+			: [
+					AdjacentSquareIdOffsets.UP_LEFT,
+					AdjacentSquareIdOffsets.UP_RIGHT,
+					AdjacentSquareIdOffsets.UP,
+					AdjacentSquareIdOffsets.NO_OFFSET,
+					PawnValues.UP_DOUBLE_MOVE_OFFSET,
+			  ];
+
+	const doubleMove = targetColour === ChessPiece.WHITE ? PawnValues.DOWN_DOUBLE_MOVE_OFFSET : PawnValues.UP_DOUBLE_MOVE_OFFSET;
+	const pawnStartRow = targetColour === ChessPiece.WHITE ? PawnValues.WHITE_PAWN_START : PawnValues.BLACK_PAWN_START;
+
 	for (const offset of PawnOffset) {
-		const testId: number = offset + startingId;
-		const kingAndPawnColDiff = Math.floor(testId % rowAndColValue) - Math.floor(startingId % rowAndColValue);
-		if (Math.abs(kingAndPawnColDiff) > 1) break;
+		const testId: number = offset + targetSquare.id;
+		console.log(testId);
 
 		if (testId > startOfBoardId && testId < endOfBoardId) {
-			const foundSquare = findPieceWithId(testId, board);
-			if (foundSquare.piece === targetColour + ChessPiece.PAWN) {
+			const foundSquare = findPieceWithId(testId, store.game.board);
+
+			const colDiff = Math.abs(targetCol - (testId % rowAndColValue));
+			const rowDiff = Math.abs(targetRow - Math.floor(testId / rowAndColValue));
+			if (targetSquare.piece === targetColour + ChessPiece.PAWN) { 
+				//Avoids it from increasing offset that will make it jump from various sides of the board instead of drawing line.
+				if (colDiff > 1) continue;
+
+				//If pawn can use special first move to block.
+				if (offset === doubleMove) {
+					if (Math.floor(testId / rowAndColValue) === pawnStartRow) squareContainer.push(foundSquare);
+					continue;
+				}
+
+				//If pawn can capture on target square
+				if (targetSquare.piece[PieceProps.COLOUR] === opponentColour && colDiff === 1) {
+					squareContainer.push(foundSquare);
+					continue;
+				}
+
+				//Normal pawn move to block.
+				if (rowDiff === 1 && colDiff === 0) {
+					squareContainer.push(foundSquare);
+					continue;
+				}
+			}
+			if (
+				targetSquare.piece === opponentColour + ChessPiece.PAWN &&
+				(Math.abs(offset) === PawnValues.ATTACK_VALUE_FIRST || Math.abs(offset) === PawnValues.ATTACK_VALUE_SECOND)
+			) {
 				squareContainer.push(foundSquare);
-				break;
 			}
 		}
 	}
 
-	// Bishop and Queen
+	console.log(`Pawns to target square:\n`);
+	console.log(squareContainer);
+	return squareContainer;
+}
+
+function diagonalToTargetSquare(targetSquare: IPiece, targetColour: string) {
+	const store = useGameStore();
+
+	const nonTargetColour = targetColour === ChessPiece.WHITE ? ChessPiece.BLACK : ChessPiece.WHITE;
+	const squareContainer: IPiece[] = [];
+
 	const Diagonal = [AdjacentSquareIdOffsets.DOWN_LEFT, AdjacentSquareIdOffsets.DOWN_RIGHT, AdjacentSquareIdOffsets.UP_LEFT, AdjacentSquareIdOffsets.UP_RIGHT];
+
+	const startingRow = Math.floor(targetSquare.id / rowAndColValue);
+	const startingCol = Math.floor(targetSquare.id % rowAndColValue);
 
 	for (const offset of Diagonal) {
 		let squaresAway: number = 1;
-		let testId: number = offset + startingId;
-		let rowDiff = 0;
-		let colDiff = 0;
+		let testId: number = offset + targetSquare.id;
 
-		while (testId > startOfBoardId && testId < endOfBoardId) {
-			rowDiff = Math.abs(startingRow - Math.floor(testId / rowAndColValue));
-			colDiff = Math.abs(startingCol - Math.floor(testId % rowAndColValue));
-			/*
-                Avoids Ids increments and loops around to other side of board. Example, checking horizontal on row 0 and current Id is 7, then we add AdjacentSquareIdOffsets.UP_LEFT.
-            */
-			if (rowDiff > squaresAway || colDiff > squaresAway) break;
-
-			const foundSquare = findPieceWithId(testId, store.game.board);
-
-			const testPieceColour = foundSquare.piece[PieceProps.COLOUR];
-			const testPieceType = foundSquare.piece[PieceProps.TYPE];
-			//Pieces to Ignore
-			if (testPieceType === ChessPiece.ROOK || testPieceType === ChessPiece.KNIGHT || testPieceType === ChessPiece.PAWN || testPieceColour === originColour) break;
-			//Pieces to test
-			if (foundSquare.piece === targetColour + ChessPiece.QUEEN || foundSquare.piece === targetColour + ChessPiece.BISHOP) {
-				squareContainer.push(foundSquare);
-				break;
-			}
-
-			testId = startingId + squaresAway++ * offset;
-		}
-	}
-
-	const Straights = [AdjacentSquareIdOffsets.UP, AdjacentSquareIdOffsets.RIGHT, AdjacentSquareIdOffsets.DOWN, AdjacentSquareIdOffsets.LEFT];
-
-	for (const offset of Straights) {
-		let squaresAway: number = 1;
-		let testId: number = offset + startingId;
-		let rowDiff = 0;
-		let colDiff = 0;
-
-		while (testId > startOfBoardId && testId < endOfBoardId) {
-			const foundSquare = findPieceWithId(testId, board);
-			
-			const testPieceColour = foundSquare.piece[PieceProps.COLOUR];
-			const testPieceType = foundSquare.piece[PieceProps.TYPE];
-			const testPiece = foundSquare.piece;
-
-			rowDiff = Math.abs(startingRow - Math.floor(testId / rowAndColValue));
-			colDiff = Math.abs(startingCol - Math.floor(testId % rowAndColValue));
+		while (testId >= startOfBoardId && testId <= endOfBoardId) {
+			const rowDiff = Math.abs(startingRow - Math.floor(testId / rowAndColValue));
+			const colDiff = Math.abs(startingCol - (testId % rowAndColValue));
 
 			//Avoids it from increasing offset that will make it jump from various sides of the board instead of drawing line.
 			if (rowDiff > squaresAway || colDiff > squaresAway) break;
 
+			const foundSquare = findPieceWithId(testId, store.game.board);
+
 			//Pieces to Ignore
 			if (
-				testPieceType === ChessPiece.KNIGHT ||
-				testPieceType === ChessPiece.PAWN ||
-				foundSquare.piece === targetColour + ChessPiece.BLACK ||
-				testPieceColour === originColour
+				foundSquare.piece[PieceProps.TYPE] === ChessPiece.ROOK ||
+				foundSquare.piece[PieceProps.TYPE] === ChessPiece.KNIGHT ||
+				foundSquare.piece[PieceProps.TYPE] === ChessPiece.PAWN ||
+				foundSquare.piece[PieceProps.COLOUR] === nonTargetColour
+			)
+				break;
+			//Pieces to test
+			if (foundSquare.piece === targetColour + ChessPiece.QUEEN || foundSquare.piece === targetColour + ChessPiece.BISHOP) {
+				console.log(`Testid: ${testId} SquaresAway: ${squaresAway}`);
+				squareContainer.push(foundSquare);
+			}
+
+			squaresAway++;
+			testId = targetSquare.id + squaresAway * offset;
+		}
+	}
+
+	console.log(`Diagonals to target square:\n`);
+	console.log(squareContainer);
+	return squareContainer;
+}
+
+function straightsToTargetSquare(targetSquare: IPiece, targetColour: string) {
+	const store = useGameStore();
+
+	const nonTargetColour = targetColour === ChessPiece.WHITE ? ChessPiece.BLACK : ChessPiece.WHITE;
+	const squareContainer: IPiece[] = [];
+
+	const Straights = [AdjacentSquareIdOffsets.UP, AdjacentSquareIdOffsets.RIGHT, AdjacentSquareIdOffsets.DOWN, AdjacentSquareIdOffsets.LEFT];
+
+	const startingRow = Math.floor(targetSquare.id / rowAndColValue);
+	const startingCol = Math.floor(targetSquare.id % rowAndColValue);
+
+	for (const offset of Straights) {
+		let squaresAway: number = 1;
+		let testId: number = offset + targetSquare.id;
+
+		while (testId >= startOfBoardId && testId <= endOfBoardId) {
+			const rowDiff = Math.abs(startingRow - Math.floor(testId / rowAndColValue));
+			const colDiff = Math.abs(startingCol - (testId % rowAndColValue));
+
+			//Avoids it from increasing offset that will make it jump from various sides of the board instead of drawing line.
+			if (rowDiff > squaresAway || colDiff > squaresAway) break;
+
+			const foundSquare = findPieceWithId(testId, store.game.board);
+
+			//Pieces to Ignore
+			if (
+				foundSquare.piece[PieceProps.TYPE] === ChessPiece.KNIGHT ||
+				foundSquare.piece[PieceProps.TYPE] === ChessPiece.PAWN ||
+				foundSquare.piece[PieceProps.TYPE] === ChessPiece.BISHOP ||
+				foundSquare.piece[PieceProps.COLOUR] === nonTargetColour
 			) {
 				break;
 			}
-
 			//Pieces that attack on straights
-			if (testPiece === targetColour + ChessPiece.ROOK || testPiece === targetColour + ChessPiece.QUEEN) {
+			if (foundSquare.piece === targetColour + ChessPiece.ROOK || foundSquare.piece === targetColour + ChessPiece.QUEEN) {
 				squareContainer.push(foundSquare);
-				break;
 			}
 
-			testId = startingId + squaresAway++ * offset;
+			squaresAway++;
+			testId = targetSquare.id + squaresAway * offset;
 		}
 	}
 
@@ -522,5 +611,5 @@ export function isFriendlyPiece(friendlyColour: string, toSquareId: number) {
 
 	if (toPiece === ChessPiece.EMPTY) return false;
 
-	return toPiece[startOfBoardId] === friendlyColour;
+	return toPiece[PieceProps.COLOUR] === friendlyColour;
 }
