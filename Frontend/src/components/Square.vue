@@ -45,21 +45,18 @@ function select() {
 
 	// If the user is trying to deselect the current piece
 	if (store.specialContainer.selectedPiece.id === props.id) {
-		if (store.testing) console.log('selecting same piece');
 		store.unselectPiece();
 		return;
 	}
 
 	// If a piece was already selected and the user is trying to select a new piece of the same color
 	if (pieceOnSquare.value[PieceProps.COLOUR] === store.specialContainer.selectedPiece.piece[PieceProps.COLOUR]) {
-		if (store.testing) console.log('selecting piece of same colour');
 		store.unselectPiece();
 		return;
 	}
 
 	// Otherwise, if no piece is currently selected, select the clicked piece
 	if (JSON.stringify(store.specialContainer.selectedPiece) === JSON.stringify(new TempPiece())) {
-		if (store.testing) console.log('selecting a piece');
 		store.specialContainer.selectedPiece = pieceToMove;
 		return;
 	}

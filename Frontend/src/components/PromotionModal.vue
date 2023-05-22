@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import PieceModalComponent from './PieceModalComponent.vue';
-import { useGameStore } from '../scripts/state'
+import { useGameStore } from '../scripts/state';
 import { PieceProps } from '@/scripts/staticValues';
 const store = useGameStore();
 const promotionPieces = ['q', 'n', 'r', 'b'];

@@ -33,7 +33,6 @@ export const moveValidators: Map<ChessPiece, moveBool> = new Map([
 
 export function makeMove(newSquare: IPiece) {
 	const store = useGameStore();
-	if (store.testing) console.log(`Inside Make Move`);
 	
 	if ((!newSquare.id && newSquare.id != 0) || newSquare.colour === undefined || newSquare.piece === undefined) {
 		console.error(`Error in makeMove. One of the values below are undefined or falsy\n
@@ -53,7 +52,6 @@ export function makeMove(newSquare: IPiece) {
 
 function validMove(move: IMove) {
 	const store = useGameStore();
-	if (store.testing) console.log(`Inside Valid Move`);
 	//Call corresponding piece type to validate a move for that piece
 	const pieceType: string = move.fromSquare.piece[PieceProps.TYPE];
 	const pieceColour: string = move.fromSquare.piece[PieceProps.COLOUR];
@@ -108,7 +106,6 @@ function validPawnMove(move: IMove) {
 
 function validRookMove(move: IMove) {
 	const store = useGameStore();
-	if (store.testing) console.log(`Inside Valid Rook Move`);
 	
 	const fromSquare = move.fromSquare;
 	const toSquare = move.toSquare;
@@ -133,7 +130,6 @@ function validRookMove(move: IMove) {
 
 function validKnightMove(move: IMove) {
 	const store = useGameStore();
-	if (store.testing) console.log(`Inside Valid Knight Move`);
 	
 	const fromSquare = move.fromSquare;
 	const toSquare = move.toSquare;
@@ -172,7 +168,6 @@ function validKnightMove(move: IMove) {
 
 function validBishopMove(move: IMove) {
 	const store = useGameStore();
-	if (store.testing) console.log(`Inside Valid Bishop move`);
 	
 	const fromSquare = move.fromSquare;
 	const toSquare = move.toSquare;
@@ -212,7 +207,6 @@ function validKingMove(move: IMove) {
 
 function validQueenMove(move: IMove) {
 	const store = useGameStore();
-	if (store.testing) console.log(`Inside Valid Queen Move`);
 	
 	const fromSquare = move.fromSquare;
 	const toSquare = move.toSquare;

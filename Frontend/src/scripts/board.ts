@@ -181,7 +181,6 @@ function findPieceWithId(id: number, board: IPiece[][]): IPiece {
 
 function findKingOnBoard(pieceColour: string, board: IPiece[][]) {
 	const store = useGameStore();
-	if (store.testing) console.log(`Inside findKingOnBoard`);
 	
 	const pieceType = 'k';
 
@@ -196,8 +195,6 @@ function findKingOnBoard(pieceColour: string, board: IPiece[][]) {
 	if (foundPiece === undefined) {
 		console.error('A king is missing???');
 	}
-
-	if (store.testing) console.log(`Inside findKingOnBoard. Found Piece: ${JSON.stringify(foundPiece)}`);
 
 	return foundPiece!;
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { commitPawnPromotionToBoard } from '@/scripts/board';
-import { useGameStore } from '../scripts/state'
+import { useGameStore } from '../scripts/state';
 const store = useGameStore();
 
 const props = defineProps({

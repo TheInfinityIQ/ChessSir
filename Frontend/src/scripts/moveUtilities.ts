@@ -104,10 +104,6 @@ export function isCastlingValid(pieceColour: string, castlingKingside: boolean) 
 }
 
 export function isKingInCheck(kingSquare: IPiece, pieceColour: string, board: IPiece[][]) {
-	const store = useGameStore();
-
-	if (store.testing) console.log(`Inside isKingInCheck`);
-
 	const startingId = kingSquare.id;
 	const startingRow = Math.floor(startingId / rowAndColValue);
 	const startingCol = Math.floor(startingId % rowAndColValue);
@@ -430,7 +426,7 @@ function straightsToTargetSquare(targetSquare: IPiece, targetColour: string) {
 
 export function isKingInCheckAfterMove(move: IMove) {
 	const store = useGameStore();
-	if (store.testing) console.log(`inside isKingInCheckAfterMove`);
+
 	const pieceColour = move.fromSquare.piece[PieceProps.COLOUR];
 	let tempBoard = JSON.parse(JSON.stringify(store.game.board));
 

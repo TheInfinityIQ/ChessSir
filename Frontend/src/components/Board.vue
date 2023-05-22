@@ -3,7 +3,7 @@ import { setupBoard } from '@/scripts/board';
 import { computed, onMounted } from 'vue';
 import Square from './Square.vue';
 import { getIsBoardFlipped } from '../scripts/board';
-import { useGameStore } from '../scripts/state'
+import { useGameStore } from '../scripts/state';
 const store = useGameStore();
 
 onMounted(setupBoard);
