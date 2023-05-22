@@ -14,7 +14,7 @@ import {
 	startRowValue,
 	PawnValues,
 } from './staticValues';
-import type { IMove, IPiece, Move } from './types';
+import { Move, type IMove, type IPiece, Piece } from './types';
 import { useGameStore } from './state';
 
 export const hasPieceMoved = new Map<number, boolean>([
@@ -189,9 +189,9 @@ export function isKingInCheck(kingSquare: IPiece, pieceColour: string, board: IP
 	}
 
 	// Rook && Queen && King
-	const Straigts = [AdjacentSquareIdOffsets.UP, AdjacentSquareIdOffsets.RIGHT, AdjacentSquareIdOffsets.DOWN, AdjacentSquareIdOffsets.LEFT];
+	const Straights = [AdjacentSquareIdOffsets.UP, AdjacentSquareIdOffsets.RIGHT, AdjacentSquareIdOffsets.DOWN, AdjacentSquareIdOffsets.LEFT];
 
-	for (const offset of Straigts) {
+	for (const offset of Straights) {
 		let squaresAway: number = 1;
 		let testId: number = offset + startingId;
 		let rowDiff = 0;
@@ -273,84 +273,66 @@ function knightsToTargetSquare(targetSquare: IPiece, targetColour: string) {
 		}
 	}
 
-	console.log(`Knights to target square:\n`);
-	console.log(squareContainer);
 	return squareContainer;
 }
 
 function pawnToTargetSquare(targetSquare: IPiece, targetColour: string) {
-	console.log(targetSquare);
 	const store = useGameStore();
 
 	const squareContainer: IPiece[] = [];
 	const targetCol = targetSquare.id % rowAndColValue;
-	const targetRow = Math.floor(targetSquare.id / rowAndColValue);
 
-	const opponentColour = targetSquare.piece[PieceProps.COLOUR] === ChessPiece.WHITE ? ChessPiece.BLACK : ChessPiece.WHITE;
+	const nonTargetColour = targetColour === ChessPiece.WHITE ? ChessPiece.BLACK : ChessPiece.WHITE;
 
 	//Pawn
 	const PawnOffset =
 		targetColour === ChessPiece.WHITE
-			? [
-					AdjacentSquareIdOffsets.DOWN_LEFT,
-					AdjacentSquareIdOffsets.DOWN_RIGHT,
-					AdjacentSquareIdOffsets.DOWN,
-					AdjacentSquareIdOffsets.NO_OFFSET,
-					PawnValues.DOWN_DOUBLE_MOVE_OFFSET,
-			  ]
-			: [
-					AdjacentSquareIdOffsets.UP_LEFT,
-					AdjacentSquareIdOffsets.UP_RIGHT,
-					AdjacentSquareIdOffsets.UP,
-					AdjacentSquareIdOffsets.NO_OFFSET,
-					PawnValues.UP_DOUBLE_MOVE_OFFSET,
-			  ];
+			? [AdjacentSquareIdOffsets.DOWN_LEFT, AdjacentSquareIdOffsets.DOWN_RIGHT, AdjacentSquareIdOffsets.DOWN, PawnValues.DOWN_DOUBLE_MOVE_OFFSET, AdjacentSquareIdOffsets.NO_OFFSET]
+			: [AdjacentSquareIdOffsets.UP_LEFT, AdjacentSquareIdOffsets.UP_RIGHT, AdjacentSquareIdOffsets.UP, PawnValues.UP_DOUBLE_MOVE_OFFSET, AdjacentSquareIdOffsets.NO_OFFSET];
 
-	const doubleMove = targetColour === ChessPiece.WHITE ? PawnValues.DOWN_DOUBLE_MOVE_OFFSET : PawnValues.UP_DOUBLE_MOVE_OFFSET;
 	const pawnStartRow = targetColour === ChessPiece.WHITE ? PawnValues.WHITE_PAWN_START : PawnValues.BLACK_PAWN_START;
+	const doubleMove = targetColour === ChessPiece.WHITE ? PawnValues.DOWN_DOUBLE_MOVE_OFFSET : PawnValues.UP_DOUBLE_MOVE_OFFSET;
+	const singleMove = targetColour === ChessPiece.WHITE ? AdjacentSquareIdOffsets.DOWN : AdjacentSquareIdOffsets.UP;
+	const attackOne = targetColour === ChessPiece.WHITE ? AdjacentSquareIdOffsets.DOWN_LEFT : AdjacentSquareIdOffsets.UP_LEFT;
+	const attackTwo = targetColour === ChessPiece.WHITE ? AdjacentSquareIdOffsets.DOWN_RIGHT : AdjacentSquareIdOffsets.UP_RIGHT;
 
 	for (const offset of PawnOffset) {
 		const testId: number = offset + targetSquare.id;
-		console.log(testId);
 
 		if (testId > startOfBoardId && testId < endOfBoardId) {
 			const foundSquare = findPieceWithId(testId, store.game.board);
 
 			const colDiff = Math.abs(targetCol - (testId % rowAndColValue));
-			const rowDiff = Math.abs(targetRow - Math.floor(testId / rowAndColValue));
-			if (targetSquare.piece === targetColour + ChessPiece.PAWN) { 
+
+			if (foundSquare.piece === targetColour + ChessPiece.PAWN) {
 				//Avoids it from increasing offset that will make it jump from various sides of the board instead of drawing line.
 				if (colDiff > 1) continue;
 
 				//If pawn can use special first move to block.
 				if (offset === doubleMove) {
-					if (Math.floor(testId / rowAndColValue) === pawnStartRow) squareContainer.push(foundSquare);
+					if (Math.floor(testId / rowAndColValue) === pawnStartRow && !isJumpingPiece(new Move(targetSquare, foundSquare))) squareContainer.push(foundSquare);
 					continue;
 				}
 
 				//If pawn can capture on target square
-				if (targetSquare.piece[PieceProps.COLOUR] === opponentColour && colDiff === 1) {
+				if (offset === singleMove) {
 					squareContainer.push(foundSquare);
 					continue;
 				}
 
-				//Normal pawn move to block.
-				if (rowDiff === 1 && colDiff === 0) {
+				if (offset === attackOne && findPieceWithId(targetSquare.id, store.game.board).piece[PieceProps.COLOUR] === nonTargetColour) {
 					squareContainer.push(foundSquare);
 					continue;
 				}
-			}
-			if (
-				targetSquare.piece === opponentColour + ChessPiece.PAWN &&
-				(Math.abs(offset) === PawnValues.ATTACK_VALUE_FIRST || Math.abs(offset) === PawnValues.ATTACK_VALUE_SECOND)
-			) {
-				squareContainer.push(foundSquare);
+
+				if (offset === attackTwo && findPieceWithId(targetSquare.id, store.game.board).piece[PieceProps.COLOUR] === nonTargetColour) {
+					squareContainer.push(foundSquare);
+					continue;
+				}
 			}
 		}
 	}
 
-	console.log(`Pawns to target square:\n`);
-	console.log(squareContainer);
 	return squareContainer;
 }
 
@@ -397,8 +379,6 @@ function diagonalToTargetSquare(targetSquare: IPiece, targetColour: string) {
 		}
 	}
 
-	console.log(`Diagonals to target square:\n`);
-	console.log(squareContainer);
 	return squareContainer;
 }
 

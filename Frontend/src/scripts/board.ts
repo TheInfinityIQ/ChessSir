@@ -120,10 +120,6 @@ function commitCastleToBoard(pieceColour: string, castlingKingSide: boolean) {
 
 function endTurn() {
 	const store = useGameStore();
-	
-	// if(isCheckmate());
-
-	console.log('End Turn');
 
 	store.totalMoves++;
 

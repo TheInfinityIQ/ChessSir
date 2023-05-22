@@ -61,19 +61,11 @@ function select() {
 	if (JSON.stringify(store.specialContainer.selectedPiece) === JSON.stringify(new TempPiece())) {
 		if (store.testing) console.log('selecting a piece');
 		store.specialContainer.selectedPiece = pieceToMove;
-		console.log(store.specialContainer.selectedPiece.id === props.id);
 		return;
 	}
 
 	makeMove(pieceToMove);
 	store.unselectPiece();
-}
-
-function test() {
-	const store = useGameStore();
-	const pieceToMove = new Piece(props.id, ChessPiece.WHITE + store.game.board[row][column].piece[PieceProps.TYPE], props.squareColour);
-	const targetColour = ChessPiece.WHITE;
-	piecesToSquare(pieceToMove, targetColour);
 }
 </script>
 
@@ -90,7 +82,6 @@ function test() {
 			},
 		]"
 		@click="select"
-		@contextmenu.prevent="test"
 	></div>
 </template>
 
