@@ -5,7 +5,6 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { getIsBoardFlipped } from '@/scripts/board';
 import { ChessPiece, PieceProps, rowAndColValue } from '@/scripts/staticValues';
 import { Piece, TempPiece } from '@/scripts/types';
 import { computed, onMounted, type ComputedRef, type Ref, nextTick } from 'vue';
@@ -25,7 +24,6 @@ const column = props.id % rowAndColValue;
 const pieceOnSquare: ComputedRef<string> = computed(() => store.game.board[row][column].piece);
 const isSelectable: ComputedRef<boolean> = computed(() => store.game.board[row][column].piece !== ChessPiece.EMPTY);
 const isSelected: ComputedRef<boolean> = computed(() => store.specialContainer.selectedPiece.id === props.id);
-const isBoardFlipped: Ref<boolean> = getIsBoardFlipped();
 
 // Ensure that the input values for the piece are valid
 const ensureValidity = () => {
@@ -64,6 +62,10 @@ function select() {
 	makeMove(pieceToMove);
 	store.unselectPiece();
 }
+
+function test() {
+	console.log(piecesToSquare(new Piece(props.id, pieceOnSquare.value, props.squareColour), ChessPiece.BLACK, store.game.board));
+}
 </script>
 
 <template>
@@ -74,11 +76,12 @@ function select() {
 				darker: squareColour == 1,
 				selectable: isSelectable,
 				selected: isSelected,
-				flipPiece: isBoardFlipped,
+				flipPiece: store.isBoardFlipped,
 				[store.game.board[row][column].piece]: true,
 			},
 		]"
 		@click="select"
+		@contextmenu.prevent="test"
 	></div>
 </template>
 

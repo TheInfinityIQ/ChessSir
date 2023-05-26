@@ -2,81 +2,18 @@ import { reactive, ref, type Ref } from 'vue';
 import { Piece, type IPiece, type Move, type IMove } from './types';
 import { CastlingPiecesColStart, CastlingPiecesColOffset, initBoard, endOfBoardId, endRowValue, rowAndColValue, startOfBoardId, startRowValue } from './staticValues';
 import { useGameStore } from './state';
+import { endTurn } from './game';
+import { getSquares } from './boardUtilities';
 
-let previousBoard: IPiece[][] = [];
-
-const testToggleFlipBoard: Ref<boolean> = ref(false);
+//TODO: REMOVE WHEN DONE TESTING
 export function toggleFlipBoard() {
-	testToggleFlipBoard.value = !testToggleFlipBoard.value;
-}
-export function getToggleFlipBoard() {
-	return testToggleFlipBoard;
-}
-let isBoardFlipped: Ref<boolean> = ref(false);
-
-function getPieceType(id: number) {
 	const store = useGameStore();
-	let pieceType = 'Invalid ID';
-
-	store.game.board.forEach((row) => {
-		row.forEach((piece) => {
-			if (piece.id == id) {
-				pieceType = piece.piece;
-			}
-		});
-	});
-
-	return pieceType;
-}
-
-export function setupBoard() {
-	let board: IPiece[][] = [];
-	let tempRow: IPiece[] = [];
-
-	for (let row = startRowValue; row < rowAndColValue; row++) {
-		for (let column = 0; column < rowAndColValue; column++) {
-			const tempPiece = getSquares()[row * rowAndColValue + column];
-			tempRow.push(new Piece(tempPiece.id, tempPiece.piece, tempPiece.colour));
-		}
-		board[row] = tempRow;
-		tempRow = [];
-	}
-
-	return board;
-}
-
-export function flipBoard() {
-	if (!testToggleFlipBoard.value) {
-		return;
-	}
-	isBoardFlipped.value = !isBoardFlipped.value;
-}
-
-export function getIsBoardFlipped() {
-	return isBoardFlipped;
-}
-
-function getSquares() {
-	const squares: IPiece[] = [];
-	let row: number, column: number, piece: string;
-
-	for (let count = 0; count < 64; count++) {
-		row = Math.floor(count / rowAndColValue);
-		column = count % rowAndColValue;
-
-		piece = initBoard[row][column];
-
-		const isLightSquare = (row % 2 === 0) === (column % 2 === 0);
-
-		squares[count] = new Piece(count, piece, isLightSquare ? 0 : 1);
-	}
-
-	return squares;
+	store.testToggleFlipBoard = store.testToggleFlipBoard;
 }
 
 function commitMoveToBoard(newMove: Move) {
-	saveLastBoardState();
 	const store = useGameStore();
+	store.savePreviousBoard(store.game.board);
 	let fromSquare: IPiece = newMove.fromSquare;
 
 	let fromRow: number = Math.trunc(fromSquare.id / rowAndColValue);
@@ -94,8 +31,8 @@ function commitMoveToBoard(newMove: Move) {
 }
 
 function commitCastleToBoard(pieceColour: string, castlingKingSide: boolean) {
-	saveLastBoardState();
 	const store = useGameStore();
+	store.savePreviousBoard(store.game.board);
 	const rowToCastle = pieceColour === 'w' ? endRowValue : startRowValue;
 	const pieceTypes = ['k', 'r'];
 	const kingAndRookNewId =
@@ -118,19 +55,9 @@ function commitCastleToBoard(pieceColour: string, castlingKingSide: boolean) {
 	endTurn();
 }
 
-function endTurn() {
-	const store = useGameStore();
-
-	store.totalMoves++;
-
-	store.toggleTurns();
-	flipBoard();
-	store.unselectPiece();
-}
-
 export function commitPawnPromotionToBoard(move: IMove) {
-	saveLastBoardState();
 	const store = useGameStore();
+	store.savePreviousBoard(store.game.board);
 
 	const { fromSquare, toSquare } = move;
 	const fromRow = Math.floor(fromSquare.id / rowAndColValue);
@@ -144,59 +71,28 @@ export function commitPawnPromotionToBoard(move: IMove) {
 	endTurn();
 }
 
-function saveLastBoardState() {
-	const store = useGameStore();
-	previousBoard = JSON.parse(JSON.stringify(store.game.board));
-}
+export function setupBoard() {
+	let board: IPiece[][] = [];
+	let tempRow: IPiece[] = [];
 
-export function getPreviousBoard() {
-	return previousBoard;
-}
-
-export function getSquareWithId(id: number) {
-	const store = useGameStore();
-	let row: number = Math.trunc(id! / rowAndColValue);
-	let column: number = id! % rowAndColValue;
-
-	return store.game.board[row][column];
-}
-
-function findPieceWithId(id: number, board: IPiece[][]): IPiece {
-	let foundPiece: IPiece | undefined;
-
-	for (const row of board) {
-		foundPiece = row.find((piece) => piece.id === id);
-		if (foundPiece) {
-			break;
+	for (let row = startRowValue; row < rowAndColValue; row++) {
+		for (let column = 0; column < rowAndColValue; column++) {
+			const tempPiece = getSquares()[row * rowAndColValue + column];
+			tempRow.push(new Piece(tempPiece.id, tempPiece.piece, tempPiece.colour));
 		}
+		board[row] = tempRow;
+		tempRow = [];
 	}
 
-	if (id < startOfBoardId || id > endOfBoardId || !foundPiece) {
-		console.log(foundPiece);
-		throw new Error(`Piece with id ${id} not found or id is out of bounds. Found piece `);
-	}
-
-	return foundPiece!;
+	return board;
 }
 
-function findKingOnBoard(pieceColour: string, board: IPiece[][]) {
+export function flipBoard() {
 	const store = useGameStore();
-	
-	const pieceType = 'k';
-
-	let foundPiece: IPiece | undefined;
-	for (const row of board) {
-		foundPiece = row.find((square) => square.piece === pieceColour + pieceType);
-		if (foundPiece) {
-			break;
-		}
+	if (!store.testToggleFlipBoard) {
+		return;
 	}
-
-	if (foundPiece === undefined) {
-		console.error('A king is missing???');
-	}
-
-	return foundPiece!;
+	store.isBoardFlipped = !store.isBoardFlipped;
 }
 
-export { getPieceType, commitMoveToBoard, findPieceWithId, commitCastleToBoard, findKingOnBoard };
+export { commitMoveToBoard, commitCastleToBoard };

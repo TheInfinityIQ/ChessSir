@@ -3,18 +3,14 @@ import {
 	determineDirection,
 	getChessPieceFromLetter,
 	hasPieceMoved,
-	isCastlingValid,
 	isFriendlyPiece,
 	isJumpingPiece,
-	isKingInCheck,
-	isKingInCheckAfterMove,
 	isMoreThanOneSquare,
-	isValidEnPassant,
-	isValidPawnPromotion,
 } from './moveUtilities';
 import { CastlingPiecesId, ChessPiece, Direction, KnightMoveOffsets, PieceProps, endOfBoardId, rowAndColValue, startOfBoardId } from './staticValues';
 import { type IPiece, type IMove, Move, type moveBool } from './types';
 import { useGameStore } from './state'
+import { isKingInCheckAfterMove, isValidEnPassant, isValidPawnPromotion, isKingInCheck, isCastlingValid } from './specialPieceRules';
 
 export enum CastlingPiece {
 	QUEENSIDE_ROOK = 0,
@@ -44,13 +40,13 @@ export function makeMove(newSquare: IPiece) {
 
 	let move: IMove = new Move(store.specialContainer.selectedPiece, newSquare);
 	
-	if (!validMove(move)) return;
+	if (!isValidMove(move)) return;
 	if (store.isPromotionActive) return;
 
 	commitMoveToBoard(move);
 }
 
-function validMove(move: IMove) {
+function isValidMove(move: IMove) {
 	const store = useGameStore();
 	//Call corresponding piece type to validate a move for that piece
 	const pieceType: string = move.fromSquare.piece[PieceProps.TYPE];
@@ -153,10 +149,10 @@ function validKnightMove(move: IMove) {
 	validIdsMods.forEach((value: number) => {
 		let modId = value + fromSquare.id;
 		const lessThanUpBound = value + fromSquare.id < endOfBoardId;
-		const moreThanlowBound = value + fromSquare.id > startOfBoardId;
+		const moreThanLowBound = value + fromSquare.id > startOfBoardId;
 		const notFriendlyPiece = !isFriendlyPiece(pieceColour, toSquare.id);
 
-		if (lessThanUpBound && moreThanlowBound && notFriendlyPiece) {
+		if (lessThanUpBound && moreThanLowBound && notFriendlyPiece) {
 			validIDs.push(modId);
 		}
 	});
@@ -185,23 +181,23 @@ function validKingMove(move: IMove) {
 	const store = useGameStore();
 	
 	const fromSquare = move.fromSquare;
-	const pieceColour = fromSquare.piece[PieceProps.COLOUR];
+	const kingColour = fromSquare.piece[PieceProps.COLOUR];
 	const toSquare = move.toSquare;
 	const castlingKingside = toSquare.id - fromSquare.id > startOfBoardId ? true : false;
 
 	const colDiff = Math.floor(fromSquare.id % rowAndColValue) - Math.floor(toSquare.id % rowAndColValue);
 	const rowDiff = Math.floor(fromSquare.id / rowAndColValue) - Math.floor(toSquare.id / rowAndColValue);
 
-	if (isKingInCheck(toSquare, pieceColour, store.game.board)) return false;
-
-	if (Math.abs(colDiff) === 2 && rowDiff === 0 && isCastlingValid(pieceColour, castlingKingside)) {
-		commitCastleToBoard(pieceColour, castlingKingside);
+	if (isKingInCheck(toSquare, store.game.board, kingColour)) return false;
+	console.log("King is not in check");
+	if (Math.abs(colDiff) === 2 && rowDiff === 0 && isCastlingValid(kingColour, castlingKingside)) {
+		commitCastleToBoard(kingColour, castlingKingside);
 	}
 
 	if (!validQueenMove(move) || isMoreThanOneSquare(move)) return false;
 
 	//Updates to prevent castling
-	pieceColour === ChessPiece.WHITE ? hasPieceMoved.set(CastlingPiecesId.WHITE_KING, true) : hasPieceMoved.set(CastlingPiecesId.BLACK_KING, true);
+	kingColour === ChessPiece.WHITE ? hasPieceMoved.set(CastlingPiecesId.WHITE_KING, true) : hasPieceMoved.set(CastlingPiecesId.BLACK_KING, true);
 	return true;
 }
 

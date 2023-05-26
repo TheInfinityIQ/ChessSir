@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Board from './components/Board.vue';
 import PromotionModal from './components/PromotionModal.vue';
-import { flipBoard, getToggleFlipBoard, setupBoard, toggleFlipBoard } from './scripts/board';
+import { flipBoard, setupBoard, toggleFlipBoard } from './scripts/board';
 import { useGameStore } from './scripts/state'
 const store = useGameStore();
 
@@ -16,7 +16,7 @@ function setupGame() {
 			<button @click="setupGame">setup board</button>
 			<button @click="flipBoard()">flip Board</button>
 			<button @click="store.isPromotionActive = !store.isPromotionActive">toggle modal</button>
-			<button @click="toggleFlipBoard()">no flip {{ !getToggleFlipBoard().value }}</button>
+			<button @click="toggleFlipBoard()">no flip {{ !store.testToggleFlipBoard }}</button>
 		</nav>
 		<section class="grid-container-body row-2">
 			<article class="column-1"></article>
