@@ -1,5 +1,5 @@
 import type { Ref } from 'vue';
-import type { IMove } from './types';
+import type { IMove, IPiece } from './types';
 
 import { reactive, ref } from 'vue';
 import { Move, TempPiece } from './types';
@@ -10,14 +10,17 @@ export const useGameStore = defineStore('game', () => {
 	const kingInCheck: Ref<boolean> = ref(false);
 	const isPromotionActive: Ref<boolean> = ref(false);
 	const isWhitesTurn: Ref<boolean> = ref(true);
+	const testToggleFlipBoard: Ref<boolean> = ref(false);
+	const isBoardFlipped: Ref<boolean> = ref(false);
 	const totalMoves: Ref<number> = ref(0);
+	const selectedPieces: Ref<number[]> = ref([]);
 	const specialContainer = reactive({
 		selectedPiece: new TempPiece(),
 		pieceToPromote: new TempPiece(),
-		moveToPromote: new Move(new TempPiece(), new TempPiece())
+		moveToPromote: new Move(new TempPiece(), new TempPiece()),
 	});
-	const selectedPieces: Ref<number[]> = ref([]);
 	const testing: boolean = false;
+	let previousBoard: IPiece[][] = [];
 	const game = reactive({
 		board: setupBoard(),
 	});
@@ -43,9 +46,16 @@ export const useGameStore = defineStore('game', () => {
 	}
 
 	function isPieceSelected() {
-
-		//Compared not equal to make function more readable. If they equaled, then no piece is selected. 
+		//Compared not equal to make function more readable. If they equaled, then no piece is selected.
 		return JSON.stringify(specialContainer.selectedPiece) !== JSON.stringify(new TempPiece());
+	}
+
+	function savePreviousBoard(board: IPiece[][]) {
+		previousBoard = board;
+	}
+
+	function getPreviousBoard(){
+		return previousBoard;
 	}
 
 	return {
@@ -57,9 +67,13 @@ export const useGameStore = defineStore('game', () => {
 		selectedPieces,
 		testing,
 		specialContainer,
+		isBoardFlipped,
+		testToggleFlipBoard,
+		getPreviousBoard,
 		isPieceSelected,
 		unselectPiece,
 		updateMoveToPromote,
+		savePreviousBoard,
 		toggleTurns,
 		togglePromotion,
 		incrementMoves,
