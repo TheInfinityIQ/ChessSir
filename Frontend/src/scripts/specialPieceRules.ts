@@ -3,7 +3,8 @@ import { hasPieceMoved, piecesToSquare } from './moveUtilities';
 import { CastlingPiece } from './moveValidation';
 import { useGameStore } from './state';
 import { rowAndColValue, PieceProps, ChessPiece, startRowValue, endRowValue, CastlingPiecesId, AdjacentSquareIdOffsets } from './staticValues';
-import type { IMove, IPiece } from './types';
+import { Move, type IMove, type IPiece } from './types';
+import { colDiff } from './valueUtilities';
 
 export function isValidPawnPromotion(move: IMove) {
 	const store = useGameStore();
@@ -50,17 +51,25 @@ export function isCastlingValid(kingColour: string, castlingKingside: boolean) {
 			? [CastlingPiecesId.WHITE_ROOK_QUEENSIDE, CastlingPiecesId.WHITE_ROOK_KINGSIDE, CastlingPiecesId.WHITE_KING]
 			: [CastlingPiecesId.BLACK_ROOK_QUEENSIDE, CastlingPiecesId.BLACK_ROOK_KINGSIDE, CastlingPiecesId.BLACK_KING];
 
+	const kingSquare = findKingOnBoard(kingColour, store.game.board);
+
 	function calcIsRoomToCastle() {
 		if (castlingKingside) {
-			for (let position = pieces[CastlingPiece.KING] + AdjacentSquareIdOffsets.RIGHT; position < pieces[CastlingPiece.KINGSIDE_ROOK]; position++) {
+			const startingPosition = pieces[CastlingPiece.KING] + AdjacentSquareIdOffsets.RIGHT;
+			
+			for (let position = startingPosition; position < pieces[CastlingPiece.KINGSIDE_ROOK]; position++) {
 				const square = findPieceWithId(position, store.game.board);
-				if (isKingInCheck(square, store.game.board, kingColour) || square.piece !== ChessPiece.EMPTY) return false;
+				console.log(square);
+				if (isKingInCheckAfterMove(new Move(kingSquare, square)) || square.piece !== ChessPiece.EMPTY) return false;
 			}
+
 			return true;
 		} else {
-			for (let position = pieces[CastlingPiece.KING] + AdjacentSquareIdOffsets.LEFT; position > pieces[CastlingPiece.QUEENSIDE_ROOK]; position--) {
+			const startingPosition = pieces[CastlingPiece.KING] + AdjacentSquareIdOffsets.LEFT;
+			
+			for (let position = startingPosition; position > pieces[CastlingPiece.QUEENSIDE_ROOK]; position--) {
 				const square = findPieceWithId(position, store.game.board);
-				if (isKingInCheck(square, store.game.board, kingColour) || square.piece !== ChessPiece.EMPTY) return false;
+				if (isKingInCheckAfterMove(new Move(kingSquare, square)) || square.piece !== ChessPiece.EMPTY) return false;
 			}
 
 			return true;
@@ -68,8 +77,9 @@ export function isCastlingValid(kingColour: string, castlingKingside: boolean) {
 	}
 
 	const isRoomToCastle = calcIsRoomToCastle();
+	console.log(`Room to Castle: ${isRoomToCastle}`)
 
-	if (isKingInCheck(findKingOnBoard(kingColour, store.game.board), store.game.board, kingColour)) return false;
+	if (isKingInCheck(findKingOnBoard(kingColour, store.game.board), store.game.board)) return false;
 	if (hasPieceMoved.get(pieces[CastlingPiece.KING]) || !isRoomToCastle) return false;
 
 	if (castlingKingside) {
@@ -81,12 +91,28 @@ export function isCastlingValid(kingColour: string, castlingKingside: boolean) {
 	return true;
 }
 
-export function isKingInCheck(kingSquare: IPiece, board: IPiece[][], kingColour: string) {
+export function isKingInCheck(kingSquare: IPiece, board: IPiece[][]) {
 	//Can't use colour from kingSquare because some functions pass potential kingSquares so we won't have access to colours;
+	const kingColour = kingSquare.piece[PieceProps.COLOUR];
 	const opponentColour = kingColour === ChessPiece.WHITE ? ChessPiece.BLACK : ChessPiece.WHITE;
 
-	const pieces: IPiece[] = piecesToSquare(kingSquare, opponentColour, board);
-	if (pieces.length > 0) return true;
+	const attackingFromSquares: IPiece[] = piecesToSquare(kingSquare, opponentColour, board);
+
+	// Pawns are the only piece that can move to a square and no capture something on that square. 
+	if (attackingFromSquares.length > 0) {
+		for (let piece = 0; piece < attackingFromSquares.length; piece++) {
+			const attackSquare = attackingFromSquares[piece];
+			if (attackSquare.piece[PieceProps.TYPE] === ChessPiece.PAWN && isPawnAThreat(attackSquare, kingSquare) === true) return true;
+			if (attackSquare.piece[PieceProps.TYPE] !== ChessPiece.PAWN) return true;
+		}
+	}
+
+	return false;
+}
+
+function isPawnAThreat(pawnOriginSquare: IPiece, pawnThreatenedSquare: IPiece) {
+	//Pawns can only attack from side. If no col difference that means that pawn has vision on a square in front of it and therefore, is not a threat
+	if (colDiff(pawnOriginSquare, pawnThreatenedSquare, true) > 0) return true;
 	return false;
 }
 
@@ -107,5 +133,5 @@ export function isKingInCheckAfterMove(move: IMove) {
 
 	tempBoard[toRow][toColumn].piece = fromSquare.piece;
 
-	return isKingInCheck(findKingOnBoard(kingColour, store.game.board), tempBoard, kingColour);
+	return isKingInCheck(findKingOnBoard(kingColour, tempBoard), tempBoard);
 }

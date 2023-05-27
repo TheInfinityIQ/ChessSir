@@ -1,7 +1,6 @@
 import { commitCastleToBoard, commitMoveToBoard } from './board';
 import {
 	determineDirectionType,
-	getChessPieceFromLetter,
 	hasPieceMoved,
 	isFriendlyPiece,
 	isJumpingPiece,
@@ -51,14 +50,13 @@ function isValidMove(move: IMove) {
 	//Call corresponding piece type to validate a move for that piece
 	const pieceType: string = move.fromSquare.piece[PieceProps.TYPE];
 	const pieceColour: string = move.fromSquare.piece[PieceProps.COLOUR];
-	const piece: ChessPiece | undefined = getChessPieceFromLetter(pieceType);
 
 	if (store.isWhitesTurn && pieceColour === ChessPiece.BLACK) return false;
 	if (!store.isWhitesTurn && pieceColour === ChessPiece.WHITE) return false;
 	
-	// if piece or moveValidators.get(piece) is falsy, then return () => false
-	const validator: moveBool = piece ? moveValidators.get(piece) ?? (() => false) : () => false;
-	if (move.fromSquare.piece[PieceProps.TYPE] !== ChessPiece.KING && store.totalMoves > 0) {
+	//Get correct validation function if it exists or get anonymous function that returns false.
+	const validator: moveBool = pieceType as ChessPiece ? moveValidators.get(pieceType as ChessPiece) ?? (() => false) : () => false;
+	if (store.totalMoves > 0) {
 		if (isKingInCheckAfterMove(move)) return false;
 	}
 
@@ -188,7 +186,6 @@ export function validKingMove(move: IMove) {
 	const colDiff = Math.floor(fromSquare.id % rowAndColValue) - Math.floor(toSquare.id % rowAndColValue);
 	const rowDiff = Math.floor(fromSquare.id / rowAndColValue) - Math.floor(toSquare.id / rowAndColValue);
 
-	if (isKingInCheck(toSquare, store.game.board, kingColour)) return false;
 	if (Math.abs(colDiff) === 2 && rowDiff === 0 && isCastlingValid(kingColour, castlingKingside)) {
 		commitCastleToBoard(kingColour, castlingKingside);
 	}

@@ -1,6 +1,6 @@
-import { useGameStore } from "./state";
-import { rowAndColValue, initBoard, startRowValue, endOfBoardId, startOfBoardId } from "./staticValues";
-import { Piece, type IPiece } from "./types";
+import { useGameStore } from './state';
+import { rowAndColValue, initBoard, startRowValue, endOfBoardId, startOfBoardId } from './staticValues';
+import { Piece, type IPiece } from './types';
 
 export function getSquares() {
 	const squares: IPiece[] = [];
@@ -43,7 +43,6 @@ export function getSquareWithId(id: number) {
 	return store.game.board[row][column];
 }
 
-
 export function findPieceWithId(id: number, board: IPiece[][]): IPiece {
 	let foundPiece: IPiece | undefined;
 
@@ -62,14 +61,14 @@ export function findPieceWithId(id: number, board: IPiece[][]): IPiece {
 	return foundPiece!;
 }
 
-export function findKingOnBoard(pieceColour: string, board: IPiece[][]) {
+export function findKingOnBoard(kingColour: string, board: IPiece[][]) {
 	const store = useGameStore();
-	
+
 	const pieceType = 'k';
 
 	let foundPiece: IPiece | undefined;
 	for (const row of board) {
-		foundPiece = row.find((square) => square.piece === pieceColour + pieceType);
+		foundPiece = row.find((square) => square.piece === kingColour + pieceType);
 		if (foundPiece) {
 			break;
 		}

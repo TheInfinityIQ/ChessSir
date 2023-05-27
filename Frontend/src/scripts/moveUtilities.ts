@@ -16,6 +16,7 @@ import {
 import { Move, type IMove, type IPiece, Piece } from './types';
 import { useGameStore } from './state';
 import { findKingOnBoard, findPieceWithId, isIdWithinBounds } from './boardUtilities';
+import { rowDiff, colDiff } from './valueUtilities';
 
 //TODO: ADD TO STATE
 export const hasPieceMoved = new Map<number, boolean>([
@@ -127,23 +128,24 @@ export function isFriendlyPiece(friendlyColour: string, toSquareId: number) {
 	return toPiece[PieceProps.COLOUR] === friendlyColour;
 }
 
-export function getChessPieceFromLetter(letter: string): ChessPiece | undefined {
-	for (const key in ChessPiece) {
-		if (ChessPiece[key as keyof typeof ChessPiece] === letter) {
-			return ChessPiece[key as keyof typeof ChessPiece];
-		}
-	}
-	return undefined;
-}
-
 export function piecesToSquare(targetSquare: IPiece, targetColour: string, board: IPiece[][]): IPiece[] {
 	const squareContainer: IPiece[] = [];
+	const store = useGameStore();
+
+	// console.log(`Pieces to Square on move ${store.totalMoves}
+	// \nTarget targetSquare: ${JSON.stringify(targetSquare)}. targetColour: ${targetColour}
+	// \n knightsToTargetSquare ${JSON.stringify(knightsToTargetSquare(targetSquare, targetColour))}
+	// \n diagonalToTargetSquare ${JSON.stringify(diagonalToTargetSquare(targetSquare, targetColour))}
+	// \n straightsToTargetSquare ${JSON.stringify(straightsToTargetSquare(targetSquare, targetColour))}
+	// \n pawnToTargetSquare ${JSON.stringify(pawnToTargetSquare(targetSquare, targetColour))}
+	// `);
 
 	squareContainer.push(
 		...knightsToTargetSquare(targetSquare, targetColour),
 		...diagonalToTargetSquare(targetSquare, targetColour),
 		...pawnToTargetSquare(targetSquare, targetColour),
-		...straightsToTargetSquare(targetSquare, targetColour)
+		...straightsToTargetSquare(targetSquare, targetColour),
+		...pawnToTargetSquare(targetSquare, targetColour)
 	);
 
 	return squareContainer;
@@ -179,6 +181,7 @@ export function piecesToSquare(targetSquare: IPiece, targetColour: string, board
 	function pawnToTargetSquare(targetSquare: IPiece, targetColour: string) {
 		const store = useGameStore();
 
+		// console.log(`Pawn To Square. Move number: ${store.totalMoves}\n\nTarget Square: ${JSON.stringify(targetSquare)} targetColour ${targetColour}`);
 		const squareContainer: IPiece[] = [];
 		const targetCol = targetSquare.id % rowAndColValue;
 
@@ -216,6 +219,7 @@ export function piecesToSquare(targetSquare: IPiece, targetColour: string, board
 
 				const colDiff = Math.abs(targetCol - (testId % rowAndColValue));
 
+				// console.log(`Target Colour: ${targetColour}`);
 				if (foundSquare.piece === targetColour + ChessPiece.PAWN) {
 					//Avoids it from increasing offset that will make it jump from various sides of the board instead of drawing line.
 					if (colDiff > 1) continue;
@@ -367,26 +371,6 @@ export function getPathOfSquaresToPiece(fromSquare: IPiece, toSquare: IPiece, in
 	}
 
 	return path;
-}
-
-export function rowDiff(fromSquare: IPiece, toSquare: IPiece, returnAbsoluteValue: boolean = false): number {
-	let result = Math.floor(fromSquare.id / rowAndColValue) - Math.floor(toSquare.id / rowAndColValue);
-
-	if (returnAbsoluteValue) {
-		result = Math.abs(result);
-	}
-
-	return result;
-}
-
-export function colDiff(fromSquare: IPiece, toSquare: IPiece, returnAbsoluteValue: boolean = false): number {
-	let result = (fromSquare.id % rowAndColValue) - (toSquare.id % rowAndColValue);
-
-	if (returnAbsoluteValue) {
-		result = Math.abs(result);
-	}
-
-	return result;
 }
 
 export function isJumpingPiece(move: IMove) {
