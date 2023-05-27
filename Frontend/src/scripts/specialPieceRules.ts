@@ -1,9 +1,9 @@
-import { findPieceWithId, findKingOnBoard } from "./boardUtilities";
-import { hasPieceMoved, piecesToSquare } from "./moveUtilities";
-import { CastlingPiece } from "./moveValidation";
-import { useGameStore } from "./state";
-import { rowAndColValue, PieceProps, ChessPiece, startRowValue, endRowValue, CastlingPiecesId, AdjacentSquareIdOffsets } from "./staticValues";
-import type { IMove, IPiece } from "./types";
+import { findPieceWithId, findKingOnBoard } from './boardUtilities';
+import { hasPieceMoved, piecesToSquare } from './moveUtilities';
+import { CastlingPiece } from './moveValidation';
+import { useGameStore } from './state';
+import { rowAndColValue, PieceProps, ChessPiece, startRowValue, endRowValue, CastlingPiecesId, AdjacentSquareIdOffsets } from './staticValues';
+import type { IMove, IPiece } from './types';
 
 export function isValidPawnPromotion(move: IMove) {
 	const store = useGameStore();
@@ -50,7 +50,6 @@ export function isCastlingValid(kingColour: string, castlingKingside: boolean) {
 			? [CastlingPiecesId.WHITE_ROOK_QUEENSIDE, CastlingPiecesId.WHITE_ROOK_KINGSIDE, CastlingPiecesId.WHITE_KING]
 			: [CastlingPiecesId.BLACK_ROOK_QUEENSIDE, CastlingPiecesId.BLACK_ROOK_KINGSIDE, CastlingPiecesId.BLACK_KING];
 
-            console.log("e");
 	function calcIsRoomToCastle() {
 		if (castlingKingside) {
 			for (let position = pieces[CastlingPiece.KING] + AdjacentSquareIdOffsets.RIGHT; position < pieces[CastlingPiece.KINGSIDE_ROOK]; position++) {
@@ -83,12 +82,9 @@ export function isCastlingValid(kingColour: string, castlingKingside: boolean) {
 }
 
 export function isKingInCheck(toSquare: IPiece, board: IPiece[][], kingColour: string) {
-	
-    const opponentColour = kingColour === ChessPiece.WHITE ? ChessPiece.BLACK : ChessPiece.WHITE;
-	console.log(opponentColour);
-    console.log(toSquare);
-    
-    const pieces:IPiece[] = piecesToSquare(toSquare, opponentColour, board);
+	const opponentColour = kingColour === ChessPiece.WHITE ? ChessPiece.BLACK : ChessPiece.WHITE;
+
+	const pieces: IPiece[] = piecesToSquare(toSquare, opponentColour, board);
 	if (pieces.length > 0) return true;
 	return false;
 }

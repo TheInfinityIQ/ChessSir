@@ -64,7 +64,9 @@ function select() {
 }
 
 function test() {
-	console.log(piecesToSquare(new Piece(props.id, pieceOnSquare.value, props.squareColour), ChessPiece.BLACK, store.game.board));
+	// console.log(piecesToSquare(new Piece(props.id, pieceOnSquare.value, props.squareColour), ChessPiece.BLACK, store.game.board));
+	// console.log(emptyAdjacentKingSquares(ChessPiece.WHITE, store.game.board))
+	console.log();
 }
 </script>
 

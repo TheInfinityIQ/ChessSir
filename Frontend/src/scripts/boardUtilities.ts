@@ -35,8 +35,6 @@ export function getPieceType(id: number) {
 	return pieceType;
 }
 
-
-
 export function getSquareWithId(id: number) {
 	const store = useGameStore();
 	let row: number = Math.trunc(id! / rowAndColValue);
@@ -82,4 +80,9 @@ export function findKingOnBoard(pieceColour: string, board: IPiece[][]) {
 	}
 
 	return foundPiece!;
+}
+
+export function isIdWithinBounds(id: number) {
+	if (id > startOfBoardId && id < endOfBoardId) return true;
+	return false;
 }

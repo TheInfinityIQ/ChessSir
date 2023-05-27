@@ -4,6 +4,7 @@ import { CastlingPiecesColStart, CastlingPiecesColOffset, initBoard, endOfBoardI
 import { useGameStore } from './state';
 import { endTurn } from './game';
 import { getSquares } from './boardUtilities';
+import { determineOffset, getPathOfSquaresToPiece } from './moveUtilities';
 
 //TODO: REMOVE WHEN DONE TESTING
 export function toggleFlipBoard() {
@@ -13,6 +14,7 @@ export function toggleFlipBoard() {
 
 function commitMoveToBoard(newMove: Move) {
 	const store = useGameStore();
+	
 	store.savePreviousBoard(store.game.board);
 	let fromSquare: IPiece = newMove.fromSquare;
 

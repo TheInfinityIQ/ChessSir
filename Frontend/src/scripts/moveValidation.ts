@@ -1,6 +1,6 @@
 import { commitCastleToBoard, commitMoveToBoard } from './board';
 import {
-	determineDirection,
+	determineDirectionType,
 	getChessPieceFromLetter,
 	hasPieceMoved,
 	isFriendlyPiece,
@@ -72,7 +72,7 @@ function validPawnMove(move: IMove) {
 	const pieceColour = fromSquare.piece[PieceProps.COLOUR];
 	const opponentColour = pieceColour === ChessPiece.WHITE ? ChessPiece.BLACK : ChessPiece.WHITE;
 	
-	const dir = determineDirection(move);
+	const dir = determineDirectionType(move);
 
 	const idDiff = fromSquare.id - toSquare.id;
 	const isDirectionCorrect = pieceColour === ChessPiece.WHITE ? idDiff > startOfBoardId : idDiff < startOfBoardId;
@@ -106,7 +106,7 @@ function validRookMove(move: IMove) {
 	const fromSquare = move.fromSquare;
 	const toSquare = move.toSquare;
 
-	if (isJumpingPiece(move) || determineDirection(move) === Direction.DIAGONAL || isFriendlyPiece(fromSquare.piece[startOfBoardId], toSquare.id)) {
+	if (isJumpingPiece(move) || determineDirectionType(move) === Direction.DIAGONAL || isFriendlyPiece(fromSquare.piece[startOfBoardId], toSquare.id)) {
 		return false;
 	}
 
@@ -170,9 +170,9 @@ function validBishopMove(move: IMove) {
 
 	return !(
 		isJumpingPiece(move) ||
-		determineDirection(move) === Direction.HORIZONTAL ||
-		determineDirection(move) === Direction.VERTICAL ||
-		determineDirection(move) !== Direction.DIAGONAL ||
+		determineDirectionType(move) === Direction.HORIZONTAL ||
+		determineDirectionType(move) === Direction.VERTICAL ||
+		determineDirectionType(move) !== Direction.DIAGONAL ||
 		isFriendlyPiece(fromSquare.piece[startOfBoardId], toSquare.id)
 	);
 }
@@ -189,7 +189,6 @@ function validKingMove(move: IMove) {
 	const rowDiff = Math.floor(fromSquare.id / rowAndColValue) - Math.floor(toSquare.id / rowAndColValue);
 
 	if (isKingInCheck(toSquare, store.game.board, kingColour)) return false;
-	console.log("King is not in check");
 	if (Math.abs(colDiff) === 2 && rowDiff === 0 && isCastlingValid(kingColour, castlingKingside)) {
 		commitCastleToBoard(kingColour, castlingKingside);
 	}
@@ -207,7 +206,7 @@ function validQueenMove(move: IMove) {
 	const fromSquare = move.fromSquare;
 	const toSquare = move.toSquare;
 
-	if (determineDirection(move) !== Direction.DIAGONAL && determineDirection(move) !== Direction.HORIZONTAL && determineDirection(move) !== Direction.VERTICAL) {
+	if (determineDirectionType(move) !== Direction.DIAGONAL && determineDirectionType(move) !== Direction.HORIZONTAL && determineDirectionType(move) !== Direction.VERTICAL) {
 		return false; // Not a valid queen move
 	}
 
