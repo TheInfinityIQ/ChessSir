@@ -81,10 +81,10 @@ export function isCastlingValid(kingColour: string, castlingKingside: boolean) {
 	return true;
 }
 
-export function isKingInCheck(toSquare: IPiece, board: IPiece[][], kingColour: string) {
+export function isKingInCheck(kingSquare: IPiece, board: IPiece[][], kingColour: string) {
 	const opponentColour = kingColour === ChessPiece.WHITE ? ChessPiece.BLACK : ChessPiece.WHITE;
 
-	const pieces: IPiece[] = piecesToSquare(toSquare, opponentColour, board);
+	const pieces: IPiece[] = piecesToSquare(kingSquare, opponentColour, board);
 	if (pieces.length > 0) return true;
 	return false;
 }
