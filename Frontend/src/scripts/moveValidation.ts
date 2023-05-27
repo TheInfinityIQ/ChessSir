@@ -177,7 +177,7 @@ function validBishopMove(move: IMove) {
 	);
 }
 
-function validKingMove(move: IMove) {
+export function validKingMove(move: IMove) {
 	const store = useGameStore();
 	
 	const fromSquare = move.fromSquare;

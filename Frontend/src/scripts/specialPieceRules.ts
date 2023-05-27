@@ -82,6 +82,7 @@ export function isCastlingValid(kingColour: string, castlingKingside: boolean) {
 }
 
 export function isKingInCheck(kingSquare: IPiece, board: IPiece[][], kingColour: string) {
+	//Can't use colour from kingSquare because some functions pass potential kingSquares so we won't have access to colours;
 	const opponentColour = kingColour === ChessPiece.WHITE ? ChessPiece.BLACK : ChessPiece.WHITE;
 
 	const pieces: IPiece[] = piecesToSquare(kingSquare, opponentColour, board);

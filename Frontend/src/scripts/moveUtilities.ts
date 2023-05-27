@@ -369,34 +369,6 @@ export function getPathOfSquaresToPiece(fromSquare: IPiece, toSquare: IPiece, in
 	return path;
 }
 
-export function getEmptyAdjacentKingSquares(kingColour: string, board: IPiece[][]): IPiece[] {
-	const kingSquare = findKingOnBoard(kingColour, board);
-
-	const offsets = [
-		AdjacentSquareIdOffsets.DOWN,
-		AdjacentSquareIdOffsets.DOWN_LEFT,
-		AdjacentSquareIdOffsets.DOWN_RIGHT,
-		AdjacentSquareIdOffsets.LEFT,
-		AdjacentSquareIdOffsets.RIGHT,
-		AdjacentSquareIdOffsets.UP,
-		AdjacentSquareIdOffsets.UP_LEFT,
-		AdjacentSquareIdOffsets.UP_RIGHT,
-	];
-
-	const emptySquares: IPiece[] = [];
-
-	offsets.forEach((id) => {
-		const testId = kingSquare.id + id;
-
-		if (isIdWithinBounds(testId)) {
-			const foundSquare = findPieceWithId(testId, board);
-			if (foundSquare.piece === ChessPiece.EMPTY) emptySquares.push(foundSquare);
-		}
-	});
-
-	return new Array(kingSquare);
-}
-
 export function rowDiff(fromSquare: IPiece, toSquare: IPiece, returnAbsoluteValue: boolean = false): number {
 	let result = Math.floor(fromSquare.id / rowAndColValue) - Math.floor(toSquare.id / rowAndColValue);
 
