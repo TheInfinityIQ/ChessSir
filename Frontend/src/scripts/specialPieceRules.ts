@@ -48,46 +48,44 @@ export function isCastlingValid(kingColour: string, castlingKingside: boolean) {
 	const store = useGameStore();
 	const pieces =
 		kingColour === ChessPiece.WHITE
-			? [CastlingPiecesId.WHITE_ROOK_QUEENSIDE, CastlingPiecesId.WHITE_ROOK_KINGSIDE, CastlingPiecesId.WHITE_KING]
-			: [CastlingPiecesId.BLACK_ROOK_QUEENSIDE, CastlingPiecesId.BLACK_ROOK_KINGSIDE, CastlingPiecesId.BLACK_KING];
-
-	const kingSquare = findKingOnBoard(kingColour, store.game.board);
-
-	function calcIsRoomToCastle() {
-		if (castlingKingside) {
-			const startingPosition = pieces[CastlingPiece.KING] + AdjacentSquareIdOffsets.RIGHT;
+		? [CastlingPiecesId.WHITE_ROOK_QUEENSIDE, CastlingPiecesId.WHITE_ROOK_KINGSIDE, CastlingPiecesId.WHITE_KING]
+		: [CastlingPiecesId.BLACK_ROOK_QUEENSIDE, CastlingPiecesId.BLACK_ROOK_KINGSIDE, CastlingPiecesId.BLACK_KING];
+		
+		const kingSquare = findKingOnBoard(kingColour, store.game.board);
+		
+		function calcIsRoomToCastle() {
+			if (castlingKingside) {
+				const startingPosition = pieces[CastlingPiece.KING] + AdjacentSquareIdOffsets.RIGHT;
 			
-			for (let position = startingPosition; position < pieces[CastlingPiece.KINGSIDE_ROOK]; position++) {
-				const square = findPieceWithId(position, store.game.board);
-				console.log(square);
-				if (isKingInCheckAfterMove(new Move(kingSquare, square)) || square.piece !== ChessPiece.EMPTY) return false;
-			}
-
-			return true;
-		} else {
-			const startingPosition = pieces[CastlingPiece.KING] + AdjacentSquareIdOffsets.LEFT;
-			
-			for (let position = startingPosition; position > pieces[CastlingPiece.QUEENSIDE_ROOK]; position--) {
-				const square = findPieceWithId(position, store.game.board);
+				for (let position = startingPosition; position < pieces[CastlingPiece.KINGSIDE_ROOK]; position++) {
+					const square = findPieceWithId(position, store.game.board);
+					if (isKingInCheckAfterMove(new Move(kingSquare, square)) || square.piece !== ChessPiece.EMPTY) return false;
+				}
+				
+				return true;
+			} else {
+				const startingPosition = pieces[CastlingPiece.KING] + AdjacentSquareIdOffsets.LEFT;
+				
+				for (let position = startingPosition; position > pieces[CastlingPiece.QUEENSIDE_ROOK]; position--) {
+					const square = findPieceWithId(position, store.game.board);
 				if (isKingInCheckAfterMove(new Move(kingSquare, square)) || square.piece !== ChessPiece.EMPTY) return false;
 			}
 
 			return true;
 		}
 	}
-
+	
 	const isRoomToCastle = calcIsRoomToCastle();
-	console.log(`Room to Castle: ${isRoomToCastle}`)
 
 	if (isKingInCheck(findKingOnBoard(kingColour, store.game.board), store.game.board)) return false;
 	if (hasPieceMoved.get(pieces[CastlingPiece.KING]) || !isRoomToCastle) return false;
-
+	
 	if (castlingKingside) {
 		if (hasPieceMoved.get(pieces[CastlingPiece.KINGSIDE_ROOK])) return false;
 	} else {
 		if (hasPieceMoved.get(pieces[CastlingPiece.QUEENSIDE_ROOK])) return false;
 	}
-
+	
 	return true;
 }
 
@@ -118,6 +116,8 @@ function isPawnAThreat(pawnOriginSquare: IPiece, pawnThreatenedSquare: IPiece) {
 
 export function isKingInCheckAfterMove(move: IMove) {
 	const store = useGameStore();
+
+	if (store.totalMoves < 0) return false; 
 
 	const kingColour = move.fromSquare.piece[PieceProps.COLOUR];
 	let tempBoard = JSON.parse(JSON.stringify(store.game.board));

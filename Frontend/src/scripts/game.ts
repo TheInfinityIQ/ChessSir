@@ -2,7 +2,7 @@ import { flipBoard } from './board';
 import { findKingOnBoard, findPieceWithId, isIdWithinBounds } from './boardUtilities';
 import { getPathOfSquaresToPiece, piecesToSquare } from './moveUtilities';
 import { moveValidators, validKingMove } from './moveValidation';
-import { isKingInCheck } from './specialPieceRules';
+import { isKingInCheck, isValidEnPassant } from './specialPieceRules';
 import { useGameStore } from './state';
 import { AdjacentSquareIdOffsets, ChessPiece, PieceProps } from './staticValues';
 import { type IPiece, Move, type IMove, type moveBool } from './types';
@@ -12,8 +12,7 @@ export function endTurn() {
 
 	store.totalMoves++;
 
-	// const opponentKingColour = store.specialContainer.selectedPiece.piece[PieceProps.COLOUR] === ChessPiece.WHITE ? ChessPiece.BLACK : ChessPiece.WHITE;
-	// isItCheckmate(opponentKingColour);
+	const opponentKingColour = store.specialContainer.selectedPiece.piece[PieceProps.COLOUR] === ChessPiece.WHITE ? ChessPiece.BLACK : ChessPiece.WHITE;
 
 	store.toggleTurns();
 	store.unselectPiece();
@@ -36,19 +35,20 @@ export function isItCheckmate(kingColour: string): boolean {
 function canKingMove(kingSquare: IPiece): boolean {
 	const store = useGameStore();
 
-	let result = false;
+	const possibleSquaresToMoveTo = getPossibleKingMoves(kingSquare.piece[PieceProps.COLOUR], store.game.board);
 
-	const emptySquares = getPossibleKingMoves(kingSquare.piece[PieceProps.COLOUR], store.game.board);
-	console.log('empty squares');
-	console.log(emptySquares);
+	const validMoves: boolean[] = [];
+	for (let checkedSquare = 0; checkedSquare < possibleSquaresToMoveTo.length; checkedSquare++) {
+		const square = possibleSquaresToMoveTo[checkedSquare];
 
-	for (let checkedSquare = 0; checkedSquare < emptySquares.length; checkedSquare++) {
-		const emptySquare = emptySquares[checkedSquare];
-
-		if (validKingMove(new Move(kingSquare, emptySquare))) result = true;
+		if (validKingMove(new Move(kingSquare, square))) {
+			validMoves.push(true);
+		} else {
+			validMoves.push(false);
+		}
 	}
 
-	console.log(`Can King Move: ${result}`);
+	const result = validMoves.some((isValidMove) => isValidMove === true);
 	return result;
 }
 
@@ -109,6 +109,5 @@ function canPiecePreventCheckmate(kingSquare: IPiece): boolean {
 		if (validator(move)) result = true;
 	});
 
-	console.log(`Can piece prevent checkmate: ${result}`);
 	return result;
 }

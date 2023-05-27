@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { commitPawnPromotionToBoard } from '@/scripts/board';
 import { useGameStore } from '../scripts/state';
+import { Piece } from '@/scripts/types';
 const store = useGameStore();
 
 const props = defineProps({
@@ -12,7 +13,11 @@ function promotePiece() {
 		console.log(`props.piece is undefined in promotePiece function in PieceModalComponent`);
 		return;
 	}
-	store.specialContainer.pieceToPromote.piece = props.piece;
+
+	const promotedPiece = new Piece(store.specialContainer.pieceToPromote.id, props.piece, store.specialContainer.pieceToPromote.colour);
+
+	store.specialContainer.selectedPiece = promotedPiece;
+	store.specialContainer.pieceToPromote = promotedPiece;
 	commitPawnPromotionToBoard(store.specialContainer.moveToPromote);
 }
 </script>

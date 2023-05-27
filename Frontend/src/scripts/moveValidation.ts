@@ -56,9 +56,6 @@ function isValidMove(move: IMove) {
 	
 	//Get correct validation function if it exists or get anonymous function that returns false.
 	const validator: moveBool = pieceType as ChessPiece ? moveValidators.get(pieceType as ChessPiece) ?? (() => false) : () => false;
-	if (store.totalMoves > 0) {
-		if (isKingInCheckAfterMove(move)) return false;
-	}
 
 	return validator(move);
 }
@@ -119,6 +116,8 @@ function validRookMove(move: IMove) {
 		hasPieceMoved.set(fromSquare.id, true);
 	}
 
+	if (isKingInCheckAfterMove(move)) return false;
+
 	return true;
 }
 
@@ -157,6 +156,8 @@ function validKnightMove(move: IMove) {
 
 	const result = validIDs.some((id) => id === toSquare.id);
 
+	if (isKingInCheckAfterMove(move)) return false;
+
 	return result;
 }
 
@@ -165,6 +166,8 @@ function validBishopMove(move: IMove) {
 	
 	const fromSquare = move.fromSquare;
 	const toSquare = move.toSquare;
+
+	if (isKingInCheckAfterMove(move)) return false;
 
 	return !(
 		isJumpingPiece(move) ||
@@ -192,6 +195,8 @@ export function validKingMove(move: IMove) {
 
 	if (!validQueenMove(move) || isMoreThanOneSquare(move)) return false;
 
+	if (isKingInCheckAfterMove(move)) return false;
+
 	//Updates to prevent castling
 	kingColour === ChessPiece.WHITE ? hasPieceMoved.set(CastlingPiecesId.WHITE_KING, true) : hasPieceMoved.set(CastlingPiecesId.BLACK_KING, true);
 	return true;
@@ -206,6 +211,8 @@ function validQueenMove(move: IMove) {
 	if (determineDirectionType(move) !== Direction.DIAGONAL && determineDirectionType(move) !== Direction.HORIZONTAL && determineDirectionType(move) !== Direction.VERTICAL) {
 		return false; // Not a valid queen move
 	}
+
+	if (isKingInCheckAfterMove(move)) return false;
 
 	return !(isJumpingPiece(move) || isFriendlyPiece(fromSquare.piece[startOfBoardId], toSquare.id));
 }

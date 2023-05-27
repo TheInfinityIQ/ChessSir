@@ -71,13 +71,13 @@ export function determineDirectionType(move: IMove) {
 }
 
 export function determineOffset(move: IMove): number {
-	const errorValue = -999;
 	const { fromSquare, toSquare } = move;
+
+	let result = AdjacentSquareIdOffsets.NO_OFFSET;
 
 	const dir = determineDirectionType(new Move(fromSquare, toSquare));
 	const rowDiffResult = rowDiff(fromSquare, toSquare);
 	const colDiffResult = colDiff(fromSquare, toSquare);
-	let result = errorValue;
 
 	switch (dir) {
 		case Direction.DIAGONAL:
@@ -111,11 +111,6 @@ export function determineOffset(move: IMove): number {
 			}
 			break;
 	}
-
-	if (result === errorValue && move.fromSquare.piece[PieceProps.TYPE] === ChessPiece.KNIGHT) {
-		//Offset is irrelevant if it's a knight because there is no path to the knight a piece can legally take
-		result = 0;
-	}
 	return result;
 }
 
@@ -131,14 +126,6 @@ export function isFriendlyPiece(friendlyColour: string, toSquareId: number) {
 export function piecesToSquare(targetSquare: IPiece, targetColour: string, board: IPiece[][]): IPiece[] {
 	const squareContainer: IPiece[] = [];
 	const store = useGameStore();
-
-	// console.log(`Pieces to Square on move ${store.totalMoves}
-	// \nTarget targetSquare: ${JSON.stringify(targetSquare)}. targetColour: ${targetColour}
-	// \n knightsToTargetSquare ${JSON.stringify(knightsToTargetSquare(targetSquare, targetColour))}
-	// \n diagonalToTargetSquare ${JSON.stringify(diagonalToTargetSquare(targetSquare, targetColour))}
-	// \n straightsToTargetSquare ${JSON.stringify(straightsToTargetSquare(targetSquare, targetColour))}
-	// \n pawnToTargetSquare ${JSON.stringify(pawnToTargetSquare(targetSquare, targetColour))}
-	// `);
 
 	squareContainer.push(
 		...knightsToTargetSquare(targetSquare, targetColour),
@@ -181,7 +168,6 @@ export function piecesToSquare(targetSquare: IPiece, targetColour: string, board
 	function pawnToTargetSquare(targetSquare: IPiece, targetColour: string) {
 		const store = useGameStore();
 
-		// console.log(`Pawn To Square. Move number: ${store.totalMoves}\n\nTarget Square: ${JSON.stringify(targetSquare)} targetColour ${targetColour}`);
 		const squareContainer: IPiece[] = [];
 		const targetCol = targetSquare.id % rowAndColValue;
 
@@ -219,7 +205,6 @@ export function piecesToSquare(targetSquare: IPiece, targetColour: string, board
 
 				const colDiff = Math.abs(targetCol - (testId % rowAndColValue));
 
-				// console.log(`Target Colour: ${targetColour}`);
 				if (foundSquare.piece === targetColour + ChessPiece.PAWN) {
 					//Avoids it from increasing offset that will make it jump from various sides of the board instead of drawing line.
 					if (colDiff > 1) continue;
@@ -352,15 +337,14 @@ export function getPathOfSquaresToPiece(fromSquare: IPiece, toSquare: IPiece, in
 		finalSquare = 1;
 	}
 	// Given the path a piece will be using to put the
-	const offset = determineOffset(new Move(fromSquare, toSquare));
+	const offset: number = determineOffset(new Move(fromSquare, toSquare));
 	const rowDiffResult = rowDiff(fromSquare, toSquare, true);
 	const colDiffResult = colDiff(fromSquare, toSquare, true);
 	
 	const path: IPiece[] = [];
-	if (offset === AdjacentSquareIdOffsets.NO_OFFSET) {
-		return path;
-	}
 	
+	if (offset as AdjacentSquareIdOffsets === AdjacentSquareIdOffsets.NO_OFFSET) return path;
+
 	//Row/Col difference is the amount of squares you need to move to reach target square.
 	const iterations = Math.max(rowDiffResult, colDiffResult);
 
