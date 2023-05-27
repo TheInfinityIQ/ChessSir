@@ -51,7 +51,7 @@ export const useGameStore = defineStore('game', () => {
 	}
 
 	function savePreviousBoard(board: IPiece[][]) {
-		previousBoard = board;
+		previousBoard = JSON.parse(JSON.stringify(board));
 	}
 
 	function getPreviousBoard(){
