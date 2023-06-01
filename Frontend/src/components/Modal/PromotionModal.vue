@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue';
 import PieceModalComponent from './PieceModalComponent.vue';
-import { useGameStore } from '../scripts/state';
 import { PieceProps } from '@/scripts/staticValues';
+import { useGameStore } from '@/scripts/state';
 const store = useGameStore();
 const promotionPieces = ['q', 'n', 'r', 'b'];
 </script>
@@ -24,7 +23,7 @@ const promotionPieces = ['q', 'n', 'r', 'b'];
 	justify-content: space-evenly;
 	align-items: center;
 
-	background-color: #f7f7f7;
+	background-color: #d1d1d1;
 	border: 1px solid #d1d1d1;
 	border-radius: 20px;
 	box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Board from './components/Board.vue';
-import PromotionModal from './components/PromotionModal.vue';
+import PromotionModal from './components/Modal/PromotionModal.vue';
 import { flipBoard, setupBoard, toggleFlipBoard } from './scripts/board';
 import { useGameStore } from './scripts/state';
 const store = useGameStore();
@@ -19,8 +19,8 @@ function setupGame() {
 			<button @click="toggleFlipBoard()">no flip {{ !store.testToggleFlipBoard }}</button>
 		</nav>
 		<section class="grid-container-body row-2">
-			<article class="column-1">
-				<h1 class="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-400 text-6xl">Hello World!</h1>
+			<article class="border w-auto border-pink-500 text-center">
+				<h1 class=" ">Hello</h1>
 			</article>
 			<article class="board-container column-2">
 				<PromotionModal />
