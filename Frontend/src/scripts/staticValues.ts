@@ -44,11 +44,11 @@ export const startOfBoardId: number = 0;
 
 const numOfNotEmptyPieces: number = 32;
 
-export function getNotEmptyPieces() {
+export function getNotEmptyPieces(): string[] {
 	return notEmptyPieces;
 }
 
-export function getNumNotEmptyPieces() {
+export function getNumNotEmptyPieces(): number {
 	return numOfNotEmptyPieces;
 }
 

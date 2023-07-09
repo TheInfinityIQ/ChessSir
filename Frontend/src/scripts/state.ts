@@ -25,36 +25,36 @@ export const useGameStore = defineStore('game', () => {
 		board: setupBoard(),
 	});
 
-	function incrementMoves() {
+	function incrementMoves(): void {
 		totalMoves.value++;
 	}
 
-	function toggleTurns() {
+	function toggleTurns(): void {
 		isWhitesTurn.value = !isWhitesTurn.value;
 	}
 
-	function togglePromotion() {
+	function togglePromotion(): void {
 		isPromotionActive.value = !isPromotionActive.value;
 	}
 
-	function updateMoveToPromote(move: IMove) {
+	function updateMoveToPromote(move: IMove): void {
 		specialContainer.moveToPromote = move;
 	}
 
-	function unselectPiece() {
+	function unselectPiece(): void {
 		specialContainer.selectedPiece = new TempPiece();
 	}
 
-	function isPieceSelected() {
+	function isPieceSelected(): boolean {
 		//Compared not equal to make function more readable. If they equaled, then no piece is selected.
 		return JSON.stringify(specialContainer.selectedPiece) !== JSON.stringify(new TempPiece());
 	}
 
-	function savePreviousBoard(board: IPiece[][]) {
+	function savePreviousBoard(board: IPiece[][]): void {
 		previousBoard = JSON.parse(JSON.stringify(board));
 	}
 
-	function getPreviousBoard(){
+	function getPreviousBoard(): IPiece[][] {
 		return previousBoard;
 	}
 
