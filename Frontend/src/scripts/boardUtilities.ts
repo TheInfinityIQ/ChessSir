@@ -2,7 +2,7 @@ import { useGameStore } from './state';
 import { rowAndColValue, initBoard, startRowValue, endOfBoardId, startOfBoardId } from './staticValues';
 import { Piece, type IPiece } from './types';
 
-export function getSquares() {
+export function getSquares(): IPiece[] {
 	const squares: IPiece[] = [];
 	let row: number, column: number, piece: string;
 
@@ -20,7 +20,7 @@ export function getSquares() {
 	return squares;
 }
 
-export function getPieceType(id: number) {
+export function getPieceType(id: number): string {
 	const store = useGameStore();
 	let pieceType = 'Invalid ID';
 
@@ -35,7 +35,7 @@ export function getPieceType(id: number) {
 	return pieceType;
 }
 
-export function getSquareWithId(id: number) {
+export function getSquareWithId(id: number): IPiece {
 	const store = useGameStore();
 	let row: number = Math.trunc(id! / rowAndColValue);
 	let column: number = id! % rowAndColValue;
@@ -61,9 +61,7 @@ export function findPieceWithId(id: number, board: IPiece[][]): IPiece {
 	return foundPiece!;
 }
 
-export function findKingOnBoard(kingColour: string, board: IPiece[][]) {
-	const store = useGameStore();
-
+export function findKingOnBoard(kingColour: string, board: IPiece[][]): IPiece {
 	const pieceType = 'k';
 
 	let foundPiece: IPiece | undefined;
@@ -81,7 +79,7 @@ export function findKingOnBoard(kingColour: string, board: IPiece[][]) {
 	return foundPiece!;
 }
 
-export function isIdWithinBounds(id: number) {
+export function isIdWithinBounds(id: number): boolean {
 	if (id > startOfBoardId && id < endOfBoardId) return true;
 	return false;
 }
