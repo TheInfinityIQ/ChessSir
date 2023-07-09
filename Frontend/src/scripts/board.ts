@@ -1,10 +1,8 @@
-import { reactive, ref, type Ref } from 'vue';
 import { Piece, type IPiece, type Move, type IMove } from './types';
-import { CastlingPiecesColStart, CastlingPiecesColOffset, initBoard, endOfBoardId, endRowValue, rowAndColValue, startOfBoardId, startRowValue } from './staticValues';
+import { CastlingPiecesColStart, CastlingPiecesColOffset, endRowValue, rowAndColValue, startRowValue } from './staticValues';
 import { useGameStore } from './state';
 import { endTurn } from './game';
 import { getSquares } from './boardUtilities';
-import { determineOffset, getPathOfSquaresToPiece } from './moveUtilities';
 
 //TODO: REMOVE WHEN DONE TESTING
 export function toggleFlipBoard() {
@@ -12,7 +10,7 @@ export function toggleFlipBoard() {
 	store.testToggleFlipBoard = store.testToggleFlipBoard;
 }
 
-function commitMoveToBoard(newMove: Move) {
+function commitMoveToBoard(newMove: Move): void {
 	const store = useGameStore();
 	
 	store.savePreviousBoard(store.game.board);
@@ -32,17 +30,17 @@ function commitMoveToBoard(newMove: Move) {
 	endTurn();
 }
 
-function commitCastleToBoard(pieceColour: string, castlingKingSide: boolean) {
+function commitCastleToBoard(pieceColour: string, castlingKingSide: boolean): void {
 	const store = useGameStore();
 	store.savePreviousBoard(store.game.board);
-	const rowToCastle = pieceColour === 'w' ? endRowValue : startRowValue;
-	const pieceTypes = ['k', 'r'];
-	const kingAndRookNewId =
+	const rowToCastle: number = pieceColour === 'w' ? endRowValue : startRowValue;
+	const pieceTypes: string[] = ['k', 'r'];
+	const kingAndRookNewId: number[] =
 		castlingKingSide === true
 			? [CastlingPiecesColStart.KING + CastlingPiecesColOffset.KING_KINGSIDE, CastlingPiecesColStart.ROOK_KINGSIDE + CastlingPiecesColOffset.ROOK_KINGSIDE]
 			: [CastlingPiecesColStart.KING + CastlingPiecesColOffset.KING_QUEENSIDE, CastlingPiecesColStart.ROOK_QUEENSIDE + CastlingPiecesColOffset.ROOK_QUEENSIDE];
 
-	let iteration = 0;
+	let iteration: number = 0;
 	for (let piece of kingAndRookNewId) {
 		store.game.board[rowToCastle][piece].piece = pieceColour + pieceTypes[iteration++];
 	}
@@ -57,15 +55,15 @@ function commitCastleToBoard(pieceColour: string, castlingKingSide: boolean) {
 	endTurn();
 }
 
-export function commitPawnPromotionToBoard(move: IMove) {
+export function commitPawnPromotionToBoard(move: IMove): void {
 	const store = useGameStore();
 	store.savePreviousBoard(store.game.board);
 
-	const { fromSquare, toSquare } = move;
-	const fromRow = Math.floor(fromSquare.id / rowAndColValue);
-	const fromCol = Math.floor(fromSquare.id % rowAndColValue);
-	const toRow = Math.floor(toSquare.id / rowAndColValue);
-	const toCol = Math.floor(toSquare.id % rowAndColValue);
+	const { fromSquare, toSquare }: IMove = move;
+	const fromRow: number = Math.floor(fromSquare.id / rowAndColValue);
+	const fromCol: number = Math.floor(fromSquare.id % rowAndColValue);
+	const toRow: number = Math.floor(toSquare.id / rowAndColValue);
+	const toCol: number = Math.floor(toSquare.id % rowAndColValue);
 
 	store.game.board[fromRow][fromCol].piece = 'e';
 	store.game.board[toRow][toCol].piece = store.specialContainer.pieceToPromote.piece;
@@ -73,13 +71,13 @@ export function commitPawnPromotionToBoard(move: IMove) {
 	endTurn();
 }
 
-export function setupBoard() {
+export function setupBoard(): IPiece[][] {
 	let board: IPiece[][] = [];
 	let tempRow: IPiece[] = [];
 
 	for (let row = startRowValue; row < rowAndColValue; row++) {
 		for (let column = 0; column < rowAndColValue; column++) {
-			const tempPiece = getSquares()[row * rowAndColValue + column];
+			const tempPiece: IPiece = getSquares()[row * rowAndColValue + column];
 			tempRow.push(new Piece(tempPiece.id, tempPiece.piece, tempPiece.colour));
 		}
 		board[row] = tempRow;
@@ -89,7 +87,7 @@ export function setupBoard() {
 	return board;
 }
 
-export function flipBoard() {
+export function flipBoard(): void {
 	const store = useGameStore();
 	if (!store.testToggleFlipBoard) {
 		return;
