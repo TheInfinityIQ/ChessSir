@@ -6,10 +6,11 @@ import { rowAndColValue, PieceProps, ChessPiece, startRowValue, endRowValue, Cas
 import { Move, type IMove, type IPiece } from './types';
 import { colDiff } from './valueUtilities';
 
-export function isValidPawnPromotion(move: IMove) {
+// Self contained validation and move container
+export function isValidPawnPromotion(move: IMove): void {
 	const store = useGameStore();
 
-	const checkedRow = Math.floor(move.toSquare.id / rowAndColValue);
+	const checkedRow: number = Math.floor(move.toSquare.id / rowAndColValue);
 
 	if (move.fromSquare.piece[PieceProps.COLOUR] === ChessPiece.WHITE ? checkedRow === startRowValue : checkedRow === endRowValue) {
 		store.updateMoveToPromote(move);
@@ -18,25 +19,25 @@ export function isValidPawnPromotion(move: IMove) {
 	}
 }
 
-export function isValidEnPassant(fromSquare: IPiece, toSquare: IPiece, pieceColour: string, opponentColour: string) {
+export function isValidEnPassant(fromSquare: IPiece, toSquare: IPiece, pieceColour: string, opponentColour: string): boolean {
 	const store = useGameStore();
 
-	const opponentPawn = `${opponentColour}${ChessPiece.PAWN}`;
+	const opponentPawn: string = `${opponentColour}${ChessPiece.PAWN}`;
 
 	//Get starting opponent pawn position based on piece colour
-	const opponentCheckSquareId = pieceColour === ChessPiece.WHITE ? toSquare.id - rowAndColValue : toSquare.id + rowAndColValue;
+	const opponentCheckSquareId: number = pieceColour === ChessPiece.WHITE ? toSquare.id - rowAndColValue : toSquare.id + rowAndColValue;
 
 	//Negative one to get correct orientation. AttackOffset to determine if attacking left or right
-	const attackOffset = ((fromSquare.id % rowAndColValue) - (toSquare.id % rowAndColValue)) * -1;
-	const attackedPawnId = attackOffset + fromSquare.id;
+	const attackOffset: number = ((fromSquare.id % rowAndColValue) - (toSquare.id % rowAndColValue)) * -1;
+	const attackedPawnId: number = attackOffset + fromSquare.id;
 
 	//If there is a pawn on the attacked square on current board and there is a pawn from the home square on the previous turn.
-	const isEnPassantValid =
+	const isEnPassantValid: boolean =
 		findPieceWithId(attackedPawnId, store.game.board).piece === opponentPawn && findPieceWithId(opponentCheckSquareId, store.getPreviousBoard())?.piece === opponentPawn;
 
 	if (isEnPassantValid) {
-		const attackedPawnRow = Math.floor(attackedPawnId / rowAndColValue);
-		const attackedPawnColumn = Math.floor(attackedPawnId % rowAndColValue);
+		const attackedPawnRow: number = Math.floor(attackedPawnId / rowAndColValue);
+		const attackedPawnColumn: number = Math.floor(attackedPawnId % rowAndColValue);
 		store.game.board[attackedPawnRow][attackedPawnColumn].piece = ChessPiece.EMPTY;
 		return true;
 	}
@@ -44,30 +45,30 @@ export function isValidEnPassant(fromSquare: IPiece, toSquare: IPiece, pieceColo
 	return false;
 }
 
-export function isCastlingValid(kingColour: string, castlingKingside: boolean) {
+export function isCastlingValid(kingColour: string, castlingKingside: boolean): boolean {
 	const store = useGameStore();
-	const pieces =
+	const pieces: number[] =
 		kingColour === ChessPiece.WHITE
 		? [CastlingPiecesId.WHITE_ROOK_QUEENSIDE, CastlingPiecesId.WHITE_ROOK_KINGSIDE, CastlingPiecesId.WHITE_KING]
 		: [CastlingPiecesId.BLACK_ROOK_QUEENSIDE, CastlingPiecesId.BLACK_ROOK_KINGSIDE, CastlingPiecesId.BLACK_KING];
 		
-		const kingSquare = findKingOnBoard(kingColour, store.game.board);
+		const kingSquare: IPiece = findKingOnBoard(kingColour, store.game.board);
 		
-		function calcIsRoomToCastle() {
+		function calcIsRoomToCastle(): boolean {
 			if (castlingKingside) {
-				const startingPosition = pieces[CastlingPiece.KING] + AdjacentSquareIdOffsets.RIGHT;
+				const startingPosition: number = pieces[CastlingPiece.KING] + AdjacentSquareIdOffsets.RIGHT;
 			
 				for (let position = startingPosition; position < pieces[CastlingPiece.KINGSIDE_ROOK]; position++) {
-					const square = findPieceWithId(position, store.game.board);
+					const square: IPiece = findPieceWithId(position, store.game.board);
 					if (isKingInCheckAfterMove(new Move(kingSquare, square)) || square.piece !== ChessPiece.EMPTY) return false;
 				}
 				
 				return true;
 			} else {
-				const startingPosition = pieces[CastlingPiece.KING] + AdjacentSquareIdOffsets.LEFT;
+				const startingPosition: number = pieces[CastlingPiece.KING] + AdjacentSquareIdOffsets.LEFT;
 				
-				for (let position = startingPosition; position > pieces[CastlingPiece.QUEENSIDE_ROOK]; position--) {
-					const square = findPieceWithId(position, store.game.board);
+				for (let position: number = startingPosition; position > pieces[CastlingPiece.QUEENSIDE_ROOK]; position--) {
+					const square: IPiece = findPieceWithId(position, store.game.board);
 				if (isKingInCheckAfterMove(new Move(kingSquare, square)) || square.piece !== ChessPiece.EMPTY) return false;
 			}
 
@@ -75,7 +76,7 @@ export function isCastlingValid(kingColour: string, castlingKingside: boolean) {
 		}
 	}
 	
-	const isRoomToCastle = calcIsRoomToCastle();
+	const isRoomToCastle: boolean = calcIsRoomToCastle();
 
 	if (isKingInCheck(findKingOnBoard(kingColour, store.game.board), store.game.board)) return false;
 	if (hasPieceMoved.get(pieces[CastlingPiece.KING]) || !isRoomToCastle) return false;
@@ -89,17 +90,17 @@ export function isCastlingValid(kingColour: string, castlingKingside: boolean) {
 	return true;
 }
 
-export function isKingInCheck(kingSquare: IPiece, board: IPiece[][]) {
+export function isKingInCheck(kingSquare: IPiece, board: IPiece[][]): boolean {
 	//Can't use colour from kingSquare because some functions pass potential kingSquares so we won't have access to colours;
-	const kingColour = kingSquare.piece[PieceProps.COLOUR];
-	const opponentColour = kingColour === ChessPiece.WHITE ? ChessPiece.BLACK : ChessPiece.WHITE;
+	const kingColour: string = kingSquare.piece[PieceProps.COLOUR];
+	const opponentColour: string = kingColour === ChessPiece.WHITE ? ChessPiece.BLACK : ChessPiece.WHITE;
 
 	const attackingFromSquares: IPiece[] = piecesToSquare(kingSquare, opponentColour, board);
 
 	// Pawns are the only piece that can move to a square and no capture something on that square. 
 	if (attackingFromSquares.length > 0) {
 		for (let piece = 0; piece < attackingFromSquares.length; piece++) {
-			const attackSquare = attackingFromSquares[piece];
+			const attackSquare: IPiece = attackingFromSquares[piece];
 			if (attackSquare.piece[PieceProps.TYPE] === ChessPiece.PAWN && isPawnAThreat(attackSquare, kingSquare) === true) return true;
 			if (attackSquare.piece[PieceProps.TYPE] !== ChessPiece.PAWN) return true;
 		}
@@ -108,21 +109,21 @@ export function isKingInCheck(kingSquare: IPiece, board: IPiece[][]) {
 	return false;
 }
 
-function isPawnAThreat(pawnOriginSquare: IPiece, pawnThreatenedSquare: IPiece) {
+function isPawnAThreat(pawnOriginSquare: IPiece, pawnThreatenedSquare: IPiece): boolean {
 	//Pawns can only attack from side. If no col difference that means that pawn has vision on a square in front of it and therefore, is not a threat
 	if (colDiff(pawnOriginSquare, pawnThreatenedSquare, true) > 0) return true;
 	return false;
 }
 
-export function isKingInCheckAfterMove(move: IMove) {
+export function isKingInCheckAfterMove(move: IMove): boolean {
 	const store = useGameStore();
 
 	if (store.totalMoves < 0) return false; 
 
-	const kingColour = move.fromSquare.piece[PieceProps.COLOUR];
-	let tempBoard = JSON.parse(JSON.stringify(store.game.board));
+	const kingColour: string = move.fromSquare.piece[PieceProps.COLOUR];
+	let tempBoard: IPiece[][] = JSON.parse(JSON.stringify(store.game.board));
 
-	const { fromSquare, toSquare } = move;
+	const { fromSquare, toSquare }: IMove = move;
 	let fromRow: number = Math.trunc(fromSquare.id / rowAndColValue);
 	let fromColumn: number = fromSquare.id % rowAndColValue;
 
