@@ -2,17 +2,15 @@ import { flipBoard } from './board';
 import { findKingOnBoard, findPieceWithId, isIdWithinBounds } from './boardUtilities';
 import { getPathOfSquaresToPiece, piecesToSquare } from './moveUtilities';
 import { moveValidators, validKingMove } from './moveValidation';
-import { isKingInCheck, isValidEnPassant } from './specialPieceRules';
+import { isKingInCheck } from './specialPieceRules';
 import { useGameStore } from './state';
 import { AdjacentSquareIdOffsets, ChessPiece, PieceProps } from './staticValues';
 import { type IPiece, Move, type IMove, type moveBool } from './types';
 
-export function endTurn() {
+export function endTurn(): void {
 	const store = useGameStore();
 
 	store.totalMoves++;
-
-	const opponentKingColour = store.specialContainer.selectedPiece.piece[PieceProps.COLOUR] === ChessPiece.WHITE ? ChessPiece.BLACK : ChessPiece.WHITE;
 
 	store.toggleTurns();
 	store.unselectPiece();
@@ -22,8 +20,8 @@ export function endTurn() {
 export function isItCheckmate(kingColour: string): boolean {
 	const store = useGameStore();
 
-	const kingSquare = findKingOnBoard(kingColour, store.game.board);
-	const isInCheck = isKingInCheck(kingSquare, store.game.board);
+	const kingSquare: IPiece = findKingOnBoard(kingColour, store.game.board);
+	const isInCheck: boolean = isKingInCheck(kingSquare, store.game.board);
 
 	if (!isInCheck) return false;
 	if (canKingMove(kingSquare)) return false;
@@ -35,11 +33,11 @@ export function isItCheckmate(kingColour: string): boolean {
 function canKingMove(kingSquare: IPiece): boolean {
 	const store = useGameStore();
 
-	const possibleSquaresToMoveTo = getPossibleKingMoves(kingSquare.piece[PieceProps.COLOUR], store.game.board);
+	const possibleSquaresToMoveTo: IPiece[] = getPossibleKingMoves(kingSquare.piece[PieceProps.COLOUR], store.game.board);
 
 	const validMoves: boolean[] = [];
 	for (let checkedSquare = 0; checkedSquare < possibleSquaresToMoveTo.length; checkedSquare++) {
-		const square = possibleSquaresToMoveTo[checkedSquare];
+		const square: IPiece = possibleSquaresToMoveTo[checkedSquare];
 
 		if (validKingMove(new Move(kingSquare, square))) {
 			validMoves.push(true);
@@ -48,15 +46,15 @@ function canKingMove(kingSquare: IPiece): boolean {
 		}
 	}
 
-	const result = validMoves.some((isValidMove) => isValidMove === true);
+	const result: boolean = validMoves.some((isValidMove) => isValidMove === true);
 	return result;
 }
 
 function getPossibleKingMoves(kingColour: string, board: IPiece[][]): IPiece[] {
-	const opponentColour = kingColour === ChessPiece.WHITE ? ChessPiece.BLACK : ChessPiece.WHITE;
-	const kingSquare = findKingOnBoard(kingColour, board);
+	const opponentColour: string = kingColour === ChessPiece.WHITE ? ChessPiece.BLACK : ChessPiece.WHITE;
+	const kingSquare: IPiece = findKingOnBoard(kingColour, board);
 
-	const offsets = [
+	const offsets: number[] = [
 		AdjacentSquareIdOffsets.DOWN,
 		AdjacentSquareIdOffsets.DOWN_LEFT,
 		AdjacentSquareIdOffsets.DOWN_RIGHT,
@@ -70,10 +68,10 @@ function getPossibleKingMoves(kingColour: string, board: IPiece[][]): IPiece[] {
 	const emptySquares: IPiece[] = [];
 
 	offsets.forEach((id) => {
-		const testId = kingSquare.id + id;
+		const testId: number = kingSquare.id + id;
 
 		if (isIdWithinBounds(testId)) {
-			const foundSquare = findPieceWithId(testId, board);
+			const foundSquare: IPiece = findPieceWithId(testId, board);
 			if (foundSquare.piece === ChessPiece.EMPTY || foundSquare.piece[PieceProps.COLOUR] === opponentColour) emptySquares.push(foundSquare);
 		}
 	});
@@ -92,9 +90,9 @@ function canPiecePreventCheckmate(kingSquare: IPiece): boolean {
 
 	//Get potential moves that will prevent checkMate
 	squaresPuttingKingInCheck.forEach((attackSquare) => {
-		const path = getPathOfSquaresToPiece(kingSquare, attackSquare, true);
+		const path: IPiece[] = getPathOfSquaresToPiece(kingSquare, attackSquare, true);
 		path.forEach((squareOnPath) => {
-			const friendlyPiecesToSquare = piecesToSquare(squareOnPath, kingSquare.piece[PieceProps.COLOUR], store.game.board);
+			const friendlyPiecesToSquare: IPiece[] = piecesToSquare(squareOnPath, kingSquare.piece[PieceProps.COLOUR], store.game.board);
 			friendlyPiecesToSquare.forEach((friendlyPiece) => {
 				potentialPreventingCheckmateMoves.push(new Move(friendlyPiece, squareOnPath));
 			});
