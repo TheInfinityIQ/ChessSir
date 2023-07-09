@@ -1,4 +1,3 @@
-import { CastlingPiece } from './moveValidation';
 import {
 	CastlingPiecesId,
 	ChessPiece,
@@ -7,19 +6,16 @@ import {
 	PieceProps,
 	Direction,
 	endOfBoardId,
-	endRowValue,
 	rowAndColValue,
 	startOfBoardId,
-	startRowValue,
 	PawnValues,
 } from './staticValues';
-import { Move, type IMove, type IPiece, Piece } from './types';
+import { Move, type IMove, type IPiece } from './types';
 import { useGameStore } from './state';
-import { findKingOnBoard, findPieceWithId, isIdWithinBounds } from './boardUtilities';
+import { findPieceWithId } from './boardUtilities';
 import { rowDiff, colDiff } from './valueUtilities';
 
-//TODO: ADD TO STATE
-export const hasPieceMoved = new Map<number, boolean>([
+export const hasPieceMoved: Map<number, boolean> = new Map<number, boolean>([
 	[CastlingPiecesId.WHITE_ROOK_QUEENSIDE, false],
 	[CastlingPiecesId.WHITE_ROOK_KINGSIDE, false],
 	[CastlingPiecesId.BLACK_ROOK_QUEENSIDE, false],
@@ -28,12 +24,12 @@ export const hasPieceMoved = new Map<number, boolean>([
 	[CastlingPiecesId.BLACK_KING, false],
 ]);
 
-export function isMoreThanOneSquare(move: IMove) {
-	const fromSquare = move.fromSquare;
-	const toSquare = move.toSquare;
+export function isMoreThanOneSquare(move: IMove): boolean {
+	const fromSquare: IPiece = move.fromSquare;
+	const toSquare: IPiece = move.toSquare;
 
-	const rowDifference = Math.abs(Math.floor(fromSquare.id / rowAndColValue) - Math.floor(toSquare.id / rowAndColValue));
-	const colDifference = Math.abs((fromSquare.id % rowAndColValue) - (toSquare.id % rowAndColValue));
+	const rowDifference: number = Math.abs(Math.floor(fromSquare.id / rowAndColValue) - Math.floor(toSquare.id / rowAndColValue));
+	const colDifference: number = Math.abs((fromSquare.id % rowAndColValue) - (toSquare.id % rowAndColValue));
 
 	// Check if the move is more than one square away
 	if (rowDifference > 1 || colDifference > 1) {
@@ -43,7 +39,7 @@ export function isMoreThanOneSquare(move: IMove) {
 	return false;
 }
 
-export function determineDirectionType(move: IMove) {
+export function determineDirectionType(move: IMove): string | undefined {
 	const fromSquare = move.fromSquare;
 	const toSquare = move.toSquare;
 
@@ -71,13 +67,13 @@ export function determineDirectionType(move: IMove) {
 }
 
 export function determineOffset(move: IMove): number {
-	const { fromSquare, toSquare } = move;
+	const { fromSquare, toSquare }: IMove = move;
 
-	let result = AdjacentSquareIdOffsets.NO_OFFSET;
+	let result: number = AdjacentSquareIdOffsets.NO_OFFSET;
 
-	const dir = determineDirectionType(new Move(fromSquare, toSquare));
-	const rowDiffResult = rowDiff(fromSquare, toSquare);
-	const colDiffResult = colDiff(fromSquare, toSquare);
+	const dir: string | undefined = determineDirectionType(new Move(fromSquare, toSquare));
+	const rowDiffResult: number = rowDiff(fromSquare, toSquare);
+	const colDiffResult: number = colDiff(fromSquare, toSquare);
 
 	switch (dir) {
 		case Direction.DIAGONAL:
@@ -114,7 +110,7 @@ export function determineOffset(move: IMove): number {
 	return result;
 }
 
-export function isFriendlyPiece(friendlyColour: string, toSquareId: number) {
+export function isFriendlyPiece(friendlyColour: string, toSquareId: number): boolean {
 	const store = useGameStore();
 	const toPiece: string = findPieceWithId(toSquareId, store.game.board).piece;
 
@@ -125,37 +121,35 @@ export function isFriendlyPiece(friendlyColour: string, toSquareId: number) {
 
 export function piecesToSquare(targetSquare: IPiece, targetColour: string, board: IPiece[][]): IPiece[] {
 	const squareContainer: IPiece[] = [];
-	const store = useGameStore();
 
 	squareContainer.push(
 		...knightsToTargetSquare(targetSquare, targetColour),
 		...diagonalToTargetSquare(targetSquare, targetColour),
-		...pawnToTargetSquare(targetSquare, targetColour),
+		...pawnsToTargetSquare(targetSquare, targetColour),
 		...straightsToTargetSquare(targetSquare, targetColour),
-		...pawnToTargetSquare(targetSquare, targetColour)
+		...pawnsToTargetSquare(targetSquare, targetColour)
 	);
 
 	return squareContainer;
 
-	function knightsToTargetSquare(targetSquare: IPiece, targetColour: string) {
-		const store = useGameStore();
+	function knightsToTargetSquare(targetSquare: IPiece, targetColour: string): IPiece[] {
 		const squareContainer: IPiece[] = [];
 
-		const startingRow = Math.floor(targetSquare.id / rowAndColValue);
-		const startingCol = Math.floor(targetSquare.id % rowAndColValue);
+		const startingRow: number = Math.floor(targetSquare.id / rowAndColValue);
+		const startingCol: number = Math.floor(targetSquare.id % rowAndColValue);
 
 		for (const key in KnightMoveOffsets) {
-			const offset = KnightMoveOffsets[key as keyof typeof KnightMoveOffsets];
-			const testId = offset + targetSquare.id;
-			const maxKnightRowOrColDiff = 2;
+			const offset: number = KnightMoveOffsets[key as keyof typeof KnightMoveOffsets];
+			const testId: number = offset + targetSquare.id;
+			const maxKnightRowOrColDiff: number = 2;
 
-			let rowDiff = Math.abs(startingRow - Math.floor(testId / rowAndColValue));
-			let colDiff = Math.abs(startingCol - Math.floor(testId % rowAndColValue));
+			let rowDiff: number = Math.abs(startingRow - Math.floor(testId / rowAndColValue));
+			let colDiff: number = Math.abs(startingCol - Math.floor(testId % rowAndColValue));
 
 			if (rowDiff > maxKnightRowOrColDiff || colDiff > maxKnightRowOrColDiff) continue;
 
 			if (testId > startOfBoardId && testId < endOfBoardId) {
-				const foundSquare = findPieceWithId(testId, board);
+				const foundSquare: IPiece = findPieceWithId(testId, board);
 				if (foundSquare.piece === targetColour + ChessPiece.KNIGHT) {
 					squareContainer.push(foundSquare);
 				}
@@ -165,16 +159,15 @@ export function piecesToSquare(targetSquare: IPiece, targetColour: string, board
 		return squareContainer;
 	}
 
-	function pawnToTargetSquare(targetSquare: IPiece, targetColour: string) {
-		const store = useGameStore();
+	function pawnsToTargetSquare(targetSquare: IPiece, targetColour: string): IPiece[] {
 
 		const squareContainer: IPiece[] = [];
-		const targetCol = targetSquare.id % rowAndColValue;
+		const targetCol: number = targetSquare.id % rowAndColValue;
 
-		const nonTargetColour = targetColour === ChessPiece.WHITE ? ChessPiece.BLACK : ChessPiece.WHITE;
+		const nonTargetColour: string = targetColour === ChessPiece.WHITE ? ChessPiece.BLACK : ChessPiece.WHITE;
 
 		//Pawn
-		const PawnOffset =
+		const PawnOffset: number[] =
 			targetColour === ChessPiece.WHITE
 				? [
 						AdjacentSquareIdOffsets.DOWN_LEFT,
@@ -191,19 +184,19 @@ export function piecesToSquare(targetSquare: IPiece, targetColour: string, board
 						AdjacentSquareIdOffsets.NO_OFFSET,
 				  ];
 
-		const pawnStartRow = targetColour === ChessPiece.WHITE ? PawnValues.WHITE_PAWN_START : PawnValues.BLACK_PAWN_START;
-		const doubleMove = targetColour === ChessPiece.WHITE ? PawnValues.DOWN_DOUBLE_MOVE_OFFSET : PawnValues.UP_DOUBLE_MOVE_OFFSET;
-		const singleMove = targetColour === ChessPiece.WHITE ? AdjacentSquareIdOffsets.DOWN : AdjacentSquareIdOffsets.UP;
-		const attackOne = targetColour === ChessPiece.WHITE ? AdjacentSquareIdOffsets.DOWN_LEFT : AdjacentSquareIdOffsets.UP_LEFT;
-		const attackTwo = targetColour === ChessPiece.WHITE ? AdjacentSquareIdOffsets.DOWN_RIGHT : AdjacentSquareIdOffsets.UP_RIGHT;
+		const pawnStartRow: number = targetColour === ChessPiece.WHITE ? PawnValues.WHITE_PAWN_START : PawnValues.BLACK_PAWN_START;
+		const doubleMove: number = targetColour === ChessPiece.WHITE ? PawnValues.DOWN_DOUBLE_MOVE_OFFSET : PawnValues.UP_DOUBLE_MOVE_OFFSET;
+		const singleMove: number = targetColour === ChessPiece.WHITE ? AdjacentSquareIdOffsets.DOWN : AdjacentSquareIdOffsets.UP;
+		const attackOne: number = targetColour === ChessPiece.WHITE ? AdjacentSquareIdOffsets.DOWN_LEFT : AdjacentSquareIdOffsets.UP_LEFT;
+		const attackTwo: number = targetColour === ChessPiece.WHITE ? AdjacentSquareIdOffsets.DOWN_RIGHT : AdjacentSquareIdOffsets.UP_RIGHT;
 
 		for (const offset of PawnOffset) {
 			const testId: number = offset + targetSquare.id;
 
 			if (testId > startOfBoardId && testId < endOfBoardId) {
-				const foundSquare = findPieceWithId(testId, board);
+				const foundSquare: IPiece = findPieceWithId(testId, board);
 
-				const colDiff = Math.abs(targetCol - (testId % rowAndColValue));
+				const colDiff: number = Math.abs(targetCol - (testId % rowAndColValue));
 
 				if (foundSquare.piece === targetColour + ChessPiece.PAWN) {
 					//Avoids it from increasing offset that will make it jump from various sides of the board instead of drawing line.
@@ -237,29 +230,28 @@ export function piecesToSquare(targetSquare: IPiece, targetColour: string, board
 		return squareContainer;
 	}
 
-	function diagonalToTargetSquare(targetSquare: IPiece, targetColour: string) {
-		const store = useGameStore();
+	function diagonalToTargetSquare(targetSquare: IPiece, targetColour: string): IPiece[] {
 
-		const nonTargetColour = targetColour === ChessPiece.WHITE ? ChessPiece.BLACK : ChessPiece.WHITE;
+		const nonTargetColour: string = targetColour === ChessPiece.WHITE ? ChessPiece.BLACK : ChessPiece.WHITE;
 		const squareContainer: IPiece[] = [];
 
-		const Diagonal = [AdjacentSquareIdOffsets.DOWN_LEFT, AdjacentSquareIdOffsets.DOWN_RIGHT, AdjacentSquareIdOffsets.UP_LEFT, AdjacentSquareIdOffsets.UP_RIGHT];
+		const Diagonal: number[] = [AdjacentSquareIdOffsets.DOWN_LEFT, AdjacentSquareIdOffsets.DOWN_RIGHT, AdjacentSquareIdOffsets.UP_LEFT, AdjacentSquareIdOffsets.UP_RIGHT];
 
-		const startingRow = Math.floor(targetSquare.id / rowAndColValue);
-		const startingCol = Math.floor(targetSquare.id % rowAndColValue);
+		const startingRow: number = Math.floor(targetSquare.id / rowAndColValue);
+		const startingCol: number = Math.floor(targetSquare.id % rowAndColValue);
 
 		for (const offset of Diagonal) {
 			let squaresAway: number = 1;
 			let testId: number = offset + targetSquare.id;
 
 			while (testId >= startOfBoardId && testId <= endOfBoardId) {
-				const rowDiff = Math.abs(startingRow - Math.floor(testId / rowAndColValue));
-				const colDiff = Math.abs(startingCol - (testId % rowAndColValue));
+				const rowDiff: number = Math.abs(startingRow - Math.floor(testId / rowAndColValue));
+				const colDiff: number = Math.abs(startingCol - (testId % rowAndColValue));
 
 				//Avoids it from increasing offset that will make it jump from various sides of the board instead of drawing line.
 				if (rowDiff > squaresAway || colDiff > squaresAway) break;
 
-				const foundSquare = findPieceWithId(testId, board);
+				const foundSquare: IPiece = findPieceWithId(testId, board);
 
 				//Pieces to Ignore
 				if (
@@ -282,8 +274,7 @@ export function piecesToSquare(targetSquare: IPiece, targetColour: string, board
 		return squareContainer;
 	}
 
-	function straightsToTargetSquare(targetSquare: IPiece, targetColour: string) {
-		const store = useGameStore();
+	function straightsToTargetSquare(targetSquare: IPiece, targetColour: string): IPiece[] {
 
 		const nonTargetColour = targetColour === ChessPiece.WHITE ? ChessPiece.BLACK : ChessPiece.WHITE;
 		const squareContainer: IPiece[] = [];
@@ -298,13 +289,13 @@ export function piecesToSquare(targetSquare: IPiece, targetColour: string, board
 			let testId: number = offset + targetSquare.id;
 
 			while (testId >= startOfBoardId && testId <= endOfBoardId) {
-				const rowDiff = Math.abs(startingRow - Math.floor(testId / rowAndColValue));
-				const colDiff = Math.abs(startingCol - (testId % rowAndColValue));
+				const rowDiff: number = Math.abs(startingRow - Math.floor(testId / rowAndColValue));
+				const colDiff: number = Math.abs(startingCol - (testId % rowAndColValue));
 
 				//Avoids it from increasing offset that will make it jump from various sides of the board instead of drawing line.
 				if (rowDiff > squaresAway || colDiff > squaresAway) break;
 
-				const foundSquare = findPieceWithId(testId, board);
+				const foundSquare: IPiece = findPieceWithId(testId, board);
 
 				//Pieces to Ignore
 				if (
@@ -338,8 +329,8 @@ export function getPathOfSquaresToPiece(fromSquare: IPiece, toSquare: IPiece, in
 	}
 	// Given the path a piece will be using to put the
 	const offset: number = determineOffset(new Move(fromSquare, toSquare));
-	const rowDiffResult = rowDiff(fromSquare, toSquare, true);
-	const colDiffResult = colDiff(fromSquare, toSquare, true);
+	const rowDiffResult: number = rowDiff(fromSquare, toSquare, true);
+	const colDiffResult: number = colDiff(fromSquare, toSquare, true);
 	
 	const path: IPiece[] = [];
 	
@@ -349,7 +340,7 @@ export function getPathOfSquaresToPiece(fromSquare: IPiece, toSquare: IPiece, in
 	const iterations = Math.max(rowDiffResult, colDiffResult);
 
 	for (let squaresAway = 1; squaresAway < iterations + finalSquare; squaresAway++) {
-		const testId = fromSquare.id + offset * squaresAway;
+		const testId: number = fromSquare.id + offset * squaresAway;
 
 		path.push(findPieceWithId(testId, store.game.board));
 	}
@@ -357,7 +348,7 @@ export function getPathOfSquaresToPiece(fromSquare: IPiece, toSquare: IPiece, in
 	return path;
 }
 
-export function isJumpingPiece(move: IMove) {
+export function isJumpingPiece(move: IMove): boolean {
 	const d = determineDirectionType(move);
 
 	if (d === Direction.DIAGONAL) {
@@ -376,23 +367,23 @@ export function isJumpingPiece(move: IMove) {
 	return true;
 }
 
-export function jumpingPieceOnDiagonal(move: Move) {
+export function jumpingPieceOnDiagonal(move: IMove): boolean {
 	const store = useGameStore();
-	const fromSquare = move.fromSquare;
-	const toSquare = move.toSquare;
+	const fromSquare: IPiece = move.fromSquare;
+	const toSquare: IPiece = move.toSquare;
 
-	let startId = Math.min(fromSquare.id, toSquare.id);
-	let endId = Math.max(fromSquare.id, toSquare.id);
+	let startId: number = Math.min(fromSquare.id, toSquare.id);
+	let endId: number = Math.max(fromSquare.id, toSquare.id);
 
-	const rowDiff = Math.abs(Math.floor(fromSquare.id / rowAndColValue) - Math.floor(toSquare.id / rowAndColValue));
-	const colDiff = Math.abs((fromSquare.id % rowAndColValue) - (toSquare.id % rowAndColValue));
+	const rowDiff: number = Math.abs(Math.floor(fromSquare.id / rowAndColValue) - Math.floor(toSquare.id / rowAndColValue));
+	const colDiff: number = Math.abs((fromSquare.id % rowAndColValue) - (toSquare.id % rowAndColValue));
 
 	if (rowDiff !== colDiff) {
 		// The move is not diagonal
 		return false;
 	}
 
-	let step = rowDiff === colDiff ? 9 : 7;
+	let step: number = rowDiff === colDiff ? 9 : 7;
 
 	// Check if the move is up and left or down and right
 	if (
@@ -406,7 +397,7 @@ export function jumpingPieceOnDiagonal(move: Move) {
 	startId += step;
 
 	for (let id = startId; id < endId; id += step) {
-		const square = findPieceWithId(id, store.game.board);
+		const square: IPiece = findPieceWithId(id, store.game.board);
 		if (square.piece !== ChessPiece.EMPTY) {
 			return true;
 		}
@@ -415,14 +406,14 @@ export function jumpingPieceOnDiagonal(move: Move) {
 	return false;
 }
 
-export function jumpingPieceOnStraight(move: IMove, direction: Direction) {
+export function jumpingPieceOnStraight(move: IMove, direction: Direction): boolean {
 	const store = useGameStore();
-	const fromSquare = move.fromSquare;
-	const toSquare = move.toSquare;
+	const fromSquare: IPiece = move.fromSquare;
+	const toSquare: IPiece = move.toSquare;
 
-	let startId = Math.min(fromSquare.id, toSquare.id);
-	let endId = Math.max(fromSquare.id, toSquare.id);
-	let step;
+	let startId: number = Math.min(fromSquare.id, toSquare.id);
+	let endId: number = Math.max(fromSquare.id, toSquare.id);
+	let step: number;
 
 	if (direction === Direction.HORIZONTAL) {
 		step = 1;
@@ -434,7 +425,7 @@ export function jumpingPieceOnStraight(move: IMove, direction: Direction) {
 	startId += step;
 
 	for (let id = startId; id < endId; id += step) {
-		const square = findPieceWithId(id, store.game.board);
+		const square: IPiece = findPieceWithId(id, store.game.board);
 		if (square.piece !== ChessPiece.EMPTY) {
 			return true;
 		}
