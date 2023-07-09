@@ -1,5 +1,5 @@
 import { useGameStore } from './state';
-import { rowAndColValue, initBoard, startRowValue, endOfBoardId, startOfBoardId } from './staticValues';
+import { rowAndColValue, initBoard, endOfBoardId, startOfBoardId } from './staticValues';
 import { Piece, type IPiece } from './types';
 
 export function getSquares(): IPiece[] {
